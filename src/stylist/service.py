@@ -229,8 +229,13 @@ class RecommendationService:
         inflight = self._plan_inflight.get(key)
         joined_existing = inflight is not None
         if inflight is None:
+            # the shared call gets its own, longer timeout: a request only WAITS for
+            # `budget`, but a plan that outlives every waiter still completes in the
+            # background and lands in the cache for the next request (the fast profile
+            # runs with a 0.35 s wait and a 20 s call timeout for exactly this reason)
+            call_timeout = max(self.settings.planner_call_timeout_s, budget)
             inflight = asyncio.ensure_future(
-                self.llm_planner.plan(query, timeout=budget)  # type: ignore[union-attr]
+                self.llm_planner.plan(query, timeout=call_timeout)  # type: ignore[union-attr]
             )
             self._plan_inflight[key] = inflight
             inflight.add_done_callback(lambda _f: self._plan_inflight.pop(key, None))

@@ -248,3 +248,29 @@ async def test_semantic_hit_is_refused_when_budget_or_audience_differ(fixture_in
         assert len(calls) == 3
     finally:
         svc.close()
+
+
+async def test_shared_planner_call_outlives_the_waiters_budget(fixture_index, hash_embedder):
+    seen = {}
+
+    class Recorder:
+        provider = "fake"
+        model = "fake"
+
+        async def complete_json(self, *, system, user, schema, max_tokens=2000, timeout=30.0):
+            seen["timeout"] = timeout
+            return PlannerOutput(intent="x", slots=[{"name": "a", "search_query": "boots"}])
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.7", "PLANNER_CALL_TIMEOUT_S": "20"}
+        ),
+        llm=Recorder(),
+    )
+    try:
+        await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+        assert seen["timeout"] == 20.0  # the call runs on its own clock, not the waiter's
+    finally:
+        svc.close()

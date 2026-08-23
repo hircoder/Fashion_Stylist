@@ -101,7 +101,8 @@ class Settings:
 
     # deadlines (seconds)
     request_deadline_s: float
-    planner_budget_s: float
+    planner_budget_s: float  # how long a request WAITS for the plan
+    planner_call_timeout_s: float  # how long the shared planner call itself may run
     rerank_budget_s: float
 
     # ranking knobs
@@ -229,6 +230,7 @@ class Settings:
             llm_effort=_get_str(env, "LLM_EFFORT", "low"),
             request_deadline_s=_get_float(env, "REQUEST_DEADLINE_S", 40.0),
             planner_budget_s=_get_float(env, "PLANNER_BUDGET_S", 15.0),
+            planner_call_timeout_s=_get_float(env, "PLANNER_CALL_TIMEOUT_S", 20.0),
             rerank_budget_s=_get_float(env, "RERANK_BUDGET_S", 20.0),
             channels=tuple(
                 c.strip().lower()
@@ -270,6 +272,7 @@ class Settings:
         positive = {
             "request_deadline_s": self.request_deadline_s,
             "planner_budget_s": self.planner_budget_s,
+            "planner_call_timeout_s": self.planner_call_timeout_s,
             "rerank_budget_s": self.rerank_budget_s,
             "top_n_per_channel": self.top_n_per_channel,
             "rrf_k": self.rrf_k,
