@@ -82,7 +82,10 @@ class SentenceTransformerEmbedder:
         self._model = SentenceTransformer(model_name, revision=revision, device=device)
         self._model.max_seq_length = max_seq_length
         self.max_seq_length = max_seq_length
-        self.dim = int(self._model.get_sentence_embedding_dimension())
+        getter = getattr(self._model, "get_embedding_dimension", None) or (
+            self._model.get_sentence_embedding_dimension  # sentence-transformers < 6
+        )
+        self.dim = int(getter())
         self.query_prefix = BGE_QUERY_PREFIX if "bge" in model_name.lower() else ""
 
     def encode_docs(self, texts: list[str], batch_size: int = 128) -> np.ndarray:
