@@ -33,3 +33,19 @@ def fixture_index(tmp_path_factory, fixture_catalog, hash_embedder):
     index_dir = tmp_path_factory.mktemp("index") / "index"
     build_index(fixture_catalog, index_dir, hash_embedder, limit=None, sampling="all")
     return SearchIndex.load(index_dir)
+
+
+@pytest.fixture(scope="session")
+def index_tar(tmp_path_factory, fixture_catalog, hash_embedder):
+    """A 40 row index packed the way a deployment ships it, plus its sha256."""
+    import hashlib
+    import tarfile
+
+    from stylist.index import build_index
+
+    root = tmp_path_factory.mktemp("src")
+    build_index(fixture_catalog, root / "index", hash_embedder, limit=40, sampling="popular")
+    tar_path = root / "index.tar.gz"
+    with tarfile.open(tar_path, "w:gz") as tar:
+        tar.add(root / "index", arcname="index")
+    return tar_path, hashlib.sha256(tar_path.read_bytes()).hexdigest()

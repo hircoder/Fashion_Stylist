@@ -245,8 +245,6 @@ class Settings:
             "max_seq_length": self.max_seq_length,
             "index_max_bytes": self.index_max_bytes,
             "llm_concurrency": self.llm_concurrency,
-            "rate_limit_per_minute": self.rate_limit_per_minute,
-            "max_inflight_requests": self.max_inflight_requests,
             "max_body_bytes": self.max_body_bytes,
         }
         for name, value in positive.items():
@@ -257,10 +255,27 @@ class Settings:
             "quality_weight": self.quality_weight,
             "plan_cache_size": self.plan_cache_size,
             "planner_failure_ttl_s": self.planner_failure_ttl_s,
+            "rate_limit_per_minute": self.rate_limit_per_minute,  # 0 = off
+            "max_inflight_requests": self.max_inflight_requests,  # 0 = no cap
         }.items():
             if not math.isfinite(value) or value < 0:
                 raise ConfigError(f"{name.upper()} must be finite and >= 0, got {value}")
+        if self.log_level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+            raise ConfigError(
+                f"LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR or CRITICAL, got {self.log_level}"
+            )
         if not self.channels or any(c not in ("dense", "bm25") for c in self.channels):
             raise ConfigError("CHANNELS must be a comma list drawn from: dense, bm25")
         if self.llm_effort and self.llm_effort not in ("low", "medium", "high"):
             raise ConfigError("LLM_EFFORT must be low, medium or high")
+
+
+def configure_logging(level: str) -> None:
+    """One logging setup shared by the CLI and the API factory (idempotent)."""
+    import logging
+
+    root = logging.getLogger()
+    if root.handlers:
+        root.setLevel(level)
+        return
+    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(name)s: %(message)s")

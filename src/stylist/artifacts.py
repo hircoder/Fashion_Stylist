@@ -6,28 +6,42 @@ once locally (`make index`), publish `index.tar.gz` somewhere reachable, and set
 INDEX_URL + INDEX_SHA256. On boot, if data/index is missing, this module installs it.
 
 Safety rules, since the archive comes from the network:
-  * lock first, then re-check (another worker may have installed it already)
+  * only http(s) urls (file:// needs INDEX_ALLOW_FILE_URL, for tests and local dev);
+    redirects are checked with the same rule
+  * lock first, then re-check (another worker may have installed it already); the lock
+    file is never removed, so two workers can never hold locks on different inodes
   * stream to a temp file next to the destination, enforce a size cap, verify sha256
-  * extract only regular files / dirs with safe relative paths (tarfile "data" filter
-    plus our own checks), never links or devices
+  * extract only regular files / dirs with safe relative paths, a member count cap, a
+    depth cap, no duplicates, only the file types an index contains, fixed permissions
   * verify the index checksums, then one atomic rename into place
 """
 
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import logging
 import os
 import shutil
 import tarfile
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - windows
+    fcntl = None  # type: ignore[assignment]
 
 from stylist.config import Settings
 from stylist.index import IndexMeta, IndexValidationError, sha256_file, verify_checksums
 
 log = logging.getLogger(__name__)
+
+
+ALLOWED_SUFFIXES = {".json", ".npy", ".parquet"}  # everything an index directory holds
+MAX_MEMBERS = 2000
+MAX_DEPTH = 6
 
 
 class ArtifactError(RuntimeError):
@@ -37,17 +51,56 @@ class ArtifactError(RuntimeError):
 @contextlib.contextmanager
 def _file_lock(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as fh:
-        fcntl.flock(fh, fcntl.LOCK_EX)
+    with open(path, "a") as fh:  # append mode: never truncates another holder's file
+        if fcntl is not None:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+        else:
+            log.warning("no fcntl on this platform, index install is not locked")
         try:
             yield
         finally:
-            fcntl.flock(fh, fcntl.LOCK_UN)
+            if fcntl is not None:
+                fcntl.flock(fh, fcntl.LOCK_UN)
 
 
-def _download(url: str, out: Path, max_bytes: int) -> None:
+def check_url(url: str, allow_file: bool) -> None:
+    """Only http(s) may fetch an index; file:// needs the explicit opt-in."""
+    scheme = urllib.parse.urlsplit(url).scheme.lower()
+    if scheme in ("http", "https"):
+        return
+    if scheme == "file":
+        if allow_file:
+            return
+        raise ArtifactError("INDEX_URL is a file:// url, set INDEX_ALLOW_FILE_URL=1 to allow it")
+    raise ArtifactError(f"INDEX_URL has an unsupported scheme {scheme!r} (use https)")
+
+
+class _RedirectGuard(urllib.request.HTTPRedirectHandler):
+    """Redirect targets get the same scheme check as the original url."""
+
+    def __init__(self, allow_file: bool):
+        super().__init__()
+        self.allow_file = allow_file
+
+    def check(self, newurl: str) -> None:
+        scheme = urllib.parse.urlsplit(newurl).scheme.lower()
+        if scheme not in ("http", "https"):  # a redirect may never land on a local file
+            raise ArtifactError(f"redirect to an unsupported scheme {scheme!r} refused")
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        self.check(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _download(url: str, out: Path, max_bytes: int, allow_file: bool = False) -> None:
+    check_url(url, allow_file)
+    opener = urllib.request.build_opener(_RedirectGuard(allow_file))
     done = 0
-    with urllib.request.urlopen(url, timeout=120) as resp, open(out, "wb") as f:  # noqa: S310
+    try:
+        resp = opener.open(url, timeout=120)  # noqa: S310 - scheme checked above
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        raise ArtifactError(f"cannot download the index archive: {exc}") from exc
+    with resp, open(out, "wb") as f:
         total = int(resp.headers.get("Content-Length") or 0)
         if total > max_bytes:
             raise ArtifactError(f"index archive is {total} bytes, above INDEX_MAX_BYTES")
@@ -66,23 +119,37 @@ def _check_member(member: tarfile.TarInfo) -> None:
     if name.startswith("/") or name.startswith("\\") or os.path.isabs(name):
         raise ArtifactError(f"archive member with absolute path: {name}")
     parts = Path(name).parts
-    if ".." in parts:
+    if ".." in parts or any(p.startswith("~") for p in parts):
         raise ArtifactError(f"archive member escapes the target directory: {name}")
+    if len(parts) > MAX_DEPTH:
+        raise ArtifactError(f"archive member nested too deep ({len(parts)} levels): {name}")
     if not (member.isfile() or member.isdir()):
         raise ArtifactError(f"archive member is not a regular file or directory: {name}")
+    if member.isfile() and Path(name).suffix.lower() not in ALLOWED_SUFFIXES:
+        raise ArtifactError(f"archive member has an unexpected file type: {name}")
 
 
-def safe_extract(tar_path: Path, dest: Path, max_bytes: int) -> None:
+def safe_extract(
+    tar_path: Path, dest: Path, max_bytes: int, max_members: int = MAX_MEMBERS
+) -> None:
     """Extract into `dest` (created fresh). Only regular files and directories with safe
-    relative paths; the size cap counts bytes actually written, not declared sizes."""
+    relative paths; the size cap counts bytes actually written, not declared sizes;
+    permissions come from us (0644 / 0755), never from the archive."""
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     written = 0
+    seen: set[str] = set()
     try:
         with tarfile.open(tar_path, "r:*") as tar:
-            for member in tar:
+            for count, member in enumerate(tar, 1):
+                if count > max_members:
+                    raise ArtifactError(f"archive has more than {max_members} members")
                 _check_member(member)
+                norm = os.path.normpath(member.name)
+                if norm in seen:
+                    raise ArtifactError(f"archive lists {member.name} twice")
+                seen.add(norm)
                 target = (dest / member.name).resolve()
                 if dest.resolve() not in target.parents and target != dest.resolve():
                     raise ArtifactError(
@@ -90,6 +157,7 @@ def safe_extract(tar_path: Path, dest: Path, max_bytes: int) -> None:
                     )
                 if member.isdir():
                     target.mkdir(parents=True, exist_ok=True)
+                    os.chmod(target, 0o755)
                     continue
                 src = tar.extractfile(member)
                 if src is None:
@@ -106,6 +174,7 @@ def safe_extract(tar_path: Path, dest: Path, max_bytes: int) -> None:
                                 f"extracted size exceeds INDEX_MAX_BYTES ({max_bytes} bytes)"
                             )
                         out.write(chunk)
+                os.chmod(target, 0o644)
     except (tarfile.TarError, OSError) as exc:
         shutil.rmtree(dest, ignore_errors=True)
         raise ArtifactError(f"cannot extract {tar_path.name}: {exc}") from exc
@@ -140,7 +209,10 @@ def index_is_valid(index_dir: Path) -> bool:
     return True
 
 
-def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> None:
+def install_index(
+    url: str, sha256: str, index_dir: Path, max_bytes: int, allow_file: bool = False
+) -> None:
+    check_url(url, allow_file)
     parent = index_dir.parent
     parent.mkdir(parents=True, exist_ok=True)
     lock = parent / f".{index_dir.name}.lock"
@@ -159,7 +231,7 @@ def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> Non
         tmp_dir = parent / f".{index_dir.name}.{pid}.extract"
         try:
             log.info("downloading index from %s", url)
-            _download(url, tmp_tar, max_bytes)
+            _download(url, tmp_tar, max_bytes, allow_file)
             got = sha256_file(tmp_tar)
             if got.lower() != sha256.lower():
                 raise ArtifactError(f"index archive sha256 mismatch: got {got[:12]}...")
@@ -171,7 +243,7 @@ def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> Non
         finally:
             tmp_tar.unlink(missing_ok=True)
             shutil.rmtree(tmp_dir, ignore_errors=True)
-    lock.unlink(missing_ok=True)
+    # the lock file stays: removing it would let a late worker lock a fresh inode
 
 
 def ensure_index(settings: Settings) -> None:
@@ -183,4 +255,10 @@ def ensure_index(settings: Settings) -> None:
         return
     if not settings.index_sha256:
         raise ArtifactError("INDEX_SHA256 must be set together with INDEX_URL")
-    install_index(settings.index_url, settings.index_sha256, index_dir, settings.index_max_bytes)
+    install_index(
+        settings.index_url,
+        settings.index_sha256,
+        index_dir,
+        settings.index_max_bytes,
+        allow_file=settings.index_allow_file_url,
+    )

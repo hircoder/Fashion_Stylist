@@ -6,7 +6,11 @@ The index is loaded once at startup. If loading fails the process still starts (
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import re
+import time
+from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -18,7 +22,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from stylist import __version__
-from stylist.config import Settings
+from stylist.artifacts import ArtifactError
+from stylist.config import ConfigError, Settings, configure_logging
 from stylist.embeddings import make_embedder
 from stylist.index import IndexValidationError, SearchIndex
 from stylist.llm import make_llm_client
@@ -39,16 +44,34 @@ per slot inside the price/audience constraints, and the LLM reranks and explains
 """
 
 
-def _scrub(text: str) -> str:
-    """Strip local filesystem paths out of text that goes to a client."""
-    import re
+_RX_PATH = re.compile(r"(/[\w.\-]+){2,}")
+_RX_SECRET = re.compile(
+    r"(sk-[A-Za-z0-9_\-]{8,}|(?i:api[_-]?key|token|secret|password)\s*[=:]\s*\S+)"
+)
 
-    return re.sub(r"(/[\w.\-]+){2,}", "<path>", text)[:300]
+
+def _scrub(text: str) -> str:
+    """Strip local filesystem paths and anything that looks like a credential out of text
+    that goes to a client."""
+    text = _RX_SECRET.sub("<redacted>", text)
+    return _RX_PATH.sub("<path>", text)[:300]
 
 
 def _public_error(exc: Exception) -> str:
     """Error text safe to show to any client: class name + message without local paths."""
     return f"{type(exc).__name__}: {_scrub(str(exc))}"
+
+
+def _startup_error(exc: Exception) -> str:
+    """A curated sentence for /health and /ready. The full exception goes to the log only:
+    startup failures quote paths, urls and sometimes configuration values."""
+    if isinstance(exc, IndexValidationError):
+        return f"index problem: {_scrub(str(exc))} (build it with make index, or set INDEX_URL)"
+    if isinstance(exc, ArtifactError):
+        return "index download or install failed; check INDEX_URL, INDEX_SHA256 and the logs"
+    if isinstance(exc, ConfigError):
+        return "configuration error, see the server logs"
+    return f"startup failed ({type(exc).__name__}), see the server logs"
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -88,12 +111,102 @@ def build_service(settings: Settings) -> RecommendationService:
     return RecommendationService(index, embedder, settings, llm)
 
 
+class _TokenBucket:
+    """Per-client token bucket: `rate` requests per minute with the same burst size.
+    Buckets are kept for the most recent clients only (bounded memory)."""
+
+    def __init__(self, per_minute: int, max_clients: int = 10_000):
+        self.rate = per_minute / 60.0
+        self.burst = float(per_minute)
+        self.max_clients = max_clients
+        self._buckets: OrderedDict[str, tuple[float, float]] = OrderedDict()
+
+    def allow(self, key: str, now: float | None = None) -> tuple[bool, float]:
+        """(allowed, seconds until the next token)."""
+        now = time.monotonic() if now is None else now
+        tokens, last = self._buckets.pop(key, (self.burst, now))
+        tokens = min(self.burst, tokens + (now - last) * self.rate)
+        allowed = tokens >= 1.0
+        if allowed:
+            tokens -= 1.0
+        self._buckets[key] = (tokens, now)
+        while len(self._buckets) > self.max_clients:
+            self._buckets.popitem(last=False)
+        return allowed, (0.0 if allowed else (1.0 - tokens) / self.rate)
+
+
+def _client_ip(request: Request) -> str:
+    # Railway / most proxies set x-forwarded-for; the first entry is the client
+    fwd = request.headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()[:64]
+    return request.client.host if request.client else "unknown"
+
+
+class _BodyLimit:
+    """Pure ASGI middleware: 413 for request bodies above `max_bytes`. Content-Length is
+    checked first; chunked bodies are buffered up to the cap (request bodies here are a
+    few hundred bytes of json)."""
+
+    def __init__(self, app, max_bytes: int):
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope.get("method") not in ("POST", "PUT", "PATCH"):
+            return await self.app(scope, receive, send)
+        headers = dict(scope.get("headers") or [])
+        length = headers.get(b"content-length")
+        if length is not None and length.isdigit() and int(length) > self.max_bytes:
+            return await self._reject(send)
+        body = b""
+        more = True
+        while more:
+            message = await receive()
+            if message["type"] != "http.request":
+                return await self.app(scope, receive, send)  # disconnect
+            body += message.get("body", b"")
+            more = message.get("more_body", False)
+            if len(body) > self.max_bytes:
+                return await self._reject(send)
+        replayed = False
+
+        async def replay():
+            nonlocal replayed
+            if replayed:
+                return await receive()
+            replayed = True
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        return await self.app(scope, replay, send)
+
+    async def _reject(self, send):
+        body = (
+            ErrorBody(
+                error={
+                    "code": "payload_too_large",
+                    "message": f"request body above {self.max_bytes} bytes",
+                }  # type: ignore[arg-type]
+            )
+            .model_dump_json()
+            .encode()
+        )
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 413,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(body)).encode()),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": body})
+
+
 def create_app(settings: Settings | None = None, *, service: RecommendationService | None = None):
     settings = settings or Settings.from_env()
-    logging.basicConfig(
-        level=settings.log_level,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
+    configure_logging(settings.log_level)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -104,7 +217,9 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
                 app.state.service = build_service(settings)
             except Exception as exc:  # noqa: BLE001 - anything here must keep /health alive
                 log.exception("service failed to start")
-                app.state.load_error = _public_error(exc)
+                app.state.load_error = _startup_error(exc)
+                if settings.startup_fail_fast:
+                    raise
         yield
 
     app = FastAPI(
@@ -113,8 +228,21 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
         description=DESCRIPTION,
         lifespan=lifespan,
     )
-    app.add_middleware(
-        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+    if settings.cors_allow_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(settings.cors_allow_origins),
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["content-type"],
+        )
+    app.add_middleware(_BodyLimit, max_bytes=settings.max_body_bytes)
+    bucket = (
+        _TokenBucket(settings.rate_limit_per_minute) if settings.rate_limit_per_minute else None
+    )
+    inflight = (
+        asyncio.Semaphore(settings.max_inflight_requests)
+        if settings.max_inflight_requests
+        else None
     )
 
     @app.exception_handler(RequestValidationError)
@@ -154,13 +282,28 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
         tags=["recommend"],
         summary="Recommend products for a natural-language request",
         responses={
+            413: {"model": ErrorBody},
             422: {"model": ErrorBody},
+            429: {"model": ErrorBody},
             503: {"model": ErrorBody},
             504: {"model": ErrorBody},
         },
     )
-    async def recommend(body: RecommendRequest, request: Request) -> RecommendResponse:
-        return await _service(request).recommend(body)
+    async def recommend(body: RecommendRequest, request: Request):
+        if bucket is not None:
+            allowed, wait = bucket.allow(_client_ip(request))
+            if not allowed:
+                resp = _error(429, "rate_limited", "too many requests from this client, slow down")
+                resp.headers["Retry-After"] = str(max(1, int(wait + 0.999)))
+                return resp
+        if inflight is not None and inflight.locked():
+            resp = _error(503, "busy", "the service is at its concurrency limit, retry shortly")
+            resp.headers["Retry-After"] = "2"
+            return resp
+        if inflight is None:
+            return await _service(request).recommend(body)
+        async with inflight:
+            return await _service(request).recommend(body)
 
     @app.get("/health", tags=["ops"], summary="Liveness + what is loaded (never fails)")
     async def health(request: Request) -> dict:

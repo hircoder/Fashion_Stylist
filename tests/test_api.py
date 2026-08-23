@@ -164,4 +164,4 @@ def test_overview_deck_is_served(client):
     r = client.get("/overview")
     assert r.status_code == 200
     assert "text/html" in r.headers["content-type"]
-    assert "what i built" in r.text.lower()
+    assert "technical overview" in r.text.lower()

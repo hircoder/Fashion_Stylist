@@ -1,4 +1,3 @@
-import hashlib
 import io
 import json
 import os
@@ -8,20 +7,11 @@ import pytest
 
 from stylist.artifacts import ArtifactError, ensure_index, safe_extract
 from stylist.config import Settings
-from stylist.index import SearchIndex, build_index
-
-
-@pytest.fixture(scope="module")
-def index_tar(tmp_path_factory, fixture_catalog, hash_embedder):
-    root = tmp_path_factory.mktemp("src")
-    build_index(fixture_catalog, root / "index", hash_embedder, limit=40, sampling="popular")
-    tar_path = root / "index.tar.gz"
-    with tarfile.open(tar_path, "w:gz") as tar:
-        tar.add(root / "index", arcname="index")
-    return tar_path, hashlib.sha256(tar_path.read_bytes()).hexdigest()
+from stylist.index import SearchIndex
 
 
 def _settings(tmp_path, **env):
+    env.setdefault("INDEX_ALLOW_FILE_URL", "1")  # the tests serve the tarball from disk
     return Settings.from_env({"EMBEDDER": "hash", "INDEX_DIR": str(tmp_path / "index"), **env})
 
 
@@ -52,7 +42,7 @@ def test_extraction_cap_counts_bytes_actually_written(tmp_path):
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w:gz") as tar:
         for i in range(3):
-            info = tarfile.TarInfo(f"index/f{i}")
+            info = tarfile.TarInfo(f"index/f{i}.npy")
             data = b"x" * 5000
             info.size = len(data)
             tar.addfile(info, io.BytesIO(data))
@@ -73,8 +63,8 @@ def test_ensure_index_downloads_verifies_and_installs(tmp_path, index_tar):
     ensure_index(_settings(tmp_path, INDEX_URL=tar_path.as_uri(), INDEX_SHA256=sha))
     idx = SearchIndex.load(tmp_path / "index")
     assert idx.n_rows == 40
-    leftovers = [p for p in tmp_path.iterdir() if p.name != "index"]
-    assert leftovers == []  # temp files cleaned up
+    leftovers = [p for p in tmp_path.iterdir() if p.name not in ("index", ".index.lock")]
+    assert leftovers == []  # temp files cleaned up (the lock file stays on purpose)
 
 
 def test_bad_checksum_installs_nothing(tmp_path, index_tar):

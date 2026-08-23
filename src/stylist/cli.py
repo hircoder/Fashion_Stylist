@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import logging
 import os
 import sys
 import urllib.request
@@ -14,7 +13,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from stylist.artifacts import ArtifactError
-from stylist.config import ConfigError, Settings
+from stylist.config import ConfigError, Settings, configure_logging
 from stylist.index import IndexValidationError
 from stylist.service import RequestTimeout
 
@@ -22,24 +21,46 @@ RAW_URL = (
     "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/"
     "meta_Amazon_Fashion.jsonl.gz"
 )
+# sha256 of the file as downloaded on 2026-08-22 (224,299,124 bytes). The mirror publishes
+# no checksum of its own, so a mismatch is a warning, not an error: the upstream file may
+# legitimately be refreshed.
+RAW_SHA256 = "0b121c7494b0216ba3bf80adce9c79286fe08f14086966f841fe6716e1a24b73"
+RAW_MAX_BYTES = 2 * 1024**3  # the file is 224 MB; anything near 2 GB is not it
 
 
-def _download(url: str, out: Path) -> None:
+class DownloadError(RuntimeError):
+    pass
+
+
+def _download(url: str, out: Path, max_bytes: int = RAW_MAX_BYTES) -> str:
+    """Stream `url` to `out` through a temp file; returns the sha256 of what was written."""
+    import hashlib
+
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(out.suffix + ".part")
-    with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as f:  # noqa: S310
-        total = int(resp.headers.get("Content-Length") or 0)
-        done = 0
-        while True:
-            chunk = resp.read(1 << 20)
-            if not chunk:
-                break
-            f.write(chunk)
-            done += len(chunk)
-            if total:
-                sys.stderr.write(f"\r{done / 1e6:8.1f} / {total / 1e6:.1f} MB")
-    sys.stderr.write("\n")
-    tmp.replace(out)
+    h = hashlib.sha256()
+    done = 0
+    try:
+        with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as f:  # noqa: S310
+            total = int(resp.headers.get("Content-Length") or 0)
+            if total > max_bytes:
+                raise DownloadError(f"{url} is {total} bytes, above the {max_bytes} bytes cap")
+            while True:
+                chunk = resp.read(1 << 20)
+                if not chunk:
+                    break
+                done += len(chunk)
+                if done > max_bytes:
+                    raise DownloadError(f"download exceeded the {max_bytes} bytes cap")
+                f.write(chunk)
+                h.update(chunk)
+                if total:
+                    sys.stderr.write(f"\r{done / 1e6:8.1f} / {total / 1e6:.1f} MB")
+        sys.stderr.write("\n")
+        tmp.replace(out)
+    finally:
+        tmp.unlink(missing_ok=True)
+    return h.hexdigest()
 
 
 def cmd_download(args, settings: Settings) -> int:
@@ -48,7 +69,15 @@ def cmd_download(args, settings: Settings) -> int:
         print(f"{out} already exists (use --force to re-download)")
         return 0
     print(f"downloading {RAW_URL} -> {out}")
-    _download(RAW_URL, out)
+    got = _download(RAW_URL, out)
+    if got != RAW_SHA256:
+        print(
+            f"note: sha256 {got[:16]}... differs from the file this code was built against "
+            f"({RAW_SHA256[:16]}...); the upstream file may have been refreshed",
+            file=sys.stderr,
+        )
+    else:
+        print("sha256 matches the file this code was built against")
     return 0
 
 
@@ -204,7 +233,7 @@ def build_parser() -> argparse.ArgumentParser:
     r.set_defaults(func=cmd_recommend)
 
     s = sub.add_parser("serve", help="start the HTTP API")
-    s.add_argument("--host", default="0.0.0.0")
+    s.add_argument("--host", default="127.0.0.1", help="0.0.0.0 inside a container")
     s.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     s.add_argument("--reload", action="store_true")
     s.set_defaults(func=cmd_serve)
@@ -222,13 +251,16 @@ def main(argv: list[str] | None = None) -> int:
     except ConfigError as exc:
         print(f"config error: {exc}", file=sys.stderr)
         return 2
-    logging.basicConfig(level=settings.log_level, format="%(levelname)s %(name)s: %(message)s")
+    configure_logging(settings.log_level)
     try:
         return args.func(args, settings)
     except ValidationError as exc:
         first = exc.errors()[0] if exc.errors() else {}
         print(f"invalid request: {first.get('msg', exc)}", file=sys.stderr)
         return 2
+    except DownloadError as exc:
+        print(f"download failed: {exc}", file=sys.stderr)
+        return 4
     except (IndexValidationError, ArtifactError, ConfigError, OSError, RequestTimeout) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
