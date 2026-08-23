@@ -70,6 +70,7 @@ class Settings:
     anthropic_base_url: str | None
     openai_api_key: str | None
     openai_base_url: str | None
+    llm_effort: str | None  # low | medium | high, passed to reasoning models, None = provider default
 
     # deadlines (seconds)
     request_deadline_s: float
@@ -155,6 +156,7 @@ class Settings:
             anthropic_base_url=_get_str(env, "ANTHROPIC_BASE_URL"),
             openai_api_key=openai_key,
             openai_base_url=_get_str(env, "OPENAI_BASE_URL"),
+            llm_effort=_get_str(env, "LLM_EFFORT", "low"),
             request_deadline_s=_get_float(env, "REQUEST_DEADLINE_S", 25.0),
             planner_budget_s=_get_float(env, "PLANNER_BUDGET_S", 10.0),
             rerank_budget_s=_get_float(env, "RERANK_BUDGET_S", 12.0),
