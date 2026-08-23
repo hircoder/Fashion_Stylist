@@ -414,30 +414,35 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
     <h2><a class="tl" href="#s10">Evaluation and quality</a></h2>
     <div class="two">
       <div>
-        <h3 style="margin-top:0">Evaluation: 20 human style queries, type-match at k=4</h3>
+        <h3 style="margin-top:0">28 human style queries (20 conversational, 8 brand), type-match at k=4, paired plans</h3>
         <table>
           <tr><th>configuration</th><th class="r">popular 100K</th><th class="r">random 100K</th><th class="r">full 826K</th></tr>
-          <tr><td>bm25 only, regex planner</td><td class='r'>0.463</td><td class='r'>0.575</td><td class='r'>0.588</td></tr><tr><td>dense only, regex planner</td><td class='r'>0.787</td><td class='r'>0.812</td><td class='r'>0.838</td></tr><tr><td>hybrid, regex planner</td><td class='r'>0.725</td><td class='r'>0.762</td><td class='r'>0.738</td></tr><tr><td>hybrid, no boosts, regex planner</td><td class='r'>0.725</td><td class='r'>0.775</td><td class='r'>0.750</td></tr><tr><td>hybrid, LLM planner</td><td class='r'>0.882</td><td class='r'>0.873</td><td class='r'>0.895</td></tr><tr><td>hybrid, LLM planner + rerank</td><td class='r'>0.915</td><td class='r'>0.871</td><td class='r'>0.893</td></tr><tr><td>dense only, LLM planner</td><td class='r'>0.886</td><td class='r'>n/a</td><td class='r'>0.917</td></tr><tr><td>bm25 only, LLM planner</td><td class='r'>0.873</td><td class='r'>n/a</td><td class='r'>0.895</td></tr>
+          <tr><td>bm25 only, regex planner</td><td class="r">0.500</td><td class="r">0.562</td><td class="r">0.652</td></tr>
+          <tr><td>dense only, regex planner</td><td class="r">0.696</td><td class="r">0.696</td><td class="r">0.786</td></tr>
+          <tr><td>hybrid, regex planner</td><td class="r">0.625</td><td class="r">0.679</td><td class="r">0.750</td></tr>
+          <tr><td>hybrid, LLM planner</td><td class="r">0.881</td><td class="r">0.881</td><td class="r">0.935</td></tr>
+          <tr><td>dense only, LLM planner</td><td class="r">0.862</td><td class="r">0.877</td><td class="r">0.923</td></tr>
+          <tr><td>full pipeline: hybrid, LLM planner, LLM rerank</td><td class="r">0.885</td><td class="r">0.885</td><td class="r">0.935</td></tr>
         </table>
-        <p class="small">Share of returned items whose title passes a hand written product-type rule for its slot, rules written before any output was seen. Zero empty slots and zero price violations in all 798 slot results. A regression check for "is this even the right kind of product", blind to style and fit. Slots the planner invents that my rules did not anticipate are under counted. Brand queries, checked separately on the full index: brand in the top 4 for 25/32 dense only, 31/32 hybrid, 32/32 bm25 only.</p>
+        <p class="small">Share of returned items whose title passes a hand written product-type rule for its slot (brand rules need brand and type), whole-word matching, rules written before any output was seen. Macro average of the full pipeline 0.857 (95% bootstrap interval 0.76 to 0.94) on the default index, 0.967 (0.94 to 0.99) on the full catalog. Zero empty slots and zero price violations in every run. Every llm configuration reuses the same 28 plans on every index, so the deltas are paired: reranker vs plan-only +0.009 (interval -0.00 to +0.03), dense vs hybrid under the planner within 2 points. A regression diagnostic, not relevance: <code>docs/evaluation.md</code> has the other metrics and the caveats.</p>
       </div>
       <div>
         <h3 style="margin-top:0">What the numbers say</h3>
         <ul>
-          <li>The planner is the feature: raw sentences top out at 0.84 on the best single channel; planner queries lift every index to 0.87 to 0.92.</li>
-          <li>Dense beats bm25 on sentences, bm25 beats dense on brands; hybrid sits between and is kept for the brand case.</li>
-          <li>The reranker adds 3 points on the default index and is flat elsewhere; its value is constraints and reasons, which this metric can't see.</li>
-          <li>The popular subset is not losing product type against the full catalog; it loses priced items and the long tail.</li>
+          <li>The planner is the feature: raw sentences get 0.63 to 0.75 on hybrid retrieval; the planner's listing-style queries lift every index to 0.88 to 0.94 and give the outfit queries their slots (slot recall 0.88).</li>
+          <li>Dense beats bm25 on sentences by 12 points; under the planner the channels are within 2 points and hybrid stays because bm25 carries the brand token.</li>
+          <li>The reranker adds about a point of type-match; its value is the constraints, the reasons, and keeping off-type items out (the admissibility rule).</li>
+          <li>The full catalog beats the subsets on the same plans: all 8 brand queries fully on-brand there, where the popular subset has no Levi's jeans and three Columbia fleeces for a rain jacket.</li>
         </ul>
         <h3>Cost and latency</h3>
         <table>
           <tr><th>index</th><th class="r">rows</th><th class="r">build</th><th class="r">RSS</th><th class="r">retrieval p50</th></tr>
-          <tr><td>popular</td><td class="r">100,000</td><td class="r">2.7 min</td><td class="r">1.0 GB</td><td class="r">32 ms</td></tr>
-          <tr><td>full</td><td class="r">826,108</td><td class="r">18.8 min</td><td class="r">3.3 GB</td><td class="r">113 ms</td></tr>
+          <tr><td>popular</td><td class="r">100,000</td><td class="r">2.6 min</td><td class="r">1.0 GB</td><td class="r">22 ms (cpu)</td></tr>
+          <tr><td>full</td><td class="r">826,108</td><td class="r">18.4 min</td><td class="r">3.3 GB</td><td class="r">110 ms</td></tr>
         </table>
-        <p class="small">Full pipeline p50 about 9.8 s per request with the LLM (plan 3 to 7 s, rerank 3 to 7 s in parallel across slots). Laptop numbers; cpu-only containers are slower.</p>
-        <h3>Tests: 244</h3>
-        <p class="small">Unit (parsers, plan normalisation, masks, fusion, grouping, budgets), failure paths (every LLM error class, a failing slot, a stuck planner, retrieval past the deadline with the concurrency permit kept), end to end (fixture ingest, build, reload, API, five overlapping slots, 20 concurrent requests, CLI), artifacts (tampered files, missing bm25, bad checksums, tarball traversal, size caps), provider contracts. CI builds the image and hits <code>/ready</code> and <code>/recommend</code>.</p>
+        <p class="small">Full pipeline p50 11.5 s cold (plan 5.2 s, rerank 5.9 s in parallel across slots), 5.5 s with a warm plan cache; claude-sonnet-4-6 through an Azure endpoint, laptop numbers. Slide 11 has the throughput and cost measurements.</p>
+        <h3>Tests: 392</h3>
+        <p class="small">Unit (parsers, plan normalisation, masks, fusion, grouping, budgets, the type gate and brand pass), failure paths (every LLM error class, a failing slot, a stuck planner, a waiter's timeout, retrieval past the deadline with the permit kept), the HTTP surface (validation, rate limit, in-flight cap, body cap, security headers, error bodies, startup failures), artifacts (archive bombs, private hosts, stale indexes, locks), two council audit rounds folded into regression tests; ruff, bandit and pip-audit in CI, a docker smoke test and a UI drift check.</p>
       </div>
     </div>
   </div>
