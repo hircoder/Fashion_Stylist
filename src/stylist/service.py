@@ -222,10 +222,14 @@ class RecommendationService:
         """One planner call per key at a time: concurrent identical requests share it.
         A failure is remembered for PLANNER_FAILURE_TTL_S so an outage is not retried on
         every request."""
-        budget = min(self.settings.planner_budget_s, deadline - time.monotonic())
-        if budget < MIN_PLAN_SECONDS:
+        remaining = deadline - time.monotonic()
+        if remaining < MIN_PLAN_SECONDS:
+            # the request is nearly out of time: do not even start a shared call for it
             warnings.append("planner fell back to regex rules (request deadline)")
             return None
+        # the WAIT can be far below the floor (the fast profile waits 0.35 s and serves
+        # heuristic results while the shared call finishes for the next request)
+        budget = max(0.05, min(self.settings.planner_budget_s, remaining))
         inflight = self._plan_inflight.get(key)
         joined_existing = inflight is not None
         if inflight is None:
