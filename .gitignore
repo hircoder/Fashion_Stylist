@@ -1,0 +1,23 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# local config + secrets
+.env
+.env.*
+!.env.example
+
+# data + index artifacts (big, rebuilt with make targets)
+data/*
+!data/.gitkeep
+*.parquet
+*.npy
+
+# misc
+.DS_Store
+server.log
