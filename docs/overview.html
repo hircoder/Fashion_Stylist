@@ -533,7 +533,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         </table>
         <p class="small">Full pipeline p50 11.5 s cold (plan 5.2 s, rerank 5.9 s in parallel across slots), 5.5 s with a warm plan cache; claude-sonnet-4-6 through an Azure endpoint, laptop numbers. Slide 11 has the throughput and cost measurements.</p>
         <h3>Tests: 392</h3>
-        <p class="small">Unit (parsers, plan normalisation, masks, fusion, grouping, budgets, the type gate and brand pass), failure paths (every LLM error class, a failing slot, a stuck planner, a waiter's timeout, retrieval past the deadline with the permit kept), the HTTP surface (validation, rate limit, in-flight cap, body cap, security headers, error bodies, startup failures), artifacts (archive bombs, private hosts, stale indexes, locks), two council audit rounds folded into regression tests; ruff, bandit and pip-audit in CI, a docker smoke test and a UI drift check.</p>
+        <p class="small">Unit (parsers, plan normalisation, masks, fusion, grouping, budgets, the type gate and brand pass), failure paths (every LLM error class, a failing slot, a stuck planner, a waiter's timeout, retrieval past the deadline with the permit kept), the HTTP surface (validation, rate limit, in-flight cap, body cap, security headers, error bodies, startup failures), artifacts (archive bombs, private hosts, stale indexes, locks), two review rounds folded into regression tests; ruff, bandit and pip-audit in CI, a docker smoke test and a UI drift check.</p>
       </div>
     </div>
   </div>

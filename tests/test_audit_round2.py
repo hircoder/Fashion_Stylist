@@ -1,4 +1,4 @@
-"""Second council round: reranker admissibility, retrieval ordering, api limits, index checks."""
+"""Second review round: reranker admissibility, retrieval ordering, api limits, index checks."""
 
 import pytest
 
