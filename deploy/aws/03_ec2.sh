@@ -19,7 +19,8 @@ echo "SG=$SG"
 
 AMI=$(aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 \
       --query Parameter.Value --output text)
-sed "s/__BUCKET__/$BUCKET/g" user-data.sh > /tmp/user-data.sh
+sed -e "s/__BUCKET__/$BUCKET/g" -e "s/__BEDROCK_REGION__/$BEDROCK_REGION/g" \
+    -e "s|__LLM_MODEL__|$LLM_MODEL_DEPLOY|g" user-data.sh > /tmp/user-data.sh
 
 IID=$(aws ec2 run-instances --image-id "$AMI" --instance-type "$INSTANCE_TYPE" \
   --iam-instance-profile Name="$PROFILE_NAME" --security-group-ids "$SG" \
@@ -34,6 +35,10 @@ ALLOC=$(aws ec2 allocate-address --tag-specifications "ResourceType=elastic-ip,T
         --query AllocationId --output text)
 aws ec2 associate-address --instance-id "$IID" --allocation-id "$ALLOC" >/dev/null
 IP=$(aws ec2 describe-addresses --allocation-ids "$ALLOC" --query "Addresses[0].PublicIp" --output text)
-DNS="ec2-${IP//./-}.compute-1.amazonaws.com"
-echo "instance=$IID ip=$IP origin_dns=$DNS"
-echo "$IID $IP $DNS" > .instance
+# the public dns comes from the api, never from string surgery: the hostname shape
+# differs per region (compute-1 in virginia, <region>.compute everywhere else)
+DNS=$(aws ec2 describe-instances --instance-ids "$IID" \
+      --query "Reservations[0].Instances[0].PublicDnsName" --output text)
+echo "instance=$IID ip=$IP origin_dns=$DNS region=$AWS_REGION"
+echo "$IID $IP $DNS $AWS_REGION" > ".instance.$AWS_REGION"
+cp ".instance.$AWS_REGION" .instance  # most recent launch, what 04/05 read

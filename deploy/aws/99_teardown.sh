@@ -13,19 +13,24 @@ if [ -f .cloudfront ]; then
   ETAG=$(aws cloudfront get-distribution-config --id "$DIST" --query ETag --output text)
   aws cloudfront delete-distribution --id "$DIST" --if-match "$ETAG"
 fi
-if [ -f .instance ]; then
-  IID=$(awk '{print $1}' .instance)
-  aws ec2 terminate-instances --instance-ids "$IID" >/dev/null
-  aws ec2 wait instance-terminated --instance-ids "$IID"
-fi
-for ALLOC in $(aws ec2 describe-addresses --filters Name=tag:Name,Values=$INSTANCE_NAME --query "Addresses[].AllocationId" --output text); do
-  aws ec2 release-address --allocation-id "$ALLOC"
+# one state file per region (.instance.<region>); clean each region it names
+for STATE in .instance.*; do
+  [ -f "$STATE" ] || continue
+  R=$(awk '{print $4}' "$STATE"); R=${R:-$AWS_REGION}
+  IID=$(awk '{print $1}' "$STATE")
+  aws ec2 terminate-instances --region "$R" --instance-ids "$IID" >/dev/null 2>&1
+  aws ec2 wait instance-terminated --region "$R" --instance-ids "$IID" 2>/dev/null
+  for ALLOC in $(aws ec2 describe-addresses --region "$R" --filters Name=tag:Name,Values=$INSTANCE_NAME --query "Addresses[].AllocationId" --output text); do
+    aws ec2 release-address --region "$R" --allocation-id "$ALLOC"
+  done
+  SG=$(aws ec2 describe-security-groups --region "$R" --filters Name=group-name,Values="$SG_NAME" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
+  [ -n "$SG" ] && [ "$SG" != "None" ] && aws ec2 delete-security-group --region "$R" --group-id "$SG"
 done
-SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values="$SG_NAME" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
-[ -n "$SG" ] && [ "$SG" != "None" ] && aws ec2 delete-security-group --group-id "$SG"
 aws iam remove-role-from-instance-profile --instance-profile-name "$PROFILE_NAME" --role-name "$ROLE_NAME" 2>/dev/null
 aws iam delete-instance-profile --instance-profile-name "$PROFILE_NAME" 2>/dev/null
 aws iam delete-role-policy --role-name "$ROLE_NAME" --policy-name "${APP}-inline" 2>/dev/null
 aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null
-aws s3 rm "s3://$BUCKET" --recursive && aws s3 rb "s3://$BUCKET"
+for B in $(aws s3api list-buckets --query "Buckets[?starts_with(Name, '${APP}-')].Name" --output text); do
+  aws s3 rm "s3://$B" --recursive && aws s3 rb "s3://$B"
+done
 echo "teardown done"
