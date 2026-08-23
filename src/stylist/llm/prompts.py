@@ -48,7 +48,9 @@ products, best first.
 How to judge a candidate:
 - it must be the slot's product type (a "sandals" slot wants sandals, not socks)
 - it should fit the shopper's audience, occasion, season and style words
-- when a price and a budget are both known, prefer items inside the budget
+- when a budget is given, prefer items with a known price inside it over items with
+  price null when they are equally good matches; never pick an item of the wrong type
+  just because it has a price (a priced wooden ring is not a blazer)
 - use rating and rating count only to break ties between equally good items
 - prefer some variety in style and colour among your picks
 

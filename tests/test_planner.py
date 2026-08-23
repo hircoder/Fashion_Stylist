@@ -194,7 +194,7 @@ def test_merge_uses_plan_values_when_request_is_silent():
     windows, warnings = merge_constraints(plan)
     assert [w.max_price for w in windows] == [40.0, 40.0]
     assert all(w.audience == "women" for w in windows)
-    assert all(w.include_unpriced is False for w in windows)
+    assert all(w.include_unpriced is True for w in windows)  # inferred budget: soft
     assert warnings == []
 
 
@@ -229,3 +229,16 @@ def test_normalize_makes_slot_names_unique():
 def test_normalize_drops_non_finite_budgets():
     plan = normalize_plan(_out(budget_max=float("inf"), budget_scope="per_item"), "q")
     assert plan.budget_max is None and plan.budget_scope == "unknown"
+
+
+def test_merge_unpriced_policy_is_strict_for_explicit_bounds_and_relaxed_for_inferred():
+    inferred = _plan(budget_max=40.0, budget_scope="per_item")
+    inferred = normalize_plan(PlannerOutput.model_validate(inferred.model_dump()), "q")
+    windows, _ = merge_constraints(inferred)  # bound came from the planner
+    assert all(w.include_unpriced for w in windows)
+    windows, _ = merge_constraints(inferred, max_price=40.0)  # same bound, now explicit
+    assert not any(w.include_unpriced for w in windows)
+    windows, _ = merge_constraints(inferred, max_price=40.0, include_unpriced=True)
+    assert all(w.include_unpriced for w in windows)
+    windows, _ = merge_constraints(inferred, include_unpriced=False)
+    assert not any(w.include_unpriced for w in windows)

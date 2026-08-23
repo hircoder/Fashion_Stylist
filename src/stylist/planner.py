@@ -409,12 +409,19 @@ def merge_constraints(
     min_price: float | None = None,
     max_price: float | None = None,
     audience: str | None = None,
-    include_unpriced: bool = False,
+    include_unpriced: bool | None = None,
 ) -> tuple[list[SlotWindow], list[str]]:
     """Request fields override the plan's for that field; inferred bounds that make the
-    window empty are dropped with a warning (request bounds were validated upstream)."""
+    window empty are dropped with a warning (request bounds were validated upstream).
+
+    Unpriced policy: an explicit request bound is a hard filter (unpriced items excluded
+    unless include_unpriced=True). A budget the planner read out of the sentence is a
+    softer signal, so unpriced items are allowed (flagged) unless include_unpriced=False.
+    """
     warnings: list[str] = []
     eff_audience = audience or plan.audience
+    explicit_bound = min_price is not None or max_price is not None
+    allow_unpriced = include_unpriced if include_unpriced is not None else not explicit_bound
     windows: list[SlotWindow] = []
     for slot in plan.slots:
         lo = (
@@ -430,5 +437,5 @@ def merge_constraints(
             else:
                 warnings.append(f"inferred maximum {hi} conflicts with min {lo}, ignoring it")
                 hi = None
-        windows.append(SlotWindow(lo, hi, eff_audience, include_unpriced))
+        windows.append(SlotWindow(lo, hi, eff_audience, allow_unpriced))
     return windows, warnings

@@ -132,6 +132,7 @@ def test_retriever_backfills_unpriced_when_allowed(fixture_index, hash_embedder)
     assert len(relaxed.candidates) >= len(strict.candidates)
     backfilled = [c for c in relaxed.candidates if not c.in_window]
     assert backfilled and all(c.price is None for c in backfilled)
+    assert len(backfilled) > 4 - relaxed.n_eligible  # a real pool, not just k - eligible
     assert relaxed.candidates[: relaxed.n_eligible] == strict.candidates[: relaxed.n_eligible]
     assert any("price" in w for w in relaxed.warnings)
 

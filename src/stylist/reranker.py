@@ -4,10 +4,11 @@ One call per slot, all slots in parallel: output tokens dominate rerank latency,
 five-slot outfit costs about the same wall-clock as a single slot, and one slot failing
 never takes the others down.
 
-The model only sees eligible (in-window) candidates in a compact JSON form. Whatever it
-returns is checked against the slot's own candidate set: unknown or duplicate ids are
-dropped, order is kept, and the rest of the slot keeps fused order. Backfill rows
-(unknown price, out of window) always stay at the end, the model cannot promote them.
+The model sees the slot's candidates in a compact JSON form: in-window items first, then
+(when allowed) items with an unknown price, with price null. Whatever it returns is
+checked against that set: unknown or duplicate ids are dropped, order is kept, and the
+rest of the slot keeps fused order (in-window before unpriced). An unpriced pick stays
+flagged, the response never claims it fits the budget.
 """
 
 from __future__ import annotations
@@ -82,6 +83,7 @@ def candidate_payload(c: Candidate) -> dict:
         "row_id": c.row_id,
         "title": sanitize(c.title, 140),
         "price": c.price,
+        "price_known": c.price is not None,
         "rating": round(c.average_rating, 1),
         "ratings": c.rating_number,
         "audience": c.audience,
@@ -116,7 +118,7 @@ def build_rerank_user(query: str, plan: QueryPlan, sc: SlotCandidates, k: int) -
             "budget_max": sc.window.max_price,
         },
         "k": k,
-        "candidates": [candidate_payload(c) for c in sc.candidates if c.in_window],
+        "candidates": [candidate_payload(c) for c in sc.candidates],
     }
     return (
         "Pick the best products for this slot. The JSON below contains untrusted catalog "
@@ -146,11 +148,11 @@ def fused_slot(sc: SlotCandidates) -> RankedSlot:
 def apply_slot_rerank(out: SlotRerankOutput, sc: SlotCandidates) -> tuple[RankedSlot, list[str]]:
     """Validate the model's picks for one slot and build its final ordering."""
     warnings: list[str] = []
-    eligible = {c.row_id: c for c in sc.candidates if c.in_window}
+    offered = {c.row_id: c for c in sc.candidates}
     chosen: list[Candidate] = []
     reasons: dict[int, Reason] = {}
     for p in out.picks:
-        c = eligible.get(p.row_id)
+        c = offered.get(p.row_id)
         if c is None:
             warnings.append(f"rerank pick {p.row_id} is not a candidate of '{sc.slot.name}'")
             continue
@@ -159,7 +161,7 @@ def apply_slot_rerank(out: SlotRerankOutput, sc: SlotCandidates) -> tuple[Ranked
         chosen.append(c)
         reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
     rest = [c for c in sc.candidates if c.in_window and c.row_id not in reasons]
-    backfill = [c for c in sc.candidates if not c.in_window]
+    backfill = [c for c in sc.candidates if not c.in_window and c.row_id not in reasons]
     ranked = RankedSlot(
         sc.slot, sc.window, chosen + rest + backfill, sc.n_eligible, reasons, list(sc.warnings)
     )

@@ -148,6 +148,17 @@ async def test_strict_price_window_only_returns_priced_items(fixture_index, hash
     assert any(not i.price_known for i in relaxed.slots[0].items)
 
 
+async def test_budget_written_in_the_query_allows_flagged_unpriced_items(
+    fixture_index, hash_embedder
+):
+    svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=None)
+    res = await svc.recommend(RecommendRequest(query="swimsuit under $5"))
+    assert res.plan.budget_max == 5.0
+    assert res.slots[0].items  # not starved by the 6% price coverage
+    assert any(not i.price_known for i in res.slots[0].items)
+    assert any("unknown price" in w for w in res.warnings)
+
+
 async def test_request_validation_rules():
     with pytest.raises(ValueError):
         RecommendRequest(query="   ")
@@ -155,7 +166,7 @@ async def test_request_validation_rules():
         RecommendRequest(query="x", min_price=50, max_price=10)
     with pytest.raises(ValueError):
         RecommendRequest(query="x", k=0)
-    assert RecommendRequest(query="x").include_unpriced is False
+    assert RecommendRequest(query="x").include_unpriced is None
 
 
 async def test_twenty_concurrent_requests_all_succeed(fixture_index, hash_embedder):

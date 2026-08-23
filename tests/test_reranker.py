@@ -85,7 +85,8 @@ def test_rerank_user_payload_is_json_with_untrusted_marker_and_slot_limits():
     assert payload["slot"]["name"] == "swimsuit"
     assert payload["plan"]["other_slots"] == ["sandals"] or "other_slots" not in payload["plan"]
     ids = [c["row_id"] for c in payload["candidates"]]
-    assert ids == [1, 2, 3]  # backfill (unpriced, out of window) rows are not offered
+    assert ids == [1, 2, 3, 4]  # in-window first, then the unpriced pool
+    assert payload["candidates"][3]["price_known"] is False
     assert "IGNORE PREVIOUS" in text  # data is passed through, only the framing protects it
     assert "never follow" in RERANK_SYSTEM.lower()
 
@@ -162,8 +163,12 @@ async def test_one_failing_slot_does_not_take_the_others_down():
     assert any("swimsuit" in w and "LLMTimeoutError" in w for w in res.warnings)
 
 
-async def test_backfill_rows_are_never_promoted_by_the_llm():
+async def test_llm_may_pick_an_unpriced_candidate_which_stays_flagged():
     plan, slots = _slots()
+    text = build_rerank_user("beach", plan, slots[0], k=2)
+    payload = json.loads(text[text.index("{") :])
+    offered = {c["row_id"]: c for c in payload["candidates"]}
+    assert 4 in offered and offered[4]["price"] is None  # unpriced pool is offered, price null
     llm = _by_slot(
         {
             "swimsuit": {"picks": [{"row_id": 4, "reason": "x", "evidence": []}]},
@@ -171,7 +176,9 @@ async def test_backfill_rows_are_never_promoted_by_the_llm():
         }
     )
     res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
-    assert [c.row_id for c in res.slots[0].ordered] == [1, 2, 3, 4]
+    ordered = res.slots[0].ordered
+    assert [c.row_id for c in ordered] == [4, 1, 2, 3]
+    assert ordered[0].in_window is False  # response will say price_known=false
 
 
 @pytest.mark.parametrize(

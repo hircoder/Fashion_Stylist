@@ -29,11 +29,13 @@ class RecommendRequest(BaseModel):
     audience: Audience | None = Field(
         None, description="Override the audience guessed from the query."
     )
-    include_unpriced: bool = Field(
-        False,
+    include_unpriced: bool | None = Field(
+        None,
         description=(
-            "When a price bound is set, also allow items whose price is unknown (94% of the "
-            "catalog has no price) to fill slots; they are flagged price_known=false."
+            "Whether items with an unknown price (94% of the catalog) may be returned when a "
+            "price bound applies. Default (null): strict for explicit max_price/min_price, "
+            "allowed for budgets inferred from the query text. Unpriced items are always "
+            "flagged price_known=false and never claimed to fit the budget."
         ),
     )
     use_llm: bool = Field(True, description="False = regex planner + retrieval order only.")

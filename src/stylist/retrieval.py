@@ -9,8 +9,8 @@ Pipeline per request:
      a keyword boost when a planner keyword literally appears in the title, and a
      Bayesian-average rating prior
   4. one representative per `group_key` (size/colour variants collapse), highest score wins
-  5. optional backfill from unpriced items when a price window is set and the caller
-     opted in (`include_unpriced`), flagged `in_window=False`
+  5. when a price window is set and unpriced items are allowed, a second ranked pool of
+     unpriced items, flagged `in_window=False`, listed after the in-window ones
 
 Scores are only meaningful within one slot; do not compare them across slots.
 """
@@ -67,7 +67,7 @@ class Candidate:
 class SlotCandidates:
     slot: Slot
     window: SlotWindow
-    candidates: list[Candidate]  # eligible first (score desc), then backfill
+    candidates: list[Candidate]  # in-window first (score desc), then the unpriced pool
     n_eligible: int
     warnings: list[str] = field(default_factory=list)
 
@@ -297,15 +297,17 @@ class Retriever:
             ranked = self._rank_distinct(dense, bm25, eligible, slot, n_candidates, seen)
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
-            if n_eligible < k and pool.any():
-                extra = self._rank_distinct(dense, bm25, pool, slot, k - n_eligible, seen)
-                for c in extra[: max(k - n_eligible, 0)]:
+            if pool.any():
+                # unpriced pool: same depth as the eligible list, flagged, ranked after it
+                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen)
+                for c in extra[:n_candidates]:
                     c.in_window = False
                     ranked.append(c)
-                warnings.append(
-                    f"slot '{slot.name}': only {n_eligible} items with a known price in the "
-                    f"window, added {len(ranked) - n_eligible} items with unknown price"
-                )
+                if n_eligible < k:
+                    warnings.append(
+                        f"slot '{slot.name}': only {n_eligible} items with a known price in the "
+                        f"window, items with unknown price may be used (flagged)"
+                    )
             elif n_eligible == 0:
                 warnings.append(f"slot '{slot.name}': no eligible items")
             out.append(SlotCandidates(slot, window, ranked, n_eligible, warnings))
