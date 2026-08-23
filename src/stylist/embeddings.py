@@ -81,6 +81,7 @@ class SentenceTransformerEmbedder:
         self.revision = revision
         self._model = SentenceTransformer(model_name, revision=revision, device=device)
         self._model.max_seq_length = max_seq_length
+        self.max_seq_length = max_seq_length
         self.dim = int(self._model.get_sentence_embedding_dimension())
         self.query_prefix = BGE_QUERY_PREFIX if "bge" in model_name.lower() else ""
 

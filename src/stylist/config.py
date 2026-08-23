@@ -104,8 +104,7 @@ class Settings:
 
         data_dir = Path(_get_str(env, "DATA_DIR", "data") or "data")
         raw_path = Path(
-            _get_str(env, "RAW_PATH", str(data_dir / "raw" / "meta_Amazon_Fashion.jsonl.gz"))
-            or ""
+            _get_str(env, "RAW_PATH", str(data_dir / "raw" / "meta_Amazon_Fashion.jsonl.gz")) or ""
         )
         processed_path = Path(
             _get_str(env, "PROCESSED_PATH", str(data_dir / "processed" / "catalog.parquet")) or ""
