@@ -78,7 +78,7 @@ def _host_is_local(host: str) -> bool:
     if not host or host.lower() in ("localhost", "localhost.localdomain"):
         return True
     try:
-        addrs = {info[4][0] for info in socket.getaddrinfo(host, None)}
+        addrs = {str(info[4][0]) for info in socket.getaddrinfo(host, None)}
     except socket.gaierror:
         return False  # unresolvable: the download fails on its own
     for addr in addrs:
