@@ -154,7 +154,8 @@ def test_cors_is_off_unless_origins_are_configured(fixture_index, hash_embedder)
 
 
 def test_rate_limit_returns_429_with_retry_after(fixture_index, hash_embedder):
-    with TestClient(_app(fixture_index, hash_embedder, RATE_LIMIT_PER_MINUTE="3")) as c:
+    # burst is a sixth of the minute: 18/min allows 3 at once, then 429 until a token refills
+    with TestClient(_app(fixture_index, hash_embedder, RATE_LIMIT_PER_MINUTE="18")) as c:
         codes = [
             c.post("/recommend", json={"query": "boots", "k": 1}).status_code for _ in range(4)
         ]
