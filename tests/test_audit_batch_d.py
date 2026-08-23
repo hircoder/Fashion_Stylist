@@ -99,6 +99,7 @@ def _sc(cands, keywords=("boot",)):
 def _cand(i, title, matched):
     c = Candidate(idx=i, row_id=i, score=1.0 - i / 100, title=title)
     c.matched_keywords = list(matched)
+    c.type_match = bool(matched)
     return c
 
 
@@ -255,7 +256,6 @@ def test_type_match_accepts_the_head_noun_of_a_multi_word_keyword():
     assert not type_match("Wool Socks", ["running shoes"])
     assert not type_match("Shoe Insoles Arch Support", ["running shoes"])  # accessory, not a shoe
     assert not type_match("Jacket Hanger Set", ["rain jacket"])
-    assert type_match("Men's Running Shoes Laces Free", ["running shoes"])  # exact match still wins
     assert not type_match("Pearl Earrings", ["ear warmers"])  # 'warmers' is the head, not 'ear'
 
 

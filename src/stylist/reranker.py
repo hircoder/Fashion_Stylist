@@ -80,6 +80,28 @@ def sanitize(text: object, max_len: int) -> str:
 
 
 _LINKISH = re.compile(r"(https?://\S+|www\.\S+|\S+@\S+\.\S+)", re.I)
+MAX_REASON_WORDS = 20  # the prompt asks for 15; a little slack, never a paragraph
+
+
+def clean_reason(text: object) -> str:
+    """Model prose about one item: control chars out, links and emails out, word capped."""
+    words = strip_links(sanitize(text, 400)).split()
+    return " ".join(words[:MAX_REASON_WORDS])
+
+
+def supported_evidence(evidence: list[str], c: Candidate) -> list[str]:
+    """Keep only evidence fields the candidate actually carried in its payload."""
+    have = {"title", "keywords", "audience"}
+    if c.price is not None:
+        have.add("price")
+    if c.average_rating is not None and c.rating_number:
+        have.add("rating")
+    for name in ("material", "color", "style"):
+        if getattr(c, name):
+            have.add(name)
+    if c.features:
+        have.add("features")
+    return [e for e in evidence if e in have]
 
 
 def strip_links(text: str) -> str:
@@ -170,6 +192,9 @@ def apply_slot_rerank(
     warnings: list[str] = []
     name = sc.slot.name
     offered = {c.row_id: c for c in sc.candidates}
+    # with k or more type matches on offer, an off-type pick is a model error, not a choice
+    typed_on_offer = sum(1 for c in sc.candidates if c.type_match) if sc.slot.keywords else 0
+    strict_type = typed_on_offer >= k
     chosen: list[Candidate] = []
     reasons: dict[int, Reason] = {}
     for p in out.picks:
@@ -179,14 +204,24 @@ def apply_slot_rerank(
             continue
         if c.row_id in reasons:
             continue
+        if strict_type and not c.type_match:
+            warnings.append(
+                f"rerank pick {p.row_id} for '{name}' is not the product type asked for, dropped"
+            )
+            continue
         if len(chosen) >= k:
             warnings.append(f"rerank returned more than {k} picks for '{name}', extra ones ignored")
             break
         chosen.append(c)
-        reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
+        reasons[c.row_id] = Reason(clean_reason(p.reason), supported_evidence(list(p.evidence), c))
+    if out.no_good_match and chosen:
+        warnings.append(
+            f"slot '{name}': the reranker set no_good_match but also picked items, keeping "
+            f"the picks"
+        )
     rest = [c for c in sc.candidates if c.row_id not in reasons]  # retrieval order
     if sc.slot.keywords:  # only type-matching items may pad a slot
-        rest = [c for c in rest if c.type_match or c.matched_keywords]
+        rest = [c for c in rest if c.type_match]
     if out.no_good_match:
         if chosen:
             rest = []

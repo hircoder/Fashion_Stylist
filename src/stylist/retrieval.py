@@ -19,6 +19,7 @@ Scores are only meaningful within one slot; do not compare them across slots.
 
 from __future__ import annotations
 
+import functools
 import math
 import re
 from dataclasses import dataclass, field
@@ -176,6 +177,7 @@ def rrf_fuse(
 _NOT_A_TYPE_SINGULAR = {"short", "tight", "flat", "brief", "overall", "top", "slip", "cover"}
 
 
+@functools.lru_cache(maxsize=4096)
 def _keyword_rx(kw: str) -> re.Pattern:
     """Whole-word match of a type keyword, tolerant of plural / singular on its last word
     ("running shoes" matches "Running Shoe", "boot" matches "Boots"); spaces and hyphens
@@ -209,19 +211,23 @@ _ACCESSORY_RX = re.compile(
 
 
 def type_match(title: str, keywords: list[str]) -> bool:
-    """Looser than keyword_matches, for the type gate: the head noun of a multi-word
-    keyword counts too ("rain jacket" accepts any jacket; the reranker sorts out rain vs
-    fleece), unless the title is an accessory for that product (insoles, laces, covers).
-    Single-word keywords must match as they are."""
+    """Is this title the product type the slot asks for? A keyword match counts, and so
+    does the head noun of a multi-word keyword ("rain jacket" accepts any jacket; the
+    reranker sorts out rain vs fleece). An accessory word in the title (insoles, laces,
+    hangers, covers) vetoes both, unless the slot itself asks for that accessory."""
     low = (title or "").lower()
     accessory = bool(_ACCESSORY_RX.search(low))
+    if accessory and any(_ACCESSORY_RX.search(kw.lower()) for kw in keywords if kw):
+        accessory = False  # "shoe laces" slot: laces are the product
+    if accessory:
+        return False
     for kw in keywords:
         if not kw:
             continue
         if _keyword_rx(kw).search(low):
             return True
         head = kw.split()[-1]
-        if head != kw and len(head) > 2 and not accessory and _keyword_rx(head).search(low):
+        if head != kw and len(head) > 2 and _keyword_rx(head).search(low):
             return True
     return False
 
@@ -333,8 +339,8 @@ class Retriever:
         c.color = _none_if_nan(row["color"])
         c.style = _none_if_nan(row["style"])
         c.brand = _none_if_nan(row["brand"])
-        feats = row["features"]
-        c.features = list(feats) if feats is not None and len(feats) else []
+        feats = _none_if_nan(row["features"])
+        c.features = list(feats) if feats is not None else []
         c.description = str(_none_if_nan(row["description"]) or "")
         return c
 
@@ -376,14 +382,16 @@ class Retriever:
         seen: set[str],
         audience: str | None = None,
         type_gate: bool = False,
+        min_typed: int = 0,
     ) -> list[Candidate]:
         """Rank and collapse variants; widen the per-channel window (x4 each time) while
         the masked pool still has rows and we have fewer than `needed` distinct groups.
 
-        type_gate: when at least `needed` distinct candidates carry one of the slot's type
-        keywords in their title, only those are returned (insoles must not fill a running
-        shoes slot just because "arch support" scores well). With fewer matches the
-        matches come first and the rest follow."""
+        type_gate: candidates whose title is the product type come first. Once at least
+        `min_typed` of them exist (the k the client asked for), off-type rows are dropped
+        entirely: insoles must not fill a running shoes slot just because "arch support"
+        scores well. With fewer than `min_typed` matches the matches come first and the
+        rest follow, so a thin catalog still answers."""
         n_masked = int(mask.sum())
         top_n = self.s.top_n_per_channel
         while True:
@@ -394,8 +402,10 @@ class Retriever:
                 seen.update(c.group_key or f"__{c.idx}" for c in typed)
                 return typed
             if top_n >= n_masked:
-                rest = [c for c in distinct if not c.type_match] if type_gate else []
-                out = typed + rest
+                if type_gate and len(typed) >= min_typed:
+                    out = typed
+                else:
+                    out = typed + ([c for c in distinct if not c.type_match] if type_gate else [])
                 seen.update(c.group_key or f"__{c.idx}" for c in out)
                 return out
             top_n = min(top_n * 4, n_masked)
@@ -429,30 +439,31 @@ class Retriever:
             aud = window.audience
             if brand_mask is None:
                 ranked = self._rank_distinct(
-                    dense, bm25, eligible, slot, n_candidates, seen, aud, gate
+                    dense, bm25, eligible, slot, n_candidates, seen, aud, gate, k
                 )
             else:
                 # the named brand is ranked on its own first (a bonus applied after the
-                # top-N cut would never reach rows outside it), type matches only when the
-                # plan has type keywords; other brands fill up whatever is left, flagged
+                # top-N cut would never reach rows outside it); with k or more rows of the
+                # right type the brand is a hard filter, otherwise other brands follow
                 own = self._rank_distinct(
-                    dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate
+                    dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate, 0
                 )
                 typed_own = [c for c in own if c.type_match] if gate else own
                 if len(typed_own) >= k:
                     ranked = typed_own
                 else:
-                    # the brand's untyped rows stay in the pool (typed first): "Go Run 5"
-                    # from a shoe brand is a shoe even without the word, the reranker can
-                    # tell; other brands must match the type to follow
                     warnings.append(
                         f"slot '{slot.name}': only {len(typed_own)} '{plan.brand}' items of this "
                         f"type match the constraints, other brands follow"
                     )
                     rest = self._rank_distinct(
-                        dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate
+                        dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate, k
                     )
-                    untyped_own = [c for c in own if c not in typed_own][:k]  # leave room
+                    # product type stays the first-order constraint: the brand's own typed
+                    # rows, then at most two untyped brand rows ("Go Run 5" from a shoe
+                    # brand is a shoe even without the word; the reranker judges them),
+                    # then typed rows of other brands
+                    untyped_own = [c for c in own if not c.type_match][:2]
                     ranked = typed_own + untyped_own + rest
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
@@ -460,7 +471,9 @@ class Retriever:
                 # unpriced pool, same depth, flagged. Merged into ONE score order: a known
                 # in-budget price earns a small bonus, it does not trump relevance (a priced
                 # wooden ring must not outrank an unpriced blazer in a blazer slot)
-                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen, aud, gate)
+                extra = self._rank_distinct(
+                    dense, bm25, pool, slot, n_candidates, seen, aud, gate, k
+                )
                 for c in ranked:
                     c.score += IN_WINDOW_BONUS * self._unit
                 for c in extra[:n_candidates]:

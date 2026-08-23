@@ -35,6 +35,7 @@ def _cand(row_id, title, price=None, in_window=True, **kw):
         average_rating=kw.get("rating", 4.2),
         rating_number=kw.get("count", 50),
         matched_keywords=kw.get("kw", []),
+        type_match=bool(kw.get("kw")),  # mirrors retrieval: a keyword match is a type match
         audience=kw.get("audience", "women"),
     )
 
@@ -54,7 +55,7 @@ def _slots():
         win,
         [
             _cand(1, "Blue One Piece Swimsuit", 30.0, kw=["swimsuit"]),
-            _cand(2, "Red Bikini Set", 25.0),  # no type keyword: never used as padding
+            _cand(2, "Red Bikini Set", 25.0, kw=["swimsuit"]),  # typed like the others
             _cand(3, "Swimsuit Cover Up", kw=["swimsuit"]),
             _cand(4, "Another Swimsuit", None, in_window=False, kw=["swimsuit"]),
         ],
@@ -124,8 +125,8 @@ async def test_valid_rerank_output_orders_items_and_keeps_reasons():
     swim = res.slots[0]
     assert [c.row_id for c in swim.ordered[:2]] == [3, 1]
     assert swim.reasons[3].reason == "cover up" and swim.reasons[1].evidence == ["title", "price"]
-    # the rest keeps fused order (type matches only: the bikini set is skipped), backfill last
-    assert [c.row_id for c in swim.ordered] == [3, 1, 4]
+    # the rest keeps fused order, backfill last
+    assert [c.row_id for c in swim.ordered] == [3, 1, 2, 4]
     assert [c.row_id for c in res.slots[1].ordered] == [11, 10]
 
 
@@ -180,7 +181,7 @@ async def test_llm_may_pick_an_unpriced_candidate_which_stays_flagged():
     )
     res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
     ordered = res.slots[0].ordered
-    assert [c.row_id for c in ordered] == [4, 1, 3]
+    assert [c.row_id for c in ordered] == [4, 1, 2, 3]
     assert ordered[0].in_window is False  # response will say price_known=false
 
 
@@ -290,12 +291,13 @@ async def test_no_good_match_falls_back_to_type_matches_or_an_empty_slot():
     plan, slots = _slots()
     llm = _by_slot({"swimsuit": {"picks": [], "no_good_match": True}, "sandals": {"picks": []}})
     res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
-    assert [c.row_id for c in res.slots[0].ordered] == [1, 3, 4]  # type matches, flagged
+    assert [c.row_id for c in res.slots[0].ordered] == [1, 2, 3, 4]  # type matches, flagged
     assert any("no suitable" in w and "closest type matches" in w for w in res.warnings)
     assert res.slots[1].ordered  # the other slot keeps retrieval order as usual
     # with no type match at all the slot is left empty rather than filled with junk
     for c in slots[0].candidates:
         c.matched_keywords = []
+        c.type_match = False
     res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
     assert res.slots[0].ordered == [] and any("left empty" in w for w in res.warnings)
 
