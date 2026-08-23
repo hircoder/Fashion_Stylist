@@ -31,6 +31,9 @@ MIN_ALLOCATION_SHARE = 0.10  # no slot of a total budget gets less than this sha
 MAX_KEYWORDS = 6
 MAX_EXCLUDE_KEYWORDS = 4
 MAX_QUERY_CHARS = 500  # same limit as the API request
+MAX_BUDGET = 1_000_000.0  # anything above this is a planner hallucination, not a budget
+_RX_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+_RX_WS = re.compile(r"\s+")
 
 Audience = Literal["women", "men", "girls", "boys", "baby", "unisex"]
 BudgetScope = Literal["per_item", "total", "unknown"]
@@ -85,7 +88,7 @@ class QueryPlan(BaseModel):
 
 # --------------------------------------------------------------------------- budgets
 
-_NUM = r"\$?\s*(\d+(?:\.\d+)?)\s*(?:usd|dollars?|bucks)?"
+_NUM = r"\$?\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*(?:usd|dollars?|bucks)?"
 _RX_RANGE = re.compile(rf"(?:between\s+)?{_NUM}\s*(?:-|–|to|and)\s*{_NUM}", re.I)
 _RX_MAX = re.compile(
     rf"(?:under|below|less than|cheaper than|max(?:imum)?|up to|at most|no more than|within)"
@@ -94,26 +97,29 @@ _RX_MAX = re.compile(
 )
 _RX_MIN = re.compile(rf"(?:over|above|more than|at least|min(?:imum)?)\s*{_NUM}", re.I)
 _RX_AROUND = re.compile(rf"(?:around|about|approximately|roughly)\s*{_NUM}", re.I)
-_RX_BARE_DOLLAR = re.compile(r"\$\s*(\d+(?:\.\d+)?)")
+
+
+def _amount(group: str) -> float:
+    return float(group.replace(",", ""))
 
 
 def parse_budget(text: str) -> tuple[float | None, float | None]:
-    """(min, max) in USD from phrases like 'under $50', '$20-40', 'at least 100'."""
+    """(min, max) in USD from phrases like 'under $50', '$20-40', 'at least 1,000'."""
     if not text:
         return None, None
     m = _RX_RANGE.search(text)
     if m:
-        lo, hi = float(m.group(1)), float(m.group(2))
+        lo, hi = _amount(m.group(1)), _amount(m.group(2))
         return (min(lo, hi), max(lo, hi))
     m = _RX_MAX.search(text)
     if m:
-        return None, float(m.group(1))
+        return None, _amount(m.group(1))
     m = _RX_MIN.search(text)
     if m:
-        return float(m.group(1)), None
+        return _amount(m.group(1)), None
     m = _RX_AROUND.search(text)
     if m:
-        v = float(m.group(1))
+        v = _amount(m.group(1))
         return round(v * 0.7, 2), round(v * 1.3, 2)
     return None, None
 
@@ -281,10 +287,18 @@ def _clean_keywords(raw: list[str], limit: int = MAX_KEYWORDS) -> list[str]:
 
 
 def _nonneg(v: float | None) -> float | None:
-    """Budgets must be finite and non-negative, anything else counts as 'not given'."""
-    if v is None or not math.isfinite(v) or v < 0:
+    """Budgets must be finite, non-negative and below MAX_BUDGET; anything else counts as
+    'not given' (the caller adds the warning)."""
+    if v is None or not math.isfinite(v) or v < 0 or v > MAX_BUDGET:
         return None
     return float(v)
+
+
+def _clean_text(value: str | None, max_chars: int) -> str:
+    """Model-written free text: control characters out, whitespace collapsed, capped."""
+    if not value:
+        return ""
+    return _RX_WS.sub(" ", _RX_CONTROL.sub("", str(value))).strip()[:max_chars].strip()
 
 
 def _unique_names(slots: list[Slot]) -> None:
@@ -334,13 +348,13 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
     warnings: list[str] = []
     slots: list[Slot] = []
     for s in out.slots:
-        sq = re.sub(r"\s+", " ", s.search_query or "").strip()
+        sq = _clean_text(s.search_query, MAX_QUERY_CHARS)
         if not sq:
             continue
         slots.append(
             Slot(
-                name=(s.name or "items").strip()[:40] or "items",
-                search_query=sq[:MAX_QUERY_CHARS],
+                name=_clean_text(s.name, 40) or "items",
+                search_query=sq,
                 keywords=_clean_keywords(s.keywords),
                 exclude_keywords=_clean_keywords(s.exclude_keywords, MAX_EXCLUDE_KEYWORDS),
                 budget_max=_nonneg(s.budget_max),
@@ -362,6 +376,9 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
 
     budget_min = _nonneg(out.budget_min)
     budget_max = _nonneg(out.budget_max)
+    for label, raw in (("budget_min", out.budget_min), ("budget_max", out.budget_max)):
+        if raw is not None and _nonneg(raw) is None:
+            warnings.append(f"planner {label} {raw!r} is not a usable amount, ignored")
     if budget_min is not None and budget_max is not None and budget_min > budget_max:
         warnings.append(f"budget_min {budget_min} above budget_max {budget_max}, dropping min")
         budget_min = None
@@ -392,10 +409,10 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
             s.budget_max = None
 
     return QueryPlan(
-        intent=(out.intent or query)[:200],
+        intent=_clean_text(out.intent, 200) or _clean_text(query, 200),
         audience=out.audience,
-        occasion=(out.occasion or None),
-        season=(out.season or None),
+        occasion=_clean_text(out.occasion, 60) or None,
+        season=_clean_text(out.season, 30) or None,
         budget_min=budget_min,
         budget_max=budget_max,
         budget_scope=scope,

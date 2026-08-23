@@ -85,7 +85,7 @@ def test_build_doc_text_uses_title_features_and_useful_details_only():
         "store": "Acme",
         "description": [],
     }
-    text = build_doc_text(rec)
+    text = build_doc_text(normalize_record(rec, 0))
     assert text.startswith("Cozy Sweater")
     assert "Machine Wash" in text and "Cotton" in text and "Acme" in text
     assert "Package Dimensions" not in text and "10 x 10" not in text
@@ -95,7 +95,7 @@ def test_build_doc_text_uses_title_features_and_useful_details_only():
 
 def test_build_doc_text_is_capped_at_600_chars():
     rec = {"title": "t" * 50, "features": ["f" * 200] * 4, "details": {}, "store": "s" * 300}
-    assert len(build_doc_text(rec)) <= 600
+    assert len(build_doc_text(normalize_record(rec, 0))) <= 600
 
 
 def test_normalize_record_flattens_and_derives_fields():
@@ -226,7 +226,7 @@ def test_load_catalog_subset_matches_select_rows(fixture_catalog, fixture_catalo
     [
         ("1,299", (1299.0, "string")),
         ("$1,299.50", (1299.5, "string")),
-        ("12,99", (12.99, "string")),
+        ("12,99", (1299.0, "string")),  # comma = thousands separator (US listings)
         (float("inf"), (None, "unparsed")),
     ],
 )
@@ -237,7 +237,7 @@ def test_parse_price_thousands_and_non_finite(raw, expected):
 def test_normalize_record_guards_non_finite_rating():
     raw = {"title": "x", "average_rating": float("nan"), "rating_number": 3, "parent_asin": "A"}
     row = normalize_record(raw, row_id=1)
-    assert row["average_rating"] == 0.0
+    assert row["average_rating"] is None
 
 
 def test_group_key_strips_nested_parenthetical_suffix():

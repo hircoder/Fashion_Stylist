@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stylist.planner import Audience, QueryPlan
@@ -60,12 +62,12 @@ class Item(BaseModel):
     title: str
     price: float | None = Field(None, allow_inf_nan=False)
     price_known: bool
-    average_rating: float = Field(..., allow_inf_nan=False)
+    average_rating: float | None = Field(None, allow_inf_nan=False)
     rating_number: int
     store: str | None
     audience: str
     image_url: str | None
-    url: str
+    url: str | None
     score: float = Field(..., allow_inf_nan=False)
     matched_keywords: list[str]
     reason: str
@@ -118,5 +120,12 @@ class ErrorBody(BaseModel):
     error: ErrorDetail
 
 
-def product_url(parent_asin: str) -> str:
-    return AMAZON_URL.format(asin=parent_asin)
+_RX_ASIN = re.compile(r"^[A-Z0-9]{10}$")
+
+
+def product_url(parent_asin: str) -> str | None:
+    """Amazon product page for a well formed ASIN (10 upper-case alphanumerics), else None.
+    Catalog ids are untrusted text; they must never be spliced into a link unchecked."""
+    if parent_asin and _RX_ASIN.match(parent_asin):
+        return AMAZON_URL.format(asin=parent_asin)
+    return None

@@ -13,18 +13,23 @@ from __future__ import annotations
 
 import gzip
 import json
+import logging
 import math
+import os
 import re
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-PIPELINE_VERSION = "2"  # bump when any derived column changes (forces a rebuild)
+log = logging.getLogger(__name__)
+
+PIPELINE_VERSION = "3"  # bump when any derived column changes (forces a rebuild)
 
 AUDIENCES = ("women", "men", "girls", "boys", "baby", "unisex", "unknown")
 
@@ -69,6 +74,8 @@ _RX_GIRLS = re.compile(r"\b(girl|girls|girls')\b", re.I)
 _RX_BOYS = re.compile(r"\b(boy|boys|boys')\b", re.I)
 _RX_BABY = re.compile(r"\b(baby|babies|toddler|toddlers|infant|infants|newborn)\b", re.I)
 _RX_UNISEX = re.compile(r"\bunisex\b", re.I)
+_RX_DEPT_BABY = re.compile(r"\b(?:baby|babies|infant|toddler)\b")
+_RX_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 
 _RX_PRICE_NUM = re.compile(r"^\$?\s*(\d[\d,]*(?:[.,]\d+)?)\s*$")
 _RX_PRICE_RANGE = re.compile(r"\d.*[-–].*\d")
@@ -179,9 +186,8 @@ def parse_price(value: object) -> tuple[float | None, str]:
 
 
 def _number_from_string(num: str) -> float:
-    """'1,299' -> 1299, '1,299.50' -> 1299.5, '12,99' -> 12.99 (comma as decimal)."""
-    if "," in num and "." not in num and re.fullmatch(r"\d+,\d{1,2}", num):
-        return float(num.replace(",", "."))
+    """'1,299' -> 1299, '1,299.50' -> 1299.5. Commas are thousands separators only: the
+    dataset is US listings, a decimal comma never appears in it."""
     return float(num.replace(",", ""))
 
 
@@ -189,7 +195,7 @@ def _audience_from_department(department: str | None) -> str | None:
     if not department:
         return None
     d = department.strip().lower()
-    if d.startswith("baby") or "baby" in d:
+    if _RX_DEPT_BABY.search(d):
         return "baby"
     if d.startswith("unisex"):
         return "unisex"
@@ -283,12 +289,26 @@ def _strip_trailing_small_number(t: str) -> str:
     return t
 
 
-def _finite(value: object) -> float:
+def _rating(value: object) -> float | None:
+    """Average rating in [0, 5], or None when missing / unparsable (not 0.0: a missing
+    rating must not read as a terrible one)."""
+    if value is None or isinstance(value, bool):
+        return None
     try:
         f = float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
-        return 0.0
-    return f if math.isfinite(f) and f >= 0 else 0.0
+        return None
+    if not math.isfinite(f) or f < 0 or f > 5:
+        return None
+    return f
+
+
+def _text(value: object, max_chars: int) -> str | None:
+    """Trimmed, whitespace-collapsed string or None for anything else / empty."""
+    if not isinstance(value, str):
+        return None
+    v = _RX_WS.sub(" ", _RX_CONTROL.sub("", value)).strip()
+    return v[:max_chars] if v else None
 
 
 def _count(value: object) -> int:
@@ -330,26 +350,19 @@ def _clean_list(values: object, max_items: int, max_chars: int) -> list[str]:
     return out
 
 
-def build_doc_text(rec: dict) -> str:
-    """Text fed to the embedder and BM25: title | features | useful details | store."""
-    details = rec.get("details") or {}
-    if not isinstance(details, dict):
-        details = {}
-    parts: list[str] = [_RX_WS.sub(" ", str(rec.get("title") or "")).strip()]
-    feats = _clean_list(rec.get("features"), max_items=4, max_chars=120)
+def build_doc_text(row: dict) -> str:
+    """Text fed to the embedder and BM25, built from the *normalized* row so the index
+    sees exactly the fields that get served: title | features | useful details | store."""
+    parts: list[str] = [str(row.get("title") or "")]
+    feats = row.get("features") or []
     if feats:
-        parts.append("; ".join(feats))
-    detail_bits = []
-    for raw_key, col in DETAIL_FIELDS.items():
-        if col in DOC_TEXT_DETAILS:
-            val = details.get(raw_key)
-            if isinstance(val, str) and val.strip():
-                detail_bits.append(val.strip()[:60])
+        parts.append("; ".join(str(f) for f in feats[:4]))
+    detail_bits = [str(row[col])[:60] for col in DOC_TEXT_DETAILS if row.get(col)]
     if detail_bits:
         parts.append(", ".join(detail_bits))
-    store = rec.get("store")
-    if isinstance(store, str) and store.strip():
-        parts.append(store.strip()[:60])
+    store = row.get("store")
+    if store:
+        parts.append(str(store)[:60])
     return " | ".join(parts)[:600]
 
 
@@ -359,36 +372,48 @@ def normalize_record(raw: dict, row_id: int) -> dict:
     if not isinstance(details, dict):
         details = {}
     price, status = parse_price(raw.get("price"))
-    title = _RX_WS.sub(" ", str(raw.get("title") or "")).strip()
+    title = _text(raw.get("title"), 500) or ""
     description = " ".join(_clean_list(raw.get("description"), max_items=3, max_chars=300))[:300]
     row: dict = {
         "row_id": int(row_id),
-        "parent_asin": str(raw.get("parent_asin") or ""),
+        "parent_asin": _text(raw.get("parent_asin"), 20) or "",
         "title": title,
-        "average_rating": _finite(raw.get("average_rating")),
+        "average_rating": _rating(raw.get("average_rating")),
         "rating_number": _count(raw.get("rating_number")),
         "price": price,
         "price_status": status,
-        "store": (raw.get("store") or None),
+        "store": _text(raw.get("store"), 80),
         "features": _clean_list(raw.get("features"), max_items=4, max_chars=120),
         "description": description,
     }
     for raw_key, col in DETAIL_FIELDS.items():
-        val = details.get(raw_key)
-        row[col] = val.strip()[:80] if isinstance(val, str) and val.strip() else None
+        row[col] = _text(details.get(raw_key), 80)
     row["image_url"] = _first_image_url(raw.get("images"))
     row["audience"] = derive_audience(title, row["department"])
-    row["doc_text"] = build_doc_text(raw)
+    row["doc_text"] = build_doc_text(row)
     return row
 
 
-def iter_raw(path: Path) -> Iterator[dict]:
+def iter_raw(path: Path, stats: IngestStats | None = None) -> Iterator[dict]:
+    """Yield one dict per json line. Lines that are not valid json objects are skipped
+    and counted in `stats.bad_lines` (a few broken lines must not kill a 30 minute job)."""
     opener = gzip.open if str(path).endswith(".gz") else open
-    with opener(path, "rt", encoding="utf-8") as f:
-        for line in f:
+    with opener(path, "rt", encoding="utf-8", errors="replace") as f:
+        for line_no, line in enumerate(f, 1):
             line = line.strip()
-            if line:
-                yield json.loads(line)
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                rec = None
+            if not isinstance(rec, dict):
+                if stats is not None:
+                    stats.bad_lines += 1
+                    if stats.bad_lines <= 5:
+                        log.warning("skipping line %d: not a json object", line_no)
+                continue
+            yield rec
 
 
 _RATING_BUCKETS = ((0, 4), (5, 19), (20, 99), (100, None))
@@ -405,6 +430,7 @@ def _bucket(n: int) -> str:
 @dataclass
 class IngestStats:
     rows: int = 0
+    bad_lines: int = 0
     price_status: Counter = field(default_factory=Counter)
     coverage: dict[str, float] = field(default_factory=dict)
     by_rating_bucket: dict[str, dict[str, float]] = field(default_factory=dict)
@@ -413,6 +439,7 @@ class IngestStats:
     def as_dict(self) -> dict:
         return {
             "rows": self.rows,
+            "bad_lines": self.bad_lines,
             "price_status": dict(self.price_status),
             "coverage": self.coverage,
             "by_rating_bucket": self.by_rating_bucket,
@@ -460,17 +487,22 @@ def _has(row: dict, col: str) -> bool:
 def ingest(
     raw_path: Path, out_path: Path, limit: int | None = None, chunk_size: int = 50_000
 ) -> IngestStats:
-    """Stream the raw jsonl(.gz) and write the flat catalog parquet. Returns coverage stats."""
+    """Stream the raw jsonl(.gz) and write the flat catalog parquet. Returns coverage stats.
+
+    The parquet is written to a temp file next to the target and renamed at the end, so
+    a crash (or an empty input) never leaves a truncated catalog behind."""
     stats = IngestStats()
     cov = Counter()
     bucket_tot: Counter = Counter()
     bucket_cov: dict[str, Counter] = {}
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    writer = pq.ParquetWriter(out_path, _SCHEMA, compression="zstd")
+    tmp_path = out_path.with_name(f".{out_path.name}.{os.getpid()}.tmp")
+    writer = pq.ParquetWriter(tmp_path, _SCHEMA, compression="zstd")
+    ok = False
     try:
         chunk: list[dict] = []
-        for row_id, raw in enumerate(iter_raw(Path(raw_path))):
+        for row_id, raw in enumerate(iter_raw(Path(raw_path), stats)):
             if limit is not None and row_id >= limit:
                 break
             row = normalize_record(raw, row_id)
@@ -488,10 +520,17 @@ def ingest(
             if len(chunk) >= chunk_size:
                 writer.write_table(_to_table(chunk))
                 chunk = []
-        if chunk or stats.rows == 0:
+        if chunk:
             writer.write_table(_to_table(chunk))
+        ok = stats.rows > 0
     finally:
         writer.close()
+        if ok:
+            os.replace(tmp_path, out_path)
+        else:
+            tmp_path.unlink(missing_ok=True)
+    if stats.rows == 0:
+        raise ValueError(f"no rows read from {raw_path} ({stats.bad_lines} bad lines)")
     n = max(stats.rows, 1)
     stats.coverage = {c: round(cov[c] / n, 4) for c in _COVERAGE_FIELDS}
     stats.by_rating_bucket = {
@@ -526,11 +565,28 @@ def select_rows(
 def load_catalog_subset(
     catalog_path: Path, limit: int | None, sampling: str = "popular", seed: int = 42
 ) -> pd.DataFrame:
-    """Read the parquet, pick rows with `select_rows` on two small columns, and only then
-    materialise the chosen rows in pandas (keeps the 826K-row build under ~2 GB)."""
-    table = pq.read_table(catalog_path)
-    small = table.select(["row_id", "rating_number"]).to_pandas()
+    """Pick rows with `select_rows` on two small columns, then materialise only the chosen
+    rows, one row group at a time (the full 826K-row table never has to sit in memory)."""
+    pf = pq.ParquetFile(catalog_path)
+    small = pf.read(columns=["row_id", "rating_number"]).to_pandas()
     small["_pos"] = range(len(small))
     picked = select_rows(small, limit=limit, sampling=sampling, seed=seed)
-    subset = table.take(pa.array(picked["_pos"].to_numpy())).to_pandas()
-    return subset.reset_index(drop=True)
+    positions = np.sort(picked["_pos"].to_numpy(dtype=np.int64))
+    pieces: list[pa.Table] = []
+    start = 0
+    cursor = 0
+    for rg in range(pf.num_row_groups):
+        n_rows = pf.metadata.row_group(rg).num_rows
+        end = start + n_rows
+        stop = cursor
+        while stop < len(positions) and positions[stop] < end:
+            stop += 1
+        if stop > cursor:
+            local = pa.array(positions[cursor:stop] - start)
+            pieces.append(pf.read_row_group(rg).take(local))
+            cursor = stop
+        start = end
+    if not pieces:
+        return pf.schema_arrow.empty_table().to_pandas()
+    df = pa.concat_tables(pieces).to_pandas()
+    return df.sort_values("row_id", kind="stable").reset_index(drop=True)

@@ -183,14 +183,15 @@ def test_retriever_expands_depth_when_top_n_is_full_of_variants(fixture_index, h
     assert len({c.group_key for c in res.candidates}) == 6
 
 
-def test_hydrate_turns_nan_rating_into_zero(fixture_index, hash_embedder):
+def test_hydrate_turns_nan_rating_into_none(fixture_index, hash_embedder):
     r = _retriever(fixture_index, hash_embedder)
+    old = fixture_index.catalog.loc[0, "average_rating"]
     fixture_index.catalog.loc[0, "average_rating"] = float("nan")
     try:
         c = r._hydrate(__import__("stylist.retrieval", fromlist=["Candidate"]).Candidate(0, 0, 0.0))
-        assert c.average_rating == 0.0
+        assert c.average_rating is None
     finally:
-        fixture_index.catalog.loc[0, "average_rating"] = 4.0
+        fixture_index.catalog.loc[0, "average_rating"] = old
 
 
 def test_pool_items_are_merged_by_score_with_a_small_in_window_bonus(fixture_index, hash_embedder):

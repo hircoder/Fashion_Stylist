@@ -17,11 +17,13 @@ worst kind of bug in a retrieval system, so we pay the hashing cost at startup.
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import logging
 import os
 import platform
 import shutil
+import tempfile
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -95,9 +97,27 @@ class IndexMeta:
 
     @classmethod
     def from_json(cls, text: str) -> IndexMeta:
-        data = json.loads(text)
-        known = {k: data[k] for k in cls.__dataclass_fields__ if k in data}
-        return cls(**known)
+        try:
+            data = json.loads(text)
+            if not isinstance(data, dict):
+                raise ValueError("meta.json is not an object")
+            known = {k: data[k] for k in cls.__dataclass_fields__ if k in data}
+            return cls(**known)
+        except (ValueError, TypeError) as e:
+            raise IndexValidationError(f"meta.json is unreadable: {e}") from e
+
+
+def _dist_version(name: str) -> str:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
+
+
+def _scratch_dir(final_dir: Path) -> Path:
+    """A fresh, uniquely named build directory next to the target (two builds into the
+    same target never touch each other's files)."""
+    return Path(tempfile.mkdtemp(prefix=f".{final_dir.name}.building-", dir=final_dir.parent))
 
 
 def sha256_file(path: Path, chunk: int = 1 << 20) -> str:
@@ -133,11 +153,43 @@ def build_index(
     final_dir = Path(index_dir)
     final_dir.parent.mkdir(parents=True, exist_ok=True)
     # build next to the target, swap in at the end: a crash never leaves a half index
-    index_dir = final_dir.parent / f".{final_dir.name}.building"
-    if index_dir.exists():
-        shutil.rmtree(index_dir)
-    index_dir.mkdir()
+    index_dir = _scratch_dir(final_dir)
+    try:
+        meta = _build_into(
+            index_dir, Path(catalog_path), embedder, limit, sampling, seed, batch_size, t0
+        )
+    except BaseException:
+        shutil.rmtree(index_dir, ignore_errors=True)
+        raise
+    _swap_in(index_dir, final_dir)
+    log.info("index built in %.1fs", meta.build_seconds)
+    return meta
 
+
+def _swap_in(built: Path, final_dir: Path) -> None:
+    """Replace `final_dir` with `built`. The old index is parked as `.<name>.old` for the
+    instant between the two renames; a crash there is detected by `SearchIndex.load`."""
+    if final_dir.exists():
+        old_dir = final_dir.parent / f".{final_dir.name}.old"
+        if old_dir.exists():
+            shutil.rmtree(old_dir)
+        os.replace(final_dir, old_dir)
+        os.replace(built, final_dir)
+        shutil.rmtree(old_dir, ignore_errors=True)
+    else:
+        os.replace(built, final_dir)
+
+
+def _build_into(
+    index_dir: Path,
+    catalog_path: Path,
+    embedder: Embedder,
+    limit: int | None,
+    sampling: str,
+    seed: int,
+    batch_size: int,
+    t0: float,
+) -> IndexMeta:
     df = load_catalog_subset(catalog_path, limit=limit, sampling=sampling, seed=seed)
     texts = df["doc_text"].fillna("").astype(str).tolist()
     n = len(df)
@@ -146,7 +198,8 @@ def build_index(
     truncated = None
     counter = getattr(embedder, "count_tokens_over", None)
     if callable(counter) and n:
-        sample = texts[:: max(1, n // 5000)][:5000]
+        stride = max(1, -(-n // 5000))  # ceil: an even spread over the whole catalog
+        sample = texts[::stride][:5000]
         truncated = int(counter(sample, getattr(embedder, "max_seq_length", 256)))
         log.info("%d of %d sampled docs exceed the token limit (truncated)", truncated, len(sample))
 
@@ -168,8 +221,6 @@ def build_index(
     serving = df[SERVING_COLUMNS].reset_index(drop=True)
     serving.to_parquet(index_dir / "catalog.parquet", index=False)
 
-    import sentence_transformers
-
     meta = IndexMeta(
         pipeline_version=PIPELINE_VERSION,
         embedding_model=embedder.name,
@@ -179,7 +230,7 @@ def build_index(
         sampling=sampling,
         limit=limit,
         seed=seed,
-        source_catalog=str(catalog_path),
+        source_catalog=Path(catalog_path).name,  # the name only, never a local path
         row_ids_sha256=_sha256_bytes(row_ids.tobytes()),
         checksums={name: sha256_file(index_dir / name) for name in index_files(index_dir)},
         versions={
@@ -187,23 +238,14 @@ def build_index(
             "numpy": np.__version__,
             "pandas": pd.__version__,
             "bm25s": bm25s.__version__,
-            "sentence_transformers": sentence_transformers.__version__,
+            "sentence_transformers": _dist_version("sentence-transformers"),
+            "stylist": _dist_version("fashion-stylist"),
         },
         built_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         build_seconds=round(time.time() - t0, 1),
         truncated_docs_in_sample=truncated,
     )
     (index_dir / "meta.json").write_text(meta.to_json())
-    if final_dir.exists():
-        old_dir = final_dir.parent / f".{final_dir.name}.old"
-        if old_dir.exists():
-            shutil.rmtree(old_dir)
-        os.replace(final_dir, old_dir)
-        os.replace(index_dir, final_dir)
-        shutil.rmtree(old_dir, ignore_errors=True)
-    else:
-        os.replace(index_dir, final_dir)
-    log.info("index built in %.1fs", meta.build_seconds)
     return meta
 
 
@@ -246,6 +288,12 @@ class SearchIndex:
         index_dir = Path(index_dir)
         meta_path = index_dir / "meta.json"
         if not meta_path.exists():
+            parked = index_dir.parent / f".{index_dir.name}.old"
+            if parked.is_dir() and not index_dir.exists():
+                raise IndexValidationError(
+                    f"no index at {index_dir}, but {parked} exists: an index rebuild was "
+                    f"interrupted between its two renames. Rename it back or rebuild."
+                )
             raise IndexValidationError(f"no index at {index_dir} (meta.json missing)")
         meta = IndexMeta.from_json(meta_path.read_text())
         if meta.pipeline_version != PIPELINE_VERSION:
@@ -259,10 +307,28 @@ class SearchIndex:
             )
         verify_checksums(index_dir, meta)
 
-        embeddings = np.load(index_dir / "embeddings.npy").astype(np.float32)
-        row_ids = np.load(index_dir / "row_ids.npy")
-        catalog = pd.read_parquet(index_dir / "catalog.parquet")
-        bm = bm25s.BM25.load(index_dir / "bm25", show_progress=False)
+        embeddings = _load_array(index_dir / "embeddings.npy")
+        row_ids = _load_array(index_dir / "row_ids.npy")
+        if embeddings.ndim != 2:
+            raise IndexValidationError("embeddings.npy is not a 2-d array")
+        if embeddings.dtype.kind != "f":
+            raise IndexValidationError("embeddings.npy is not a float array")
+        embeddings = embeddings.astype(np.float32)
+        if embeddings.size == 0:
+            raise IndexValidationError("embeddings.npy is empty")
+        if not np.isfinite(embeddings).all():
+            raise IndexValidationError("embeddings.npy contains non-finite values")
+        if row_ids.ndim != 1 or row_ids.dtype.kind not in "iu":
+            raise IndexValidationError("row_ids.npy is not a 1-d integer array")
+        row_ids = row_ids.astype(np.int64, copy=False)
+        try:
+            catalog = pd.read_parquet(index_dir / "catalog.parquet")
+        except Exception as e:  # pyarrow raises several unrelated types
+            raise IndexValidationError(f"catalog.parquet is unreadable: {e}") from e
+        try:
+            bm = bm25s.BM25.load(index_dir / "bm25", show_progress=False)
+        except Exception as e:
+            raise IndexValidationError(f"bm25 index is unreadable: {e}") from e
 
         n = embeddings.shape[0]
         if not (n == len(row_ids) == len(catalog) == meta.n_rows):
@@ -272,6 +338,8 @@ class SearchIndex:
             )
         if embeddings.shape[1] != meta.dim:
             raise IndexValidationError("embedding dim does not match meta")
+        if "row_id" not in catalog.columns or "title" not in catalog.columns:
+            raise IndexValidationError("catalog.parquet lacks the serving columns")
         if _sha256_bytes(row_ids.tobytes()) != meta.row_ids_sha256:
             raise IndexValidationError("row_ids hash mismatch")
         if not np.array_equal(catalog["row_id"].to_numpy(dtype=np.int64), row_ids):
@@ -293,4 +361,15 @@ class SearchIndex:
         toks = _tokenize([query])[0]
         if not toks:
             return np.zeros(self.n_rows, dtype=np.float32)
-        return np.asarray(self._bm25.get_scores(toks), dtype=np.float32)
+        scores = np.asarray(self._bm25.get_scores(toks), dtype=np.float32)
+        if scores.shape != (self.n_rows,):
+            raise IndexValidationError(f"bm25 returned {scores.shape}, expected ({self.n_rows},)")
+        return scores
+
+
+def _load_array(path: Path) -> np.ndarray:
+    """np.load without pickles; any failure becomes an IndexValidationError naming the file."""
+    try:
+        return np.load(path, allow_pickle=False)
+    except (ValueError, OSError, EOFError) as e:
+        raise IndexValidationError(f"{path.name} is unreadable: {e}") from e
