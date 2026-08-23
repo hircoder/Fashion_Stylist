@@ -274,3 +274,33 @@ async def test_shared_planner_call_outlives_the_waiters_budget(fixture_index, ha
         assert seen["timeout"] == 20.0  # the call runs on its own clock, not the waiter's
     finally:
         svc.close()
+
+
+async def test_background_planner_failure_is_logged_and_negative_cached(
+    fixture_index, hash_embedder, caplog
+):
+    import asyncio
+
+    from stylist.llm import FakeLLM, LLMTransportError
+
+    class SlowFail(FakeLLM):
+        async def complete_json(self, *, system, user, schema, max_tokens=2000, timeout=30.0):
+            await asyncio.sleep(0.5)  # longer than the waiter's budget
+            raise LLMTransportError("bedrock exploded")
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.1", "PLANNER_FAILURE_TTL_S": "30"}
+        ),
+        llm=SlowFail(),
+    )
+    try:
+        r = await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+        assert r.llm_info.planner_used == "heuristic"
+        await asyncio.sleep(0.6)  # let the shared call fail in the background
+        assert svc._plan_failed_until  # the failure is remembered
+        assert any("planner failed in the background" in rec.message for rec in caplog.records)
+    finally:
+        svc.close()

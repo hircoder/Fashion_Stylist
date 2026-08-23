@@ -210,7 +210,17 @@ class RecommendationService:
         return plan.model_copy(deep=True), "heuristic", False
 
     def _cache_shared_result(self, key: tuple, fut: asyncio.Future) -> None:
-        if fut.cancelled() or fut.exception() is not None:
+        if fut.cancelled():
+            return
+        exc = fut.exception()
+        if exc is not None:
+            # every waiter may have left before the call failed: without this, a planner
+            # that always breaks looks like a service that just prefers regex plans
+            log.warning("planner failed in the background: %s: %s", type(exc).__name__, exc)
+            if self.settings.planner_failure_ttl_s > 0:
+                self._plan_failed_until[key] = (
+                    time.monotonic() + self.settings.planner_failure_ttl_s
+                )
             return
         plan = fut.result()
         if plan is not None:
