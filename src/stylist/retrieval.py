@@ -53,6 +53,7 @@ class Candidate:
     bm25_rank: int | None = None
     matched_keywords: list[str] = field(default_factory=list)
     excluded_keywords: list[str] = field(default_factory=list)
+    type_match: bool = False  # title carries one of the slot's type words (or head nouns)
     in_window: bool = True
     price: float | None = None
     average_rating: float | None = None
@@ -198,6 +199,22 @@ def keyword_matches(title: str, keywords: list[str]) -> list[str]:
     return [kw for kw in keywords if kw and _keyword_rx(kw).search(low)]
 
 
+def type_match(title: str, keywords: list[str]) -> bool:
+    """Looser than keyword_matches, for the type gate: the head noun of a multi-word
+    keyword counts too ("rain jacket" accepts any jacket; the reranker sorts out rain vs
+    fleece). Single-word keywords must match as they are."""
+    low = (title or "").lower()
+    for kw in keywords:
+        if not kw:
+            continue
+        if _keyword_rx(kw).search(low):
+            return True
+        head = kw.split()[-1]
+        if head != kw and len(head) > 2 and _keyword_rx(head).search(low):
+            return True
+    return False
+
+
 def bayes_rating(avg: float | None, count: int, m: int, prior: float) -> float:
     """Bayesian average: shrinks low-count ratings toward `prior` (the catalog mean at
     serving time), with `m` pseudo-ratings of weight. No rating at all means the prior."""
@@ -325,6 +342,7 @@ class Retriever:
             if audience and c.audience == audience:
                 c.score += AUDIENCE_MATCH_BONUS * self._unit
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
+            c.type_match = bool(c.matched_keywords) or type_match(c.title, slot.keywords)
             if c.matched_keywords:
                 c.score += self.s.keyword_boost * self._unit
             c.excluded_keywords = keyword_matches(c.title, slot.exclude_keywords)
@@ -360,12 +378,12 @@ class Retriever:
         while True:
             fused = self._rank(dense, bm25, mask, slot, top_n, audience)
             distinct = diversify_by_group(fused, set(seen))
-            typed = [c for c in distinct if c.matched_keywords] if type_gate else distinct
+            typed = [c for c in distinct if c.type_match] if type_gate else distinct
             if len(typed) >= needed:
                 seen.update(c.group_key or f"__{c.idx}" for c in typed)
                 return typed
             if top_n >= n_masked:
-                rest = [c for c in distinct if not c.matched_keywords] if type_gate else []
+                rest = [c for c in distinct if not c.type_match] if type_gate else []
                 out = typed + rest
                 seen.update(c.group_key or f"__{c.idx}" for c in out)
                 return out
@@ -409,7 +427,7 @@ class Retriever:
                 own = self._rank_distinct(
                     dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate
                 )
-                typed_own = [c for c in own if c.matched_keywords] if gate else own
+                typed_own = [c for c in own if c.type_match] if gate else own
                 if len(typed_own) >= k:
                     ranked = typed_own
                 else:

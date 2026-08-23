@@ -71,8 +71,12 @@ def _term_rx(term: str) -> re.Pattern:
 
 
 def _passes(title: str, rule: dict) -> bool:
+    """`none`: no listed term may appear. `all`: a required part (a brand, spelled any of
+    the listed ways): one of them must appear. `any`: the product type: one must appear."""
     low = title.lower()
     if any(_term_rx(n).search(low) for n in rule.get("none", [])):
+        return False
+    if rule.get("all") and not any(_term_rx(a).search(low) for a in rule["all"]):
         return False
     return any(_term_rx(a).search(low) for a in rule.get("any", []))
 

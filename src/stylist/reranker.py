@@ -186,7 +186,7 @@ def apply_slot_rerank(
         reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
     rest = [c for c in sc.candidates if c.row_id not in reasons]  # retrieval order
     if sc.slot.keywords:  # only type-matching items may pad a slot
-        rest = [c for c in rest if c.matched_keywords]
+        rest = [c for c in rest if c.type_match or c.matched_keywords]
     if out.no_good_match:
         if chosen:
             rest = []

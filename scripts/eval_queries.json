@@ -1,5 +1,5 @@
 {
- "_note": "20 human style queries plus 8 brand queries. Each slot has keyword rules written by hand before looking at any planner output: `any` = at least one must appear in the title (whole words, plural tolerant), `none` = must not appear. They check product TYPE (or brand) only, they are a regression diagnostic, not relevance ground truth. `max_price` is sent as the explicit API field; `budget_in_text` records a budget that is only in the sentence.",
+ "_note": "20 human style queries plus 8 brand queries. Each slot has keyword rules written by hand before looking at any planner output: `any` = at least one must appear in the title (whole words, plural tolerant), `all` = every entry must appear (brand rules: `all` = the brand, `any` = the product type, so a branded sock never passes a jeans slot), `none` = must not appear. They check product TYPE and brand only, they are a regression diagnostic, not relevance ground truth. `max_price` is sent as the explicit API field; `budget_in_text` records a budget that is only in the sentence. Coverage on the popular 100K index is thin for some brands (one Levi's jeans row, three Columbia jackets): those queries measure how the brand fallback behaves, not the brand itself.",
  "queries": [
   {
    "id": "beach_outfit",
@@ -553,8 +553,14 @@
    "query": "nike running shoes for men",
    "slots": {
     "running shoes": {
-     "any": [
+     "all": [
       "nike"
+     ],
+     "any": [
+      "shoe",
+      "sneaker",
+      "running",
+      "trainer"
      ],
      "none": [
       "sock",
@@ -564,49 +570,83 @@
    }
   },
   {
-   "id": "brand_levis",
-   "query": "levi's jeans for men",
-   "slots": {
-    "jeans": {
-     "any": [
-      "levi"
-     ],
-     "none": [
-      "jacket",
-      "shirt"
-     ]
-    }
-   }
-  },
-  {
    "id": "brand_adidas",
    "query": "adidas track pants",
    "slots": {
     "track pants": {
-     "any": [
+     "all": [
       "adidas"
+     ],
+     "any": [
+      "pant",
+      "jogger",
+      "track"
      ],
      "none": [
       "shoe",
-      "sneaker",
-      "jacket"
+      "sneaker"
      ]
     }
    }
   },
   {
-   "id": "brand_carhartt",
-   "query": "carhartt work jacket",
+   "id": "brand_northface",
+   "query": "the north face jacket for women",
    "slots": {
     "jacket": {
+     "all": [
+      "north face"
+     ],
      "any": [
-      "carhartt"
+      "jacket",
+      "coat",
+      "parka"
      ],
      "none": [
-      "beanie",
-      "hat",
       "pant",
-      "bib"
+      "boot"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_champion",
+   "query": "champion hoodie",
+   "slots": {
+    "hoodie": {
+     "all": [
+      "champion"
+     ],
+     "any": [
+      "hoodie",
+      "hooded",
+      "sweatshirt",
+      "fleece"
+     ],
+     "none": [
+      "shoe",
+      "short"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_fotl",
+   "query": "fruit of the loom underwear for men",
+   "slots": {
+    "underwear": {
+     "all": [
+      "fruit of the loom"
+     ],
+     "any": [
+      "underwear",
+      "brief",
+      "boxer",
+      "trunk"
+     ],
+     "none": [
+      "sock",
+      "shirt"
      ]
     }
    }
@@ -616,8 +656,12 @@
    "query": "columbia rain jacket for women",
    "slots": {
     "rain jacket": {
-     "any": [
+     "all": [
       "columbia"
+     ],
+     "any": [
+      "jacket",
+      "shell"
      ],
      "none": [
       "pant",
@@ -628,17 +672,21 @@
    }
   },
   {
-   "id": "brand_skechers",
-   "query": "skechers walking shoes for women",
+   "id": "brand_levis",
+   "query": "levi's jeans for men",
    "slots": {
-    "walking shoes": {
+    "jeans": {
+     "all": [
+      "levi"
+     ],
      "any": [
-      "skechers"
+      "jean",
+      "denim"
      ],
      "none": [
-      "sock",
-      "insole",
-      "sandal"
+      "jacket",
+      "shirt",
+      "sock"
      ]
     }
    }
@@ -648,31 +696,20 @@
    "query": "calvin klein underwear for men",
    "slots": {
     "underwear": {
-     "any": [
+     "all": [
       "calvin klein",
       "calvin"
+     ],
+     "any": [
+      "underwear",
+      "brief",
+      "boxer",
+      "trunk"
      ],
      "none": [
       "sock",
       "shirt",
-      "jean"
-     ]
-    }
-   }
-  },
-  {
-   "id": "brand_underarmour",
-   "query": "under armour hoodie",
-   "slots": {
-    "hoodie": {
-     "any": [
-      "under armour",
-      "underarmour"
-     ],
-     "none": [
-      "shoe",
-      "sock",
-      "short"
+      "watch"
      ]
     }
    }

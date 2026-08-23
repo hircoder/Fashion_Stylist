@@ -245,3 +245,12 @@ def test_untyped_brand_rows_cannot_crowd_out_typed_rows_of_other_brands(
         cat.loc[rows, "store"] = saved
         getattr(fixture_index, "_column_cache", {}).clear()
         r._brand_masks.clear()
+
+
+def test_type_match_accepts_the_head_noun_of_a_multi_word_keyword():
+    from stylist.retrieval import type_match
+
+    assert type_match("Columbia Women's Fleece Jacket", ["rain jacket"])
+    assert type_match("Brooks Ghost Road Running Shoe", ["trail running shoes"])
+    assert not type_match("Wool Socks", ["running shoes"])
+    assert not type_match("Pearl Earrings", ["ear warmers"])  # 'warmers' is the head, not 'ear'
