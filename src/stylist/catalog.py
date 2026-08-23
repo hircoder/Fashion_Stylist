@@ -24,7 +24,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-PIPELINE_VERSION = "1"
+PIPELINE_VERSION = "2"  # bump when any derived column changes (forces a rebuild)
 
 AUDIENCES = ("women", "men", "girls", "boys", "baby", "unisex", "unknown")
 
@@ -83,6 +83,76 @@ _RX_SIZE_TAIL = re.compile(
     re.I,
 )
 _RX_WS = re.compile(r"\s+")
+
+# trailing ", Black, Large" / ", Multi/Flor" / ", M/US 4-6" style variant segments
+_COLOR_WORDS = {
+    "black",
+    "white",
+    "blue",
+    "red",
+    "green",
+    "grey",
+    "gray",
+    "navy",
+    "pink",
+    "purple",
+    "yellow",
+    "brown",
+    "beige",
+    "khaki",
+    "orange",
+    "multi",
+    "multicolor",
+    "multicolour",
+    "ivory",
+    "cream",
+    "tan",
+    "gold",
+    "silver",
+    "olive",
+    "burgundy",
+    "wine",
+    "teal",
+    "coral",
+    "floral",
+    "camo",
+    "leopard",
+    "nude",
+    "rose",
+    "charcoal",
+    "turquoise",
+    "mint",
+    "lavender",
+    "maroon",
+    "mustard",
+    "denim",
+    "print",
+    "printed",
+    "stripe",
+    "striped",
+    "solid",
+    "dark",
+    "light",
+    "small",
+    "medium",
+    "large",
+    "xlarge",
+    "plus",
+}
+_RX_SIZE_TOKEN = re.compile(
+    r"^(?:x{0,3}s|x{0,3}l|xxl|xxxl|\dx?l|m|\d{1,2}(?:\.\d)?(?:-\d{1,2})?|us|uk|eu|size|one|"
+    r"months?|years?|[a-z]*\d+[a-z\d\-]*|\d+[a-z]*)$",
+    re.I,
+)
+
+
+def _is_variant_segment(seg: str) -> bool:
+    words = seg.replace("/", " ").split()
+    if not words or len(words) > 3:
+        return False
+    hits = [w.lower() in _COLOR_WORDS or bool(_RX_SIZE_TOKEN.match(w)) for w in words]
+    # at least one colour/size token, the rest short (titles are often truncated: "Flor")
+    return any(hits) and all(h or len(w) <= 6 for h, w in zip(hits, words, strict=True))
 
 
 def parse_price(value: object) -> tuple[float | None, str]:
@@ -166,6 +236,11 @@ def group_key(title: str) -> str:
         if stripped == t:
             break
         t = stripped
+    t = _RX_SIZE_TAIL.sub("", t)
+    parts = [p.strip() for p in t.split(",")]
+    while len(parts) > 1 and _is_variant_segment(parts[-1]):
+        parts.pop()
+    t = ", ".join(parts)
     t = _RX_SIZE_TAIL.sub("", t)
     t = _RX_WS.sub(" ", t).strip(" ,-")
     return t
@@ -392,3 +467,16 @@ def select_rows(
     else:
         picked = df.sample(n=limit, random_state=seed)
     return picked.sort_values("row_id").reset_index(drop=True)
+
+
+def load_catalog_subset(
+    catalog_path: Path, limit: int | None, sampling: str = "popular", seed: int = 42
+) -> pd.DataFrame:
+    """Read the parquet, pick rows with `select_rows` on two small columns, and only then
+    materialise the chosen rows in pandas (keeps the 826K-row build under ~2 GB)."""
+    table = pq.read_table(catalog_path)
+    small = table.select(["row_id", "rating_number"]).to_pandas()
+    small["_pos"] = range(len(small))
+    picked = select_rows(small, limit=limit, sampling=sampling, seed=seed)
+    subset = table.take(pa.array(picked["_pos"].to_numpy())).to_pandas()
+    return subset.reset_index(drop=True)

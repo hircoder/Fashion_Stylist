@@ -28,7 +28,7 @@ import bm25s
 import numpy as np
 import pandas as pd
 
-from stylist.catalog import PIPELINE_VERSION, select_rows
+from stylist.catalog import PIPELINE_VERSION, load_catalog_subset
 from stylist.embeddings import Embedder
 
 log = logging.getLogger(__name__)
@@ -122,8 +122,7 @@ def build_index(
     index_dir = Path(index_dir)
     index_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_parquet(catalog_path)
-    df = select_rows(df, limit=limit, sampling=sampling, seed=seed)
+    df = load_catalog_subset(catalog_path, limit=limit, sampling=sampling, seed=seed)
     texts = df["doc_text"].fillna("").astype(str).tolist()
     n = len(df)
     log.info("indexing %d rows (sampling=%s, limit=%s)", n, sampling, limit)

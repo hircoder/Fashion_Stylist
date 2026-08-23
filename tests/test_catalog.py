@@ -196,3 +196,27 @@ def test_select_rows_rejects_unknown_sampling():
     df = pd.DataFrame({"row_id": [0], "rating_number": [1]})
     with pytest.raises(ValueError):
         select_rows(df, limit=1, sampling="best")
+
+
+def test_group_key_strips_trailing_comma_variant_segments():
+    a = "Women Floral Printe Swimsuit Summer Beach Bathing Suits Push Up Brazilian Suit, Multi/Flor"
+    b = "Women Floral Printe Swimsuit Summer Beach Bathing Suits Push Up Brazilian Suit, M/US 4-6"
+    c = "JOSIFER Women Summer Swimsuit Coverups Crochet Cover up, Black, Large"
+    d = "JOSIFER Women Summer Swimsuit Coverups Crochet Cover up, White, Small"
+    assert group_key(a) == group_key(b)
+    assert group_key(c) == group_key(d)
+    assert group_key(c).endswith("cover up")
+
+
+def test_group_key_keeps_descriptive_comma_segments():
+    t = "Clear Crossbody Purse Bag, Clear Stadium Bag with Adjustable Shoulder Strap"
+    assert "stadium bag" in group_key(t)
+
+
+def test_load_catalog_subset_matches_select_rows(fixture_catalog, fixture_catalog_df):
+    from stylist.catalog import load_catalog_subset
+
+    sub = load_catalog_subset(fixture_catalog, limit=25, sampling="popular")
+    expected = select_rows(fixture_catalog_df, limit=25, sampling="popular")
+    assert list(sub["row_id"]) == list(expected["row_id"])
+    assert list(sub.columns) == list(fixture_catalog_df.columns)

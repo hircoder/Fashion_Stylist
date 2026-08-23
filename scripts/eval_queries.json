@@ -1,0 +1,144 @@
+{
+  "_note": "20 human style queries. Each slot has keyword rules written by hand before looking at any planner output: `any` = at least one must appear in the title, `none` = must not appear. They check product TYPE only, they are a regression diagnostic, not relevance ground truth.",
+  "queries": [
+    {
+      "id": "beach_outfit",
+      "query": "I need an outfit to go to the beach this summer",
+      "slots": {
+        "swimwear": {"any": ["swim", "bikini", "bathing suit", "trunks", "board short"]},
+        "cover up": {"any": ["cover up", "cover-up", "coverup", "sundress", "beach dress", "kaftan", "sarong", "romper"]},
+        "sandals": {"any": ["sandal", "flip flop", "slide", "espadrille"]},
+        "sun hat": {"any": ["hat", "visor", "cap"]},
+        "sunglasses": {"any": ["sunglass", "shades"]}
+      }
+    },
+    {
+      "id": "snow_boots",
+      "query": "warm waterproof boots for hiking in the snow",
+      "slots": {"boots": {"any": ["boot"], "none": ["sandal", "slipper"]}}
+    },
+    {
+      "id": "wedding_guest",
+      "query": "elegant dress to wear as a guest at a summer wedding",
+      "slots": {"dress": {"any": ["dress", "gown"], "none": ["swim", "shirt dress for men"]}}
+    },
+    {
+      "id": "office_chinos",
+      "query": "men's slim fit chinos for the office",
+      "slots": {"chinos": {"any": ["chino", "pant", "trouser", "slacks"], "none": ["women", "ladies", "short"]}}
+    },
+    {
+      "id": "fall_sweater",
+      "query": "cozy oversized sweater for fall",
+      "slots": {"sweater": {"any": ["sweater", "cardigan", "pullover", "knit", "jumper"]}}
+    },
+    {
+      "id": "flat_feet_running",
+      "query": "running shoes with good arch support for flat feet",
+      "slots": {"shoes": {"any": ["shoe", "sneaker", "running", "trainer", "insole"], "none": ["sandal", "slipper", "flip flop"]}}
+    },
+    {
+      "id": "ears_warm",
+      "query": "something to keep my ears warm in winter",
+      "slots": {"ear warmers": {"any": ["ear", "beanie", "hat", "headband", "trapper"]}}
+    },
+    {
+      "id": "europe_sandals",
+      "query": "comfortable sandals for walking around europe all day",
+      "slots": {"sandals": {"any": ["sandal", "slide", "flip flop", "walking shoe"]}}
+    },
+    {
+      "id": "husband_wedding",
+      "query": "what should my husband wear to an outdoor wedding in june",
+      "slots": {
+        "shirt": {"any": ["shirt", "polo"], "none": ["women"]},
+        "trousers": {"any": ["pant", "chino", "trouser", "slacks", "suit"], "none": ["women"]},
+        "shoes": {"any": ["shoe", "loafer", "oxford", "derby", "boot"], "none": ["women"]},
+        "blazer": {"any": ["blazer", "jacket", "sport coat", "suit", "vest", "tie"], "none": ["women"]}
+      }
+    },
+    {
+      "id": "daughter_unicorn",
+      "query": "a gift for my 6 year old daughter who loves unicorns",
+      "slots": {"gift": {"any": ["unicorn", "girl", "kid", "toddler"], "none": ["men's", "women's"]}}
+    },
+    {
+      "id": "wfh_winter",
+      "query": "something cozy for working from home in winter",
+      "slots": {
+        "top": {"any": ["sweater", "hoodie", "sweatshirt", "fleece", "cardigan", "pullover", "robe", "lounge"]},
+        "bottoms": {"any": ["pant", "jogger", "sweatpant", "legging", "lounge", "pajama"]},
+        "socks or slippers": {"any": ["sock", "slipper"]}
+      }
+    },
+    {
+      "id": "interview_startup",
+      "query": "smart casual outfit for a job interview at a startup",
+      "slots": {
+        "top": {"any": ["shirt", "blouse", "polo", "sweater", "blazer", "top"]},
+        "bottoms": {"any": ["chino", "pant", "trouser", "jean", "skirt", "slacks"]},
+        "shoes": {"any": ["shoe", "loafer", "sneaker", "oxford", "flat", "boot"]}
+      }
+    },
+    {
+      "id": "rainy_commute",
+      "query": "I bike to work and it rains a lot, what should I wear",
+      "slots": {
+        "rain jacket": {"any": ["rain", "waterproof", "jacket", "poncho", "shell", "windbreaker"]},
+        "pants": {"any": ["pant", "rain", "waterproof", "legging", "trouser"]}
+      }
+    },
+    {
+      "id": "budget_sneakers",
+      "query": "white sneakers under $40",
+      "slots": {"sneakers": {"any": ["sneaker", "shoe", "trainer"], "none": ["boot", "sandal"]}},
+      "max_price": 40
+    },
+    {
+      "id": "yoga",
+      "query": "outfit for a hot yoga class",
+      "slots": {
+        "leggings": {"any": ["legging", "yoga pant", "short", "tights", "capri"]},
+        "top": {"any": ["sports bra", "tank", "top", "bra", "shirt"]}
+      }
+    },
+    {
+      "id": "baby_summer",
+      "query": "cute summer clothes for a 6 month old baby",
+      "slots": {"baby clothes": {"any": ["baby", "infant", "newborn", "month", "romper", "onesie", "bodysuit"], "none": ["women's", "men's"]}}
+    },
+    {
+      "id": "ski_trip",
+      "query": "I am going skiing for the first time, what do I need to wear",
+      "slots": {
+        "jacket": {"any": ["ski", "snow", "jacket", "parka", "insulated", "puffer"]},
+        "pants": {"any": ["ski", "snow", "pant", "bib", "salopette"]},
+        "gloves": {"any": ["glove", "mitten"]},
+        "base layer": {"any": ["thermal", "base layer", "long underwear", "fleece", "merino"]}
+      }
+    },
+    {
+      "id": "black_tie",
+      "query": "black tie event next month, I am a man",
+      "slots": {
+        "tuxedo": {"any": ["tuxedo", "tux", "suit", "dinner jacket"]},
+        "bow tie": {"any": ["bow tie", "bowtie", "tie"]},
+        "dress shoes": {"any": ["oxford", "dress shoe", "loafer", "patent", "shoe"]}
+      }
+    },
+    {
+      "id": "hiking_summer",
+      "query": "light clothes for day hikes in hot weather",
+      "slots": {
+        "shirt": {"any": ["shirt", "tee", "t-shirt", "tank", "top", "sun protection"]},
+        "shorts": {"any": ["short", "pant", "convertible"]},
+        "hat": {"any": ["hat", "cap", "visor"]}
+      }
+    },
+    {
+      "id": "grandma_gift",
+      "query": "a warm and classy present for my grandmother",
+      "slots": {"gift": {"any": ["scarf", "shawl", "cardigan", "sweater", "wrap", "glove", "slipper", "robe", "pashmina", "cashmere", "cape", "poncho"]}}
+    }
+  ]
+}
