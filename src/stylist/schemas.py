@@ -76,6 +76,7 @@ class SlotResult(BaseModel):
     name: str
     search_query: str
     keywords: list[str]
+    exclude_keywords: list[str] = Field(default_factory=list)
     budget_max: float | None
     n_eligible: int
     items: list[Item]

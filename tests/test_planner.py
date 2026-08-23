@@ -259,3 +259,19 @@ def test_normalize_total_budget_floors_tiny_allocations():
     assert min(allocs) >= 20.0  # 10% of the total
     assert sum(allocs) <= 200.0 + 1e-6
     assert any("floor" in w for w in plan.warnings)
+
+
+def test_normalize_keeps_cleaned_exclude_keywords():
+    out = _out(
+        slots=[
+            {
+                "name": "swimsuit",
+                "search_query": "women's one piece swimsuit",
+                "keywords": ["swimsuit"],
+                "exclude_keywords": [" Cover Up", "cover up", "coverup", "cover-up", "x", "y"],
+            }
+        ]
+    )
+    plan = normalize_plan(out, "q")
+    assert plan.slots[0].exclude_keywords == ["cover up", "coverup", "cover-up", "x"]
+    assert HeuristicPlanner().plan("swimsuit").slots[0].exclude_keywords == []

@@ -47,6 +47,8 @@ CONFIGS = {
     "hybrid": ({}, {"use_llm": False}),
     "hybrid_noboost": ({"keyword_boost": 0.0, "quality_weight": 0.0}, {"use_llm": False}),
     "llm_plan": ({}, {"use_llm": True, "rerank": False}),
+    "llm_plan_dense": ({"channels": ("dense",)}, {"use_llm": True, "rerank": False}),
+    "llm_plan_bm25": ({"channels": ("bm25",)}, {"use_llm": True, "rerank": False}),
     "llm_plan_rerank": ({}, {"use_llm": True, "rerank": True}),
 }
 

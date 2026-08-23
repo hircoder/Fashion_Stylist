@@ -6,8 +6,9 @@ Pipeline per request:
      applied to BOTH score vectors *before* top-N, so a constraint can never produce an
      empty slot when eligible items exist further down the ranking
   3. reciprocal rank fusion of the two channels, plus two small additive terms:
-     a keyword boost when a planner keyword literally appears in the title, and a
-     Bayesian-average rating prior
+     a keyword boost when a planner keyword literally appears in the title (and a
+     penalty when one of the slot's exclude_keywords does), and a Bayesian-average
+     rating prior
   4. one representative per `group_key` (size/colour variants collapse), highest score wins
   5. when a price window is set and unpriced items are allowed, a second ranked pool of
      unpriced items (flagged `in_window=False`) is merged into the same score order,
@@ -30,6 +31,7 @@ from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
 from stylist.planner import QueryPlan, Slot, SlotWindow
 
+EXCLUDE_PENALTY = 2.0  # x keyword_boost, for titles matching a slot's exclude_keywords
 IN_WINDOW_BONUS = 0.25  # in units of RRF(rank 1), added to priced in-budget items when a
 # budget exists and unpriced items are also in play (half of the keyword boost)
 RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_number is 10; 20 = a
@@ -46,6 +48,7 @@ class Candidate:
     dense_rank: int | None = None
     bm25_rank: int | None = None
     matched_keywords: list[str] = field(default_factory=list)
+    excluded_keywords: list[str] = field(default_factory=list)
     in_window: bool = True
     price: float | None = None
     average_rating: float = 0.0
@@ -249,6 +252,9 @@ class Retriever:
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
             if c.matched_keywords:
                 c.score += self.s.keyword_boost * self._unit
+            c.excluded_keywords = keyword_matches(c.title, slot.exclude_keywords)
+            if c.excluded_keywords:  # look-alike type: twice the boost, in the other direction
+                c.score -= EXCLUDE_PENALTY * self.s.keyword_boost * self._unit
             quality = bayes_rating(c.average_rating, c.rating_number, prior=self.rating_prior)
             c.score += self.s.quality_weight * self._unit * (quality / 5.0)
         fused.sort(key=lambda c: (-c.score, c.idx))

@@ -210,3 +210,13 @@ def test_deterministic_reason_mentions_keywords_price_and_rating():
     assert "within budget" in text
     unpriced = deterministic_reason(_cand(2, "X", None), SlotWindow(None, 50.0, None, True))
     assert "price unknown" in unpriced
+
+
+def test_rerank_payload_flags_excluded_keyword_matches():
+    plan, slots = _slots()
+    slots[0].candidates[2].excluded_keywords = ["cover up"]
+    text = build_rerank_user("beach", plan, slots[0], k=2)
+    payload = json.loads(text[text.index("{") :])
+    by_id = {c["row_id"]: c for c in payload["candidates"]}
+    assert by_id[3]["off_type_hint"] == ["cover up"]
+    assert "off_type_hint" not in by_id[1]

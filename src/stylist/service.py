@@ -238,6 +238,7 @@ class RecommendationService:
                     name=rs.slot.name,
                     search_query=rs.slot.search_query,
                     keywords=rs.slot.keywords,
+                    exclude_keywords=rs.slot.exclude_keywords,
                     budget_max=rs.window.max_price,
                     n_eligible=rs.n_eligible,
                     items=out_items,

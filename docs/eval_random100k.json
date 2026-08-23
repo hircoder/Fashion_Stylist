@@ -1,0 +1,3236 @@
+{
+  "index": {
+    "dir": "data/index_random100k",
+    "rows": 100000,
+    "sampling": "random"
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "results": [
+    {
+      "config": "bm25",
+      "queries": 20,
+      "keyword_match_at_k": 0.575,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 20,
+      "p50_ms": 7.6,
+      "p95_ms": 14.0,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Love is All You Need Bucket Hat Packable Summer Travel Beach Sun Hat B",
+              "Toddler Baby Girl Summer Outfit Off Shoulder Strap Shirt Top+Shorts wi",
+              "Ophestin Womens Sexy Bodycon Outfit - Sleeveless Stripe Print Summer T",
+              "Vieille Girls Cute Summer Dresses Size 6 Casual Beach Sundress for Gir"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated ",
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated ",
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated ",
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Fantaist Women's Summer Elegant Ruffle Wrap Wedding Guest Slim Bodycon",
+              "Gardenwed Wedding Dress Bridesmaid Dress Elegant Cocktail Dress for Wo",
+              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G",
+              "Ever-Pretty Women's Elegant Embroidery Short Flare Sleeve Wedding Gues"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "THE AWOKEN Men's Gray Chinos Regular Fit Cotton Pants (Mid Grey, 38)",
+              "Basic Slim Fit Office Pants Stretchy Full Length Black Size L"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz",
+              "Womens Pullover Chunky Cozy Oversized Knit Sweater Fall Winter Clothes",
+              "Chase Secret Womens Cozy Ladies Fashion Oversized Fuzzy Fluffy Fleece ",
+              "PiePieBuy Womens Oversized Sweater Fall Lightweight V Neck Loose Pullo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Diabetic Archies Flip Flops for Women, Comfortable Plantar Fasciitis S",
+              "WHITIN Women's Orthotic Arch Support Mule Slipper Adjustable Spa House",
+              "WHITIN Women's Orthotic Arch Support Mule Slipper Adjustable Spa House"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Winter Hat Knit Earflap Hat Double Layered Beanie Stocking Caps ",
+              "Girls Winter Warm Earmuffs Headband Adorable Cat Ears Earwarmer for Co",
+              "CHUANGLI Lovely Winter Warm Earmuffs Glitter Cat Ears Plush Ear Warmer",
+              "Aibearty 2PCS Kids Washable Winter Windproof Mask Warm Full Ears Prote"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "MEGNYA Orthopedic Flip Flops for Women, Comfortable Walking Sandals wi",
+              "MEGNYA Women's Hiking Sandals, Non-skidskid and Flexible Athletic Sand",
+              "Orthopedic Flip Flops for Women, Best Plantar Fasciitis Sandals for Fl",
+              "TOLLN Men Women Comfortable Walking Garden Shoes Slippers Quick Drying"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "June's Young Women Hats Wide Brim Sinamay Party Wear Silver",
+              "AMIST Loss of Husband Sympathy Gift Necklace for Wife Urns for Human A",
+              "NOREGRET Soulmate Necklace for Women, Sterling Silver Interlocking Hea",
+              "Gifts for 11th Anniversary Cuban Necklace for Men Silver Chains for Hu"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "PENQI Turtles Jewelry Turtle Charm Keychain Turtle Gift Just A Girl Wh",
+              "Pangda to My Daughter Gift Pocket Watch - My Little Girl Yesterday, My",
+              "NOURISHLOV Birthday 21st Gifts for Her, Sterling Silver 2 Circle CZ Ne",
+              "Daughter in Law Bracelet Future Daughter in Law Jewelry You are Also M"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "3 Pack Men's Winter Warm Floor Sock Super Soft Cozy Fuzzy Slipper Home",
+              "Mens Fuzzy Warm Winter Socks Super Soft Thick Cozy Slippers Thermal Ho",
+              "bestfur Women's Cashmere Fabrics Plush Lining Home Slippers Cozy Indoo",
+              "Cozy Memory Rainbow Plush Unicorn Mop Slippers for Women Home Cleaning"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 20.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "NEONBLOND Pin Warning Drafter at Work Vintage Fun Job Sign",
+              "So Sydney Toddler & Girls Apple Back to School Collection Skirt Set, D",
+              "Smart Blonde Laundry Schedule Metal Novelty Parking Sign P-1238",
+              "TeeStars - Firefighter - My Job is to Save Your Ass NOT Kiss It T-Shir"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 14.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Brooklyn Bike Cap Cycling Caps White Bike Wear Hat Unisex Bicycle caps",
+              "Zimco Pro Bike Short Cycling Shorts Bicycle Bike Shorts Coolmax Team S",
+              "DESIGNER97 Women's Fashion Contrast Color Round Neck Short Sleeve Penc",
+              "Rosybeat Men's Bike Wear 3D-padded Cycling Shorts(Wasit 28.3-39.4\"-X-L"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Under Armour Women`s Ultra Low Training Socks 3 Pack (White(U3944R3-10",
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "Vanity Fair Women's Perfectly Yours Ravissant Tailored Nylon Brief Pan"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
+              "LonyC Womens Lace Hot Halter Strap Outfit Sexy Lingerie Erotic Underwe",
+              "art class Boys' Super Stretch Super Skinny Fit Jeans - Gray (Size 6)",
+              "iGT CLASS Women's Touch Screen Winter Texting Leather Gloves Brown Sma"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Dr. Seuss - Baby-girls Big Cat Infant Footed Pajamas 6 Month White",
+              "LUXEHOME (YR1610) Cute Animal Style Baby Socks, 12 Pairs per Pack (S 0",
+              "Timall Baby Girls Summer Cute Dots Vest T-Shirt Tops Bloomers Pants Ou",
+              "Baby Toddler Boy Summer Clothes"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Ladies Racerback Tank That's A Horrible Idea What Time Sport Grey L",
+              "Mother and Child Necklace for Women Sterling Silver Mother 's Love Hea",
+              "WWE Authentic Wear The New Day World Famous 8-Time Champs T-Shirt Gree",
+              "Wear First Mens 685 Legacy Belted Cargo Shorts Khaki 32 818853"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Next Level Apparel 6240 Mens Premium V-Neck Tee XL-Black/Sand",
+              "MARS EVENT 2 Pairs Extra Long Reusable Rubber Dishwashing Cleaning Glo",
+              "Next Level Mens Premium Fitted Short-Sleeve Crew T-Shirt -LRG-Black/Or",
+              "HDE Child Pre-Tied Adjustable Bow Tie Formal Event Wedding Special Oca"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Daydance Hot Pink Leotards for Girls Dance, Short Sleeve Ballet Clothe",
+              "Unisex Furry Fuzzy Winter Cold Weather Multicolor Earmuffs for All Age",
+              "Hot New Women Bubble Bib Statement Necklace Fashion Chain Light Purple",
+              "Hot Pink Earrings for Women Love Heart dangle Earrings Vintage Minimal"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "My Greatest Blessings Call me Grandma | Cute Grandmother Ladies' V-Nec",
+              "JQFEN Big Sister Litte Sister Bracelet of 2\"Always My Sister Forever M",
+              "Classy Bride Mrs. Seersucker Pajama Set (M Top - M Boxers) Grey",
+              "Eilygen New Grandma Gift Stainless Steel Adjustable Bracelet for Grand"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "dense",
+      "queries": 20,
+      "keyword_match_at_k": 0.812,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 20,
+      "p50_ms": 27.9,
+      "p95_ms": 37.9,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 84.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "BBYES Women Summer Short Beach Dresses Casual T Shirt Dresses Beach Co",
+              "Womens Summer Fashion Beach Boho Loose Fit Casual Midi Dress Floral Na",
+              "POPYOUNG Women's 2022 Summer Casual T Shirt Dresses Beach Dress L, Gre",
+              "Harewom Women Summer Bikini Coverup Dress for Beach Vocation (Colorful"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "TSIODFO Waterproof Hiking Boots for Men Suede Ankle Boot Outdoor Climb",
+              "Womens Snow Boots Winter Shoes with Warm Plush Fleece Lined Ankle Boot"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 23.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora",
+              "MSBASIC Summer Dress for Wedding Guest Cross Wrap White and Pink Flora",
+              "OURS Pink Dress for Women Party Off Shoulder Summer Loose Dresses for ",
+              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-",
+              "Perruzo Men's Skinny Fit Casual Chino Pants (Black)",
+              "lexiart Men's Fashion Chino Trousers Mens Joggers Slim Fit Jogging Bot",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 37.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
+              "Women's Oversized Long Sleeve Knitted Loose Fluffy Jumper Sweater Apri",
+              "Damissly Women's Long Sleeve Christmas Cardigan Sweaters Open Front Fa",
+              "YESNO Women's Oversized Chunky Cable Knit Cardigan Sweaters Open Front"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 23.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Shoe Insoles Flat Feet Inserts Orthotics for Plantar Fasciitis Foot In",
+              "Archies Supportive Flip Flops for Women, Best Plantar Fasciitis Sandal",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise",
+              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 27.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "TINKSKY Ear Warmer Winter Headbands Fleece Thermal Ski Ear Muff Stretc",
+              "Surblue Unisex Foldable Ear Earmuffs Behind-the-Head Fur Winter Outdoo",
+              "JOYEBUY Lovely Cat Ears Super Soft Earmuffs Winter Outdoor Earmuffs Ea",
+              "Winter Ear Muffs Behind the Head Warmers"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 26.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Wedge Sandals for Women Comfort Walking Sandals Flower Open Toe Summer",
+              "Euro Comfort Youla Made in Europe Casual Women's Italian Lightweight S",
+              "Womens Wedge Sandals Casual Bohemia Gladiator Summer Shoes Outdoor Ope",
+              "Breckelles Roma-51 Sandals, Black Suede, 7"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 27.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "COOFANDY Mens Paisley Embroidery Dress Tuxedo Vest Wedding Formal Wais",
+              "Bofan Linen Wedding Suits for Men Beige 3 Pieces Prom Tuxedoes Linen S",
+              "June's Young Women Hats Royal Blue Feathers Diamonding Casing Summer S",
+              "Men's Business Striped Zipper Neck Tie Pre-tied Wedding Satin Neckwear"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 27.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Unicorn Hooded Bathrobe Sleepwear Matching Doll & Girls Gifts (Pink Ra",
+              "Children Knitted Unicorn Soft Beanies Hat Winter Hood Scarf with Pocke",
+              "Unicorn Star Clip on Earrings Long Tassel Dangle Faux Pearl non Pierce",
+              "Unicorn Birthday T-Shirt, Birthday Outfit Gifts for Girls (Flower Unic"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 27.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Womens Soft Warm Cozy Snowflake Non Skid Boots Fuzzy Floor Footwear In",
+              "Winter Neck Gaiter Real Estate Is My Hustle Funny Realtor Gift Magic S",
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Cozy Memory Foam Slippers Warm Fur Lined House Shoes Indoor Outdoor An"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 28.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "SATINATO Women's Stretch Work Pants Office Casual Business Wear Khaki",
+              "Yeshire Two Piece Outfits for Women - Short Sleeve Tshirt and Bodycon ",
+              "Lexiart Mens Fashion Casual Shorts - Solid Color Jogger Cargo Pants Sw",
+              "Basic Model Women's Casual Work Office Open Front Blazer Roll Up Sleev"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "KESSER Rain Suits for Men Waterproof Rain Gear for Work Fishing Rain C",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Clothes Cyc",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 28.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Oops Outlet Women's Thin Strap Lagenlook Romper Baggy Harem Jumpsuit P",
+              "Nike Women's 4-6/Youth 3Y-5Y Elite Crew Basketball Socks Black/White S",
+              "Mamia White Apparel Women's Laced & Lace Trimmed Bras (Packs of, 75, S",
+              "WEARALL Womens Split Maxi Skirt - White - US 4-6 (UK 8-10)"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 29.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
+              "CTHH Two Piece Outfits for Women- Sports Bras High Waisted Leggings Wo",
+              "Two Piece Outfits for Women- Sports Bras High Waisted Leggings Workout",
+              "Hotouch Yoga Tank Tops for Women Racerback Scoop Neck Tight Activewear"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 22.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Cute Baby Girls Summer Clothes Watermelon Patterns Romper Sleeveless J",
+              "Baby Girl Summer Clothes Short Sleeve T-Shirt Top+Ruffle Short Pant+He",
+              "1-6T Little Girl Clothes Pink Sleeveless Tassel Top and Rose Bow Pants",
+              "Kids Little Toddler Girl Clothes Floral Sleeve Shirts Top Denim Jeans "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Winter Warm 3 Hole Knit Ski Mask Balaclava Snowboard Full Face Mask Be",
+              "Men's Fleece Softshell Warm Windproof Skiing Pants Clothin Black US XS",
+              "Yousify Women Onesies Ski Suit Winter Snowsuit Waterproof Ski Jumpsuit",
+              "MEETYOO Women Thermal Underwear Set, Winter Warm Base Layer Sport Long"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 23.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Black & White Music Staff Formal Pre-tied Bow Tie",
+              "RBOCOTT Christmas Snowman Santa Claus Necktie Festival Tie for Men (3)",
+              "Men's Black & Colorful Musical Notes Formal Pre-tied Bow Tie",
+              "Dan Smith DBC2016 Blue Men Bow Tie Checkered Midnight blue Pre-tied Bo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 23.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "TBMPOY Women's Lightweight Hiking Pants Quick Dry Outdoor Camping Fish",
+              "Socks Daze 1 Pack Wool Hiking Socks for Men Women, Unisex Compression ",
+              "It's Your Day Clothing Beach Please Tank Shirt Women Funny Sleeveless ",
+              "We1Fit Womens 1/4 Zip Shirts UPF 50+ Sun Protection Shirt for Hiking R"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 27.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Sunshiny New The Love Between A Grandmother and Granddaughter is Forev",
+              "Family Member Birthday Gift for Grandma Grandmother Happy Birthday Gif",
+              "FEELMEM Grandmother Bracelet for Grandma Grandma's House Where Cousins",
+              "gifts for granddaughter granddaughter bracelet Love Between a Grandmot"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "hybrid",
+      "queries": 20,
+      "keyword_match_at_k": 0.762,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 20,
+      "p50_ms": 32.4,
+      "p95_ms": 34.4,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 29.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "MSBASIC Womens Dresses Summer Spaghetti Strap Dress Casual Beach Outfi",
+              "Hount Womens Summer Short Sleeve Beach Dress Casual Beach Sundress (Pu",
+              "Summer Womens Cover up Beach Wear Swimwear Bikini Lace Floral Long Bea",
+              "BBYES Women Summer Short Beach Dresses Casual T Shirt Dresses Beach Co"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 30.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "Womens Snow Boots Winter Shoes with Warm Plush Fleece Lined Ankle Boot",
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G",
+              "Gardenwed Wedding Dress Bridesmaid Dress Elegant Cocktail Dress for Wo",
+              "OURS Pink Dress for Women Party Off Shoulder Summer Loose Dresses for ",
+              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "Basic Slim Fit Office Pants Stretchy Full Length Black Size L",
+              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 28.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
+              "TabbyLove Women's Fall Sweaters Long Sleeve V Neck Knit Pullover Sweat",
+              "ANYTITI Women Turtle Neck Pullover Long Sleeve Sweater Cozy Sweaters P",
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 35.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Diabetic Archies Flip Flops for Women, Comfortable Plantar Fasciitis S",
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Girls Winter Warm Earmuffs Headband Adorable Cat Ears Earwarmer for Co",
+              "TINKSKY Ear Warmer Winter Headbands Fleece Thermal Ski Ear Muff Stretc",
+              "JOYEBUY Lovely Cat Ears Super Soft Earmuffs Winter Outdoor Earmuffs Ea",
+              "CHUANGLI Lovely Winter Warm Earmuffs Glitter Cat Ears Plush Ear Warmer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 28.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Euro Comfort Youla Made in Europe Casual Women's Italian Lightweight S",
+              "TOLLN Men Women Comfortable Walking Garden Shoes Slippers Quick Drying",
+              "iloveSIA Mens Hiking Walking Leather Sandals Brown US Size 8",
+              "Wedge Sandals for Women Comfort Walking Sandals Flower Open Toe Summer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 34.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "June's Young Women Hats Royal Blue Feathers Diamonding Casing Summer S",
+              "June's Young Women Hats Summer Hat Sinamay Bow Polka Dot Elegant Light",
+              "BLUETOP 1 Pair Crystal Ankle Chain Bridal Beach Outdoor Wedding Foot J",
+              "MY'S Men's Custom Made Bridegroom Wedding Suit Vest and Pants Set Purp"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "FOTAP To My Daughter Gift I love You To The Moon And Back Keychain Gif",
+              "bobauna Daddy's Girl Cuff Bangle Bracelet Gift for Dad Daughter No Mat",
+              "Mapileng Daughter Gifts From Dad, To My Daughter Believe In Yourself L",
+              "Daughter Necklace - I Love You To The Moon And Back - Great Gift"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 29.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Womens Soft Warm Cozy Snowflake Non Skid Boots Fuzzy Floor Footwear In",
+              "Plzensen Girls Boys Cute Home Shoes Kids Fur Lined Indoor House Slippe",
+              "bestfur Women's Cashmere Fabrics Plush Lining Home Slippers Cozy Indoo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 34.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Avoid Injury Dont Tell Me How To Do Job Iron Worker T-Shirt Medium Bla",
+              "Women 2 Piece Outfit Sets Casual Oversized T-Shirt Tops Biker Shorts W",
+              "Womens 2 Piece Casual Outfit Sportswear Short Sleeve Butterfly Print T",
+              "SATINATO Women's Stretch Work Pants Office Casual Business Wear Khaki"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Men's Cycling Shorts Padded Bicycle Riding Pants Bike Biking Clothes C",
+              "Queshark Men's Bicycle Riding Pants Cycling Shorts Padded Bike Biking "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Under Armour Women`s Ultra Low Training Socks 3 Pack (White(U3944R3-10",
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "WEARALL Womens Split Maxi Skirt - White - US 4-6 (UK 8-10)"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
+              "Women Workout Yoga Shorts Blue Tie Dye Folded Hot Shorts with Pockets ",
+              "XXTAXN Women's Sexy Booty Running Workout Yoga Shorts Club Hot Pants w",
+              "SweatyRocks Women's Faux Leather Inserted Leggings Outfit Yoga Tights "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Baby Toddler Boy Summer Clothes",
+              "Cute Baby Girls Summer Clothes Watermelon Patterns Romper Sleeveless J",
+              "Infant Toddler Baby Girls Dress Clothes Cute Sleeveless Stripe Vest Su",
+              "Baby Girl Clothes Summer Flowers Floral Ruffle Blouse Tank Top Lace De"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Fleece Softshell Warm Windproof Skiing Pants Clothin Black US L",
+              "Winter Warm 3 Hole Knit Ski Mask Balaclava Snowboard Full Face Mask Be",
+              "Ladies Racerback Tank That's A Horrible Idea What Time Sport Grey L",
+              "Yousify Women Onesies Ski Suit Winter Snowsuit Waterproof Ski Jumpsuit"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Stripe Man Neck Tie Feel Silk Green Neck Ties Boxing Day Formal DAA3A0",
+              "A Blues Man Womens Casual Long Sleeve Open Front Drape Wrap Travel Car",
+              "BABYEN Leather Charm Bracelets for Woman Man Personality Black/Red Col",
+              "Striped Silk Woven Classic Check Man's Business Tie Necktie Korea Styl"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 34.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Daydance Hot Pink Leotards for Girls Dance, Short Sleeve Ballet Clothe",
+              "Unisex Furry Fuzzy Winter Cold Weather Multicolor Earmuffs for All Age",
+              "TBMPOY Women's Lightweight Hiking Pants Quick Dry Outdoor Camping Fish",
+              "Hot New Women Bubble Bib Statement Necklace Fashion Chain Light Purple"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "FEELMEM Grandmother Bracelet for Grandma Grandma's House Where Cousins",
+              "Sunshiny New The Love Between A Grandmother and Granddaughter is Forev",
+              "The Love Between Grandmother and Granddaughter Is Forever Pendant Neck",
+              "gifts for granddaughter granddaughter bracelet Love Between a Grandmot"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "hybrid_noboost",
+      "queries": 20,
+      "keyword_match_at_k": 0.775,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 20,
+      "p50_ms": 33.1,
+      "p95_ms": 36.2,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "MSBASIC Womens Dresses Summer Spaghetti Strap Dress Casual Beach Outfi",
+              "Hount Womens Summer Short Sleeve Beach Dress Casual Beach Sundress (Pu",
+              "Summer Womens Cover up Beach Wear Swimwear Bikini Lace Floral Long Bea",
+              "BBYES Women Summer Short Beach Dresses Casual T Shirt Dresses Beach Co"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 30.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "Womens Snow Boots Winter Shoes with Warm Plush Fleece Lined Ankle Boot",
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 29.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G",
+              "Gardenwed Wedding Dress Bridesmaid Dress Elegant Cocktail Dress for Wo",
+              "OURS Pink Dress for Women Party Off Shoulder Summer Loose Dresses for ",
+              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 31.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "Basic Slim Fit Office Pants Stretchy Full Length Black Size L",
+              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 28.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
+              "TabbyLove Women's Fall Sweaters Long Sleeve V Neck Knit Pullover Sweat",
+              "ANYTITI Women Turtle Neck Pullover Long Sleeve Sweater Cozy Sweaters P",
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Diabetic Archies Flip Flops for Women, Comfortable Plantar Fasciitis S",
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Girls Winter Warm Earmuffs Headband Adorable Cat Ears Earwarmer for Co",
+              "TINKSKY Ear Warmer Winter Headbands Fleece Thermal Ski Ear Muff Stretc",
+              "JOYEBUY Lovely Cat Ears Super Soft Earmuffs Winter Outdoor Earmuffs Ea",
+              "CHUANGLI Lovely Winter Warm Earmuffs Glitter Cat Ears Plush Ear Warmer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 36.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Euro Comfort Youla Made in Europe Casual Women's Italian Lightweight S",
+              "iloveSIA Mens Hiking Walking Leather Sandals Brown US Size 8",
+              "TOLLN Men Women Comfortable Walking Garden Shoes Slippers Quick Drying",
+              "Wedge Sandals for Women Comfort Walking Sandals Flower Open Toe Summer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 35.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "June's Young Women Hats Royal Blue Feathers Diamonding Casing Summer S",
+              "June's Young Women Hats Summer Hat Sinamay Bow Polka Dot Elegant Light",
+              "BLUETOP 1 Pair Crystal Ankle Chain Bridal Beach Outdoor Wedding Foot J",
+              "MY'S Men's Custom Made Bridegroom Wedding Suit Vest and Pants Set Purp"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 35.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "FOTAP To My Daughter Gift I love You To The Moon And Back Keychain Gif",
+              "Pony My Little Unicorns Ladies 2-Piece Pajama Set US 10-12",
+              "Pony My Little Unicorns Ladies 2-Piece Pajama Set US 18-20",
+              "ELECTRIC UNICORNS Unicorn Party Favors and Party Supplies - Unicorn He"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 36.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Womens Soft Warm Cozy Snowflake Non Skid Boots Fuzzy Floor Footwear In",
+              "Plzensen Girls Boys Cute Home Shoes Kids Fur Lined Indoor House Slippe",
+              "bestfur Women's Cashmere Fabrics Plush Lining Home Slippers Cozy Indoo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 35.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Avoid Injury Dont Tell Me How To Do Job Iron Worker T-Shirt Medium Bla",
+              "Women 2 Piece Outfit Sets Casual Oversized T-Shirt Tops Biker Shorts W",
+              "Womens 2 Piece Casual Outfit Sportswear Short Sleeve Butterfly Print T",
+              "SATINATO Women's Stretch Work Pants Office Casual Business Wear Khaki"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 34.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Men's Cycling Shorts Padded Bicycle Riding Pants Bike Biking Clothes C",
+              "Queshark Men's Bicycle Riding Pants Cycling Shorts Padded Bike Biking "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Under Armour Women`s Ultra Low Training Socks 3 Pack (White(U3944R3-10",
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "WEARALL Womens Split Maxi Skirt - White - US 4-6 (UK 8-10)"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
+              "Women Workout Yoga Shorts Blue Tie Dye Folded Hot Shorts with Pockets ",
+              "XXTAXN Women's Sexy Booty Running Workout Yoga Shorts Club Hot Pants w",
+              "SweatyRocks Women's Faux Leather Inserted Leggings Outfit Yoga Tights "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 32.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Baby Toddler Boy Summer Clothes",
+              "Cute Baby Girls Summer Clothes Watermelon Patterns Romper Sleeveless J",
+              "Infant Toddler Baby Girls Dress Clothes Cute Sleeveless Stripe Vest Su",
+              "Baby Girl Clothes Summer Flowers Floral Ruffle Blouse Tank Top Lace De"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "Men's Fleece Softshell Warm Windproof Skiing Pants Clothin Black US L",
+              "GAENMESN Men's Ski Jacket Ski Apparel Windproof Waterproof Warm Hooded",
+              "Who What Wear Ray",
+              "Who What Wear Women's Plus Size Floral Print Button-Down Frilled Dress"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "AM CLOTHES Mens Womens Braided Bangle Leather Bracelet Rope",
+              "Stripe Man Neck Tie Feel Silk Green Neck Ties Boxing Day Formal DAA3A0",
+              "A Blues Man Womens Casual Long Sleeve Open Front Drape Wrap Travel Car",
+              "BABYEN Leather Charm Bracelets for Woman Man Personality Black/Red Col"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 34.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "We1Fit Womens 1/4 Zip Shirts UPF 50+ Sun Protection Shirt for Hiking R",
+              "Daydance Hot Pink Leotards for Girls Dance, Short Sleeve Ballet Clothe",
+              "Unisex Furry Fuzzy Winter Cold Weather Multicolor Earmuffs for All Age",
+              "TBMPOY Women's Lightweight Hiking Pants Quick Dry Outdoor Camping Fish"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 1,
+          "items": 4,
+          "match": 0,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 33.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "titles": [
+            [
+              "FEELMEM Grandmother Bracelet for Grandma Grandma's House Where Cousins",
+              "Sunshiny New The Love Between A Grandmother and Granddaughter is Forev",
+              "The Love Between Grandmother and Granddaughter Is Forever Pendant Neck",
+              "gifts for granddaughter granddaughter bracelet Love Between a Grandmot"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "llm_plan",
+      "queries": 20,
+      "keyword_match_at_k": 0.873,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 55,
+      "p50_ms": 4331.5,
+      "p95_ms": 6555.4,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 5,
+          "items": 20,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6429.5,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Zeagoo Women's Summer Swimsuit Bikini Beach Swimwear Cover up",
+              "Geval Women's Beach Dress Summer Swimsuit Bikini Cover-ups Light Blue",
+              "RSLOVE Women's Summer Swimsuit Cover up Bikini Beach Bathing Suit Swim",
+              "Women's Colour Crochet Beach Swimsuit Bikini Coverups Summer Swimwear "
+            ],
+            [
+              "BTIUCLUB Women Fashion Beach Tunic Swimsuit Cover Up Dress Kaftan Biki",
+              "ELAN Flowy White Kaftan Beach Cover-Up, Medium",
+              "JBB Women Plus Size Kaftan Dresses Long Beachwear Summer Swimsuit Cove",
+              "Womens Wear Cotton Kaftan Dress Short Beach Cover Up Tunic Printed Caf"
+            ],
+            [
+              "Rilista Womens Braided Slide Sandals Square Open Toe Strap Slip On Fla",
+              "Women's Vintage Flat Sandal Summer Beach Peep Toe Strap Sandals M40 Be",
+              "MASHAN Women Flat Sandals,2021 Open Toe Comfy Shoes,Ladies Beach Sanda",
+              "Slide Sandals for Womens Summer Beach Flats Shoes Slip On Open Toe Ind"
+            ],
+            [
+              "Leegoal Womens Wide Large Brim Folding Summer Sun Hat Straw Beach Cap",
+              "Women Sun Straw Hat Wide Brim UPF 50+ Beach Hats for Women Summer Buck",
+              "Chalier Womens Sun Hat Wide Brim Beach Hat Cap Floppy Foldable Roll up",
+              "JEEDA Womens Beach Sun Straw Hat UV UPF50 Travel Wide Brim Summer UV H"
+            ],
+            [
+              "Girl Sunglasses Round Flower UV400 Protection Sunglasses for Party Bea",
+              "LOMOL Womens Fashion Trendy UV Protection Polarized Lens Round Big Fra",
+              "IGnaef Oversized Fitover Sunglasses, Polarized Wear Around Sunglasses ",
+              "FRROS Polarized Sunglasses for Women and Men Driving Sports Sun Glasse"
+            ]
+          ],
+          "slot_names": [
+            "swimsuit",
+            "cover-up",
+            "sandals",
+            "sun hat",
+            "sunglasses"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 3172.4,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated ",
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "Ezkrwxn Winter Snow Boots for Men Insulated Fur Warm Walking Shoes The"
+            ]
+          ],
+          "slot_names": [
+            "hiking boots"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 3103.0,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Fantaist Women's Summer Elegant Ruffle Wrap Wedding Guest Slim Bodycon",
+              "Brinkina Women's Sexy V Neck Summer Dress Sleeveless Button Down Midi ",
+              "Drimmaks Women's Summer Sleevless Deep V Neck Tie Straps Shoulder Merm",
+              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora"
+            ]
+          ],
+          "slot_names": [
+            "dress"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 3207.4,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "lexiart Men's Fashion Chino Trousers Mens Joggers Slim Fit Jogging Bot",
+              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-",
+              "MODCHOK Men's Chino Cargo Pants Casual Pockets Slim Fit Jogger Sweatpa",
+              "Guoji Men's Shorts Slim Fit Casual Flat Front Cotton Chino Shorts (YD-"
+            ]
+          ],
+          "slot_names": [
+            "chinos"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 2868.7,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "PiePieBuy Womens Oversized Sweater Fall Lightweight V Neck Loose Pullo",
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
+              "TabbyLove Women's Fall Sweaters Long Sleeve V Neck Knit Pullover Sweat",
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz"
+            ]
+          ],
+          "slot_names": [
+            "oversized sweater"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 2829.0,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Avalon Post - Flip Flop Sandals",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise",
+              "Shoe Insoles Flat Feet Inserts Orthotics for Plantar Fasciitis Foot In"
+            ]
+          ],
+          "slot_names": [
+            "running shoes"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 2873.0,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Unisex Fleece Ear Warmers - Winter Foldable Polar Fleece EarMuffs - Be",
+              "Metog Unisex Foldable Ear Warmers Polar Fleece Winter Earmuffs Yellow ",
+              "CRIPOP Bandless Ear Warmers Earmuffs - Winter Soft Fleece Ear Muffs/Co",
+              "Winter Ear Muffs Behind the Head Warmers"
+            ]
+          ],
+          "slot_names": [
+            "ear warmers"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 3057.1,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "RelyOme Womens Athletic Sports Walking Sandals,Arch Support Lightweigh",
+              "RelyOme Womens Athletic Sports Walking Sandals,Arch Support Lightweigh",
+              "MEGNYA Orthopedic Flip Flops for Women, Comfortable Walking Sandals wi",
+              "Flip Flops Sandals for Women with Arch Support for Comfortable Walk Su"
+            ]
+          ],
+          "slot_names": [
+            "walking sandals"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 5,
+          "items": 20,
+          "match": 20,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6555.4,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Bofan Linen Wedding Suits for Men Beige 3 Pieces Prom Tuxedoes Linen S",
+              "Wangyue Retro Suit Men Linen Suit for Men 2 Piece Slim Fit Suit Causal",
+              "Mens Blazer Jacket Lightweight Regular Fit Stylish Suit One Button Gre",
+              "2 Piece Retro Light Purple Linen Suits Casual Wedding Suit for Men Pea"
+            ],
+            [
+              "Jeetoo Men's Shirt - 100% Cotton Button Down Long Sleeve Stripe Casual",
+              "uhoMEy USA Flag silver Men's Wedding Party shirt cufflinks cuff links",
+              "Jandukar Men's Floral Shirts Short Sleeve Print Dress Shirt Button Dow",
+              "Fastbot Men's Summer Sleeve Shirt Solid Color V-Neck Loose Casual Thin"
+            ],
+            [
+              "lexiart Men's Fashion Chino Trousers Mens Joggers Slim Fit Jogging Bot",
+              "uxcell Men's Slim Fit Plaid Checks Pattern Dress Chino Pants Trousers ",
+              "MODCHOK Men's Chino Cargo Pants Casual Pockets Slim Fit Jogger Sweatpa",
+              "HOEREV Men Casual Beach Trousers linen jean jacket Summer Pants"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Cole Haan Zerogrand Wingtip Oxford Casual Dress Shoes \u2013 Cushioned Inso"
+            ],
+            [
+              "Dubulle Green Paisely Mens Silk Tie and Cufflinks with Pocket Square f",
+              "Men's Plaid Pre-Tied Bowtie Wedding Party Check Suit Bow Tie & Pocket ",
+              "Enmain Stripe Jacquard Woven Men's Wedding Silk Tie Pocket Square Neck",
+              "SetSense Men's Solid Jacquard Wedding Party Self Bow Tie Pocket Square"
+            ]
+          ],
+          "slot_names": [
+            "suit or blazer",
+            "dress shirt",
+            "trousers",
+            "dress shoes",
+            "tie or pocket square"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4161.4,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Unicorn Birthday T-Shirt, Birthday Outfit Gifts for Girls (Flower Unic",
+              "Girls Unicorn Costume Unicorn Birthday Outfit Unicorn White T-Shirt Tu",
+              "Bubblegum Divas Girls Unicorn Red T Shirt Top Unicorn Shirt",
+              "MHJY Girls T-Shirt Unicorn Long Sleeve Tunic Tops Ruffle Skirted Swing"
+            ],
+            [
+              "Girls Unicorn Dress Soft Purple Summer Casual Party Dress for Girls 3 ",
+              "MHJY Girls Unicorn Dress Rainbow Tulle Skirt Birthday Party Tutu Dress",
+              "Girls Unicorn Costume Dress with Headband Wings Sash for Birthday Carn",
+              "MHJY Girls Unicorn Princess Dress with Headband, Unicorn Costume for B"
+            ],
+            [
+              "EIGHT KM Toddler Boys/Girls Shoes Lightweight Kids Sneakers EKM7023 Pu",
+              "JKNY Link Kids Lace up Sneakers 19,Silver,9",
+              "KEESKY Slip-on Flat Oxford Shoes for Toddler Kids Boys Girls Slip-on C",
+              "Girls Unicorn Dresses Summer Swing Short Sleeve Casual Clothes for Lit"
+            ]
+          ],
+          "slot_names": [
+            "unicorn top",
+            "unicorn dress",
+            "unicorn sneakers"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 3,
+          "items": 12,
+          "match": 11,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4555.5,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Men Flannel Fleece Pajama Pants Soft Plush Lounge Pants Coral Fleece J",
+              "Ayrrhdivv Men Flannel Fleece Pajama Pants Soft Plush Lounge Pants Cora",
+              "LASLULU Womens Fleece Lined Pants Loose Sweatpants High Waisted Jogger",
+              "Femaroly Women's Autumn and Winter Sleep Set Warm Pajamas Top/Lounge P"
+            ],
+            [
+              "2021 Womens Fleece Pajama Sets Long Sleeve Pullover Top with Drawstrin",
+              "Ladies Casual V Neck Pullover Sweatershirt Winter Top Oversize Long Sl",
+              "JINIDU Men's Casual Turtleneck Shirts Thermal Top Pullover Long Sleeve",
+              "Women Thermal Underwear - Winter Warm Top Bottom Long Johns Set"
+            ],
+            [
+              "Women's Warm Soft Cozy Fleece Lining House Slippers Memory Foam Slippe",
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Girls Unicorn Slippers Fur Lined Warm Winter House Slippers Cozy Indoo",
+              "House Slippers For Women Winter Warn Soft Breathable Fuzzy Slippers Co"
+            ]
+          ],
+          "slot_names": [
+            "lounge pants",
+            "cozy top",
+            "slippers"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 4,
+          "items": 16,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4990.5,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "IDARBI Mens Slim Fit Casual Buttoned Blazer Suit Jacket Navy 2XL",
+              "Mandarin Collar Blazer Jacket for Men Smart Casual Wool Tweed Sports J",
+              "IDARBI Mens Slim Fit Casual Buttoned Blazer Suit Jacket Khaki M",
+              "Mens Slim Fit Casual One Button Blazer Jacket Grey 4XL"
+            ],
+            [
+              "lexiart Men's Fashion Chino Trousers Mens Joggers Slim Fit Jogging Bot",
+              "Halfword Fashion Mens Joggers Athletic Track Pants Slim Fit Stretch Fl",
+              "PH-06 Men's Corduroy Pants Straight Leg Slim Fit Casual Trousers(34,Re",
+              "GUNLIRE Men's Thermal Fleece Lined Casual Pants Winter Slim Fit Thicke"
+            ],
+            [
+              "iClosam Men Business Casual Button Down Shirt Long Sleeve Solid Dress ",
+              "Mens Casual Short Sleeve Work Shirt, Button Down Shirt, 2 Pockets Man ",
+              "iClosam Men's Button Down Shirt Casual Dress Shirt with Pockets Waterm",
+              "Islandia Men's Long Sleeve Casual Button Down Shirt (Cerulean Blue Str"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Cole Haan Zerogrand Wingtip Oxford Casual Dress Shoes \u2013 Cushioned Inso"
+            ]
+          ],
+          "slot_names": [
+            "blazer",
+            "trousers",
+            "shirt",
+            "shoes"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 4,
+          "items": 16,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 5229.7,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Dooy Men's Windbreaker Cycling Rain Jacket,Lightweight Waterproof Deta",
+              "COOFANDY Men's Packable Rain Jacket Classic Cycling Waterproof Raincoa",
+              "Men's Cycling Lightweight Packable Hood Breathable Rain Jacket,Uv Prot",
+              "SWISSWELL Men's Rain Jacket Waterproof Foul Weather Rainwear for Cycli"
+            ],
+            [
+              "T&B Men's Cycling Rain Suit Motorcycle Rain Jacket Raincoat Pants Rain",
+              "Men's Cycling Running Rain Jacket Lightweight Waterproof Biking Hiking",
+              "Padded Cycling Pants Mens Cycling Tights UPF50+ Long Bicycle Pants Leg",
+              "Little Donkey Andy Mens Rain Pants Waterproof Lightweight Breathable R"
+            ],
+            [
+              "Comwarm Mens Waterproof Anti-Slip Rain Boots Casual Outdoor Sport Shor",
+              "Comwarm Mens Waterproof Anti-Slip Rain Boots Casual Outdoor Sport Shor",
+              "Limvoo Rain Shoes Boots Covers Outdoor Waterproof Silicone Shoes Cover",
+              "fereshte Men's Slip-on Waterproof PVC Rain Boots Outdoor Washing Shoes"
+            ],
+            [
+              "Brooklyn Bike Cap Cycling Caps White Bike Wear Hat Unisex Bicycle caps",
+              "QKURT Cycling Skull Cap, 2PCS Breathable Summer Under Helmet Hat Perfe",
+              "Bleiou Cycling Cap Sweat proof Sunscreen Headwear Bike Team Scarf Bicy",
+              "Dioche Helmet Liner Cap, Unisex Sweat-Wicking Under Helmet Liner Cap S"
+            ]
+          ],
+          "slot_names": [
+            "rain jacket",
+            "waterproof pants",
+            "waterproof shoes",
+            "cycling cap"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 2,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 2778.6,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "Business Casual Tops for Women Trendy V Neck Button Down Dressy Ruffle",
+              "LIREROJE Women's Casual Ripped Romper Jumpsuit Shortalls Jeans Bodysui"
+            ]
+          ],
+          "slot_names": [
+            "white sneakers"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 3,
+          "items": 12,
+          "match": 9,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4595.9,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Women's Yoga Cami Crop Sports Bra Tank Tops Fitness Yoga Workout Top w",
+              "Women Sports Bra Vest Built-in Padded Fitness Bra Workout Running Shir",
+              "SESY Women Racerback Sports Bras High Impact Padded Seamless Activewea",
+              "Women Sport Bra High Neck Padded Crop Top Longline Tank Top Fitness Wo"
+            ],
+            [
+              "KAOYOO Women High Waist Yoga Pants, 4-Way Stretch Yoga Leggings for Wo",
+              "SERHOM Yoga Leggings, High Waist Tummy Control Workout Women Yoga Pant",
+              "HOFI High Waist Yoga Pants for Women Workout Leggings with Pockets Tum",
+              "ANEDIT Women's High Waist Yoga Pants Seamless Leggings Tummy Control W"
+            ],
+            [
+              "Cute Yoga Tote Bag - Sorry For What I Said Before Yoga Canvas Gray Tot",
+              "Tote Bag For Woman - Large Tote Bag with Shoe Compartment - Shoulder B",
+              "Womens Foldable Nylon Large Lightweight Tote Bag Shoulder Bag Handbag ",
+              "Large Beach Tote Bag Women Waterproof Sandproof Zipper Beach Tote Bag "
+            ]
+          ],
+          "slot_names": [
+            "yoga top",
+            "yoga leggings",
+            "yoga bag"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 3948.3,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Baby Boys Girl Short Set Toddler Cotton Short Sleeve Bodysuit Romper T",
+              "Newborn Boys Overalls Romper Baby Boys Halter Sleeve Bodysuit with Poc",
+              "Baby Girl Sunsuit Set Toddler Watermelon Romper Sleeveless Bodysuit wi",
+              "GRNSHTS Toddler Baby Boy Short Sleeve Romper Bodysuit One Piece Jumpsu"
+            ],
+            [
+              "Baby Boy Summer Shorts Set Letter Print Tank Tops Drawsting Shorts Pla",
+              "Infant Baby Boys Summer Casual Clothes Set Beaches Love Me Vest Tops +",
+              "Toddler Baby Girl Halter Romper Shorts Watermelon Sunflower Print Lace",
+              "Newborn Baby Girls Sunflower Halter Sleeveless Crop Tops Shorts Headba"
+            ],
+            [
+              "Baby Sun Hat Toddler Summer UPF 50+ Sun Protection Baby Beach Hats Adj",
+              "Baby Boy Baseball Cap Letter Sunhat Sun Protection Hat (0-6 Months, Gr",
+              "Baby Kids Sun Hat Summer Beach UPF 50+ Sun Protection Breathable Hat f",
+              "Baby Sun Hat Toddler Kids Dinosaur Hat Sun Protection Bucket with Chin"
+            ]
+          ],
+          "slot_names": [
+            "baby bodysuit",
+            "baby shorts",
+            "baby sunhat"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 5,
+          "items": 20,
+          "match": 20,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 5579.9,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Vcansion Men's Waterproof Windproof Outdoor Snow Jacket Ski Fleece Jac",
+              "Winter Jackets for Women Raincoat Ski Jacket Fleece Jacket Waterproof ",
+              "Farvalue Women's Waterproof Ski Jacket Mountain Winter Warm Snow Coat ",
+              "BALEAF Men's Ski Snow Jacket Windproof Waterproof Winter Coat Fleece L"
+            ],
+            [
+              "YuKaiChen Men's Snow Pants Ski Ripstop Bottoms Windproof Waterproof In",
+              "Boys Ski Pants,Kids Youth Fleece Lined Windproof Waterproof Hiking Sno",
+              "KAISIKE Women's Outdoor Windproof Fleece Lined Hiking Pants Waterproof",
+              "Boys Ski Pants,Kids Youth Fleece Lined Windproof Waterproof Hiking Sno"
+            ],
+            [
+              "Eizniz Women\u2019s 100% Merino Wool Thermal Tee 260g Long Sleeve Base Laye",
+              "Eizniz Women\u2019s Merino Wool Thermal Leggings 260g Base Layer Bottom Und",
+              "Eizniz Women\u2019s 100% Merino Wool Thermal Leggings 260g Base Layer Botto",
+              "WW SPORTOWN Men's Merino Wool Lightweight Long Sleeve Crew Base Layer "
+            ],
+            [
+              "Boys Snow Gloves Girls Thinsulate Lined Waterproof Wind Resistant Wint",
+              "Snow Mittens Winter Ski Mittens Waterproof Warm Cotton-lined Gloves fo",
+              "OZERO Gloves Thermal Gloves for Men Extreme Cold Freezer Gloves for Wo",
+              "Toddler Mittens Winter Snow Glove waterproof mitten Warm Fleece Kid Sk"
+            ],
+            [
+              "3 Pieces Balaclava Ski Mask Winter Helmet Liner Skull Cap with Fleece ",
+              "KapscoMoto Half Face Mask Fleece Winter Mask Motorcycle Ski Snow Face ",
+              "KapscoMoto Half Face Mask Fleece Winter Mask Motorcycle Ski Snow Face ",
+              "Winter Unisex Polar Fleece Ski Snow Hoodie Balaclava Face Mask Neckwar"
+            ]
+          ],
+          "slot_names": [
+            "ski jacket",
+            "ski pants",
+            "base layer",
+            "ski gloves",
+            "ski helmet"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 5,
+          "items": 20,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 6563.8,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "Boys Suit Black Tuxedo Kids Suit for Boy Formal Blazer Pants Vest Shir",
+              "Cyparissus Men's Suit Vest Business Formal Dress Waistcoat Vest with P",
+              "Tuxedo Men's Long Sleeve Thermal, Hilarious Gag Novelty Fake Formal Tu",
+              "Luther Pike Mens Satin Skinny Necktie Tuxedo & Wedding Tie (Black)"
+            ],
+            [
+              "Formal Shirts Mens Regular Fit Solid Dress Shirt or Tuxedo Shirt, 100%",
+              "Real Cotton Mens Fitted White Dress Shirt or Tuxedo Shirt, Convertible",
+              "Tuxedo Shirt- White Wing Collar 1/4\" Pleat (17\" Neck 34/35\" Sleeve)",
+              "J.VER J.Ver Tuxedo Shirts for Men Regular Fit Long Sleeve Button Up Sh"
+            ],
+            [
+              "Men's Black & Colorful Musical Notes Formal Pre-tied Bow Tie",
+              "Men's Black & White Music Staff Formal Pre-tied Bow Tie",
+              "black brooch Pin for men rhinestone Bowknot Brooch Collar Bow Tie Coll",
+              "The Tie Bar 100% Silk Black and Blue Dot Buffalo Reversible Self-Tie B"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Mezlan Bogart Black Oxford In Patent Leather - 9-M"
+            ],
+            [
+              "COOFANDY Mens Dress Tuxedo Vest Paisley Embroidery Wedding Formal Wais",
+              "Cyparissus Mens Business Suit Vest Waistcoat Men's Dress Vest or Tuxed",
+              "CMDC Men's Classic Solid Waistcoat Slim Fit Tuxedo Suit Vest & Pants U",
+              "COOFANDY Mens Paisley Embroidery Dress Tuxedo Vest Wedding Formal Wais"
+            ]
+          ],
+          "slot_names": [
+            "tuxedo",
+            "dress shirt",
+            "bow tie",
+            "dress shoes",
+            "cummerbund or waistcoat"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 4,
+          "items": 16,
+          "match": 10,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4985.3,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "TAPULCO Mens Summer Quick Dry Golf Shirts Breathable Lightweight Casua",
+              "Runderwear Men's Anti-Chafing Boxers (5\" inch) - lightweight, breathab",
+              "DAFENGEA Men's Outdoor Lightweight Breathable Quick Dry Hiking Pants,K",
+              "Runyon Athletics Men's 3/4 Tight Polyester Spandex Fabric Imported Lig"
+            ],
+            [
+              "Vcansion Men's Outdoor Lightweight Quick Dry Hiking Shorts",
+              "Jeater Mens Hiking Shorts Breathable Quick Dry Shorts Mens Outdoor Sho",
+              "Shallowlulu Mens Cargo Hiking Shorts Water Resistant Quick Dry Lightwe",
+              "Libin Women's Lightweight Hiking Shorts Quick Dry Cargo Shorts Summer "
+            ],
+            [
+              "ZASEPY Men's Waterproof Hiking Shoes Non Slip Outdoor Lightweight Brea",
+              "SILENTCARE Boys Sneakers\uff0c Lightweight Kids Running Shoes\uff0c Breathable H",
+              "Biacolum Boys Hiking Shoes Waterproof Wide Athletic Trail Running Snea",
+              "QANSI Boys Shoes Waterproof Big Kids Strap Tennis Shoes Athletic Trail"
+            ],
+            [
+              "Outdoor Sun Protection Fishing Hat Summer Wide Brim Cap Sun Caps Flap ",
+              "New Fashion Design Cotton Blend Wide Brim Sun Hat For Women Uv Neck Pr",
+              "Womens Sun Hat Packable Bucket Hats Summer Sun UV Protection Hat for W",
+              "Outdoor Summer Sun Hat, Fashion UV Protection Wide Brim Bucket Hat for"
+            ]
+          ],
+          "slot_names": [
+            "hiking shirt",
+            "hiking shorts",
+            "hiking shoes",
+            "sun hat"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 4501.6,
+          "planner": "llm",
+          "rerank": false,
+          "titles": [
+            [
+              "ACEVOG Women Button Down Long Sleeve V-Neck Soft Classic Knit Cardigan",
+              "Involand Womens Plus Size Long Sleeve Classic Open Front Knit Cardigan",
+              "Perfashion Women's Open Front Long Sleeve Knit Cardigan Soft Drape Car",
+              "YourStyle USA Women\u2019s Knit Cardigan \u2013 Classic Open Front Long Sleeve S"
+            ],
+            [
+              "Women's Classic Tassel Warm Long Soft Plaid Scarf Winter Large Blanket",
+              "Womens Soft Warm Shawl Thick Knit Wrap Winter Scarf With Pocket, Dark ",
+              "Women's Fall Winter Scarf Classic Tassel Plaid Scarf Warm Soft Chunky ",
+              "Bonnenult Women Scarf Lightweight Soft Shawl Wrap Scarves"
+            ],
+            [
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Slippers With 2 Pair Socks For Women,Cozy Plush Comfy Warm Slip-On Sli",
+              "Cyiecw Women\u2019s Indoor Warm Coral Velvet Slippers, Cute Winter Soft Coz",
+              "Women's Warm Soft Cozy Fleece Lining House Slippers Memory Foam Slippe"
+            ]
+          ],
+          "slot_names": [
+            "cardigan",
+            "scarf",
+            "slippers"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "llm_plan_rerank",
+      "queries": 20,
+      "keyword_match_at_k": 0.871,
+      "price_violations": 0,
+      "empty_slots": 0,
+      "total_slots": 58,
+      "p50_ms": 10609.6,
+      "p95_ms": 12379.2,
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 5,
+          "items": 20,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 11570.8,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "MEALIYA Women's One Piece Swimwear Mesh Summer Sexy Cover Up Beach Bik",
+              "EVALESS Women Tropical Tribal Print Beachwear One Piece Bikini Swimsui",
+              "Esther Beauty Women's Swimsuit Cover Up for Summer Bikini Pool Beachwe",
+              "CharmLeaks Womens One Piece Swimsuit One Piece Swimwear One Piece Bath"
+            ],
+            [
+              "MILANKERR Women's Fashion Beachwear Cover Up Beach Dress",
+              "otouch Beach Cover Up for Women Summer Casual T Shirt Dresses Beach Co",
+              "Costyleen Summer Womens Beach Wear Cover up Swimwear Bikini Lace Flora",
+              "MakeMeChic Women's Summer Cover Up Button Split Long Beach Dress Black"
+            ],
+            [
+              "Women Diamond Zipper Gladiator Low Flat Flip Flops Beach Sandals Bohem",
+              "Luoika Women's Wide Width Flat Slides Sandals, Slip on Slide Sandal Ca",
+              "Wanlorraiy Women's Summer Rhinestone Flat Sandals Bohemian Beach Elast",
+              "Women Summer Sandals, Mosunx(TM) Flat Strappy Low Heel Wedge Ankle Sho"
+            ],
+            [
+              "Beach Straw Sun Hat for Women,Floppy Sun Hats Wide Brim Sun Protection",
+              "Women Sun Straw Hat Wide Brim UPF 50+ Beach Hats for Women Summer Buck",
+              "JEEDA Womens Beach Sun Straw Hat UV UPF50 Travel Wide Brim Summer UV H",
+              "Women Candy Color Wide Large Brim Folding Summer Sun Hat Straw Beach C"
+            ],
+            [
+              "Sunglasses for Women Cat Eye Sunglasses UV400 Protection Lens Black Su",
+              "YABINA Oversized Women's Polarized Sunglasses Fashion Sunglasses UV400",
+              "Protineff Classic Oversized Sunglasses for Women, Stylish Polarized Su",
+              "Onnea fashion 100% UV Protection Wholesale Multi Pack Unisex 80'S Retr"
+            ]
+          ],
+          "slot_names": [
+            "swimsuit",
+            "cover-up",
+            "sandals",
+            "sun hat",
+            "sunglasses"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8469.8,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "Ezkrwxn Snow Boots for Men Winter Cold Weather Shoes Insulated Fur War",
+              "JACKSHIBO Mens Womens Snow Boots Waterproof Fur Lined Winter Boots Out"
+            ]
+          ],
+          "slot_names": [
+            "hiking boots"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8087.6,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Fantaist Women's Summer Elegant Ruffle Wrap Wedding Guest Slim Bodycon",
+              "GRACE KARIN Women's Elegant Sleeveless Midi Wedding Dress Size M Burgu",
+              "Drimmaks Women's Summer Sleevless Deep V Neck Tie Straps Shoulder Merm",
+              "Satin Silk Slip Maxi Dress for Wedding Guest Women- Cowl Neck Pleated "
+            ]
+          ],
+          "slot_names": [
+            "dress"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 7657.4,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "HDE Mens Chino Jogger Pants Slim Fit Joggers for Men Tapered Twill Pan",
+              "Ouber Men's Elastic Waist Chino Pant Slim Fit Tapered Pants Athletic F"
+            ]
+          ],
+          "slot_names": [
+            "chinos"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8061.4,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz",
+              "Womens Pullover Chunky Cozy Oversized Knit Sweater Fall Winter Clothes",
+              "BLENCOT Womens Fall Cute Off Shoulder Long Sleeve Sweater Cozy Lightwe",
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop"
+            ]
+          ],
+          "slot_names": [
+            "oversized sweater"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "items": 4,
+          "match": 1,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 5273.5,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Avalon Post - Flip Flop Sandals",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise",
+              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo"
+            ]
+          ],
+          "slot_names": [
+            "running shoes"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8431.5,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Surblue Unisex Foldable Ear Earmuffs Behind-the-Head Fur Winter Outdoo",
+              "Sprigs CableKnit Bandless Ear Warmers Ear Muffs For Men & Women - Brow",
+              "Winter Ear Muffs Behind the Head Warmers",
+              "Pack of 4 Fleece Ear Warmer Headband and Neck Gaiter Set- Black & Grey"
+            ]
+          ],
+          "slot_names": [
+            "ear warmers"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "items": 4,
+          "match": 4,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 8521.1,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "MEGNYA Orthopedic Flip Flops for Women, Comfortable Walking Sandals wi",
+              "RelyOme Womens Athletic Sports Walking Sandals,Arch Support Lightweigh",
+              "Ecetana Sandals for Women Casual Summer Comfortable Flip Flops with Ar",
+              "Flip Flops Sandals for Women with Arch Support for Comfortable Walk Su"
+            ]
+          ],
+          "slot_names": [
+            "walking sandals"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 5,
+          "items": 20,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 12435.9,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Wangyue Retro Suit Men Linen Suit for Men 2 Piece Slim Fit Suit Causal",
+              "Bofan Linen Wedding Suits for Men Beige 3 Pieces Prom Tuxedoes Linen S",
+              "2 Piece Retro Light Purple Linen Suits Casual Wedding Suit for Men Pea",
+              "Mens Suit 3 Pieces Vintage Retro Wedding Suits Set Slim Fit Jacket Bla"
+            ],
+            [
+              "Mens Casual Linen Shirts Short Sleeve Button Down Shirts Cotton Linen ",
+              "Chouyatou Men's Summer Basic Collar Short-Sleeved Linen Shirts (X-Larg",
+              "Men's Linen Button Down Shirt Long Sleeve Regular Fit Dress Shirts Cas",
+              "Taoliyuan Mens Cuban Guayabera Shirt Linen Button Down Long Sleeve Cas"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Mezlan Bogart Black Oxford In Patent Leather - 9-M",
+              "Paul Parkman Woven Leather Captoe Oxfords Navy & Purple Shoes (49851-N",
+              "Kenneth Cole REACTION Sound Proof Leather Loafer Cognac"
+            ],
+            [
+              "Enmain Check Jacquard Woven Men's Wedding Silk Tie Pocket Square Neckt",
+              "Hi-Tie Men Red Berry Paisley Floral Tie Necktie with Cufflinks and Poc",
+              "MOHSLEE Men Gold Blue Plaid Silk Neck Tie Necktie Handkerchief Pocket ",
+              "SetSense Men's Solid Jacquard Wedding Party Self Bow Tie Pocket Square"
+            ],
+            [
+              "Fanshimite Men's Genuine Leather Ratchet Dress Belt with Buckle",
+              "Mens Belt Leather Ratchet Dress Belt For Men With Elegant Gift Box ((B",
+              "Enimay Men's Black Genuine Leather Ratchet Belt Formal Dress Work Belt",
+              "Men's Classic Dress Leather Belt - Men Top Grain Leather Belt Classic "
+            ]
+          ],
+          "slot_names": [
+            "suit or dress trousers",
+            "dress shirt",
+            "dress shoes",
+            "tie or pocket square",
+            "belt"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 11196.9,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "MHJY Girls Unicorn Dress Rainbow Tulle Skirt Birthday Party Tutu Dress",
+              "Girls Unicorn Costume Unicorn Birthday Outfit Unicorn White T-Shirt Tu",
+              "Girls Unicorn Dress Costumes Fancy Birthday Party Dress up (Pony Pink,",
+              "Girls Unicorn Costume Dress with Headband Wings Sash for Birthday Carn"
+            ],
+            [
+              "Unicorn Slippers for Girls Cute Fluffy Girls Slippers Cozy Warm Plush ",
+              "Girls Unicorn Fluffy Indoor Outdoor Slippers Boots Size Toddler 12 US ",
+              "COODO Toddler/Little Kid Boys Girls Shoes Running Sports Sneakers (6 T",
+              "Sylfairy Girls Nightgowns, Unicorn nightgown Princess Pajama Dresses f"
+            ],
+            [
+              "ELECTRIC UNICORNS Unicorn Party Favors and Party Supplies - Unicorn He",
+              "Floral Fall Baby Girls Unicorn Horn Birthday Headband Photo Props Outf",
+              "WJYX BOWS 12pcs Plastic Mermaid Headbands Girls Christmas Birthday Par",
+              "Simplicity Girls Rainbow Layered Tulle Tutu Skirt with Unicorn Headban"
+            ]
+          ],
+          "slot_names": [
+            "unicorn dress",
+            "unicorn shoes",
+            "unicorn accessories"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10716.3,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "LASLULU Womens Fleece Lined Pants Loose Sweatpants High Waisted Jogger",
+              "Weintee Women's Tapered Sweatpants Lounge Pants M Heather Gray",
+              "Pink & Gray Plaid Superminky Fleece Lounge Sleep Pants - Small",
+              "Secret Treasures Ski Resort Print Winter White Fleece Jogger Lounge Sl"
+            ],
+            [
+              "Lynz Pure Women's Turtleneck Sweater Cable Knit Tunic Sweater Pullover",
+              "Womens Pullover Chunky Cozy Oversized Knit Sweater Fall Winter Clothes",
+              "Jescakoo Winter Womens Oversized Knit Sweaters Casual Crewneck Pullove",
+              "Womens Pullover Chunky Turtleneck Sweaters Winter Fall Long Sleeve Kni"
+            ],
+            [
+              "Slippers With 2 Pair Socks For Women,Cozy Plush Comfy Warm Slip-On Sli",
+              "Women's Warm Soft Cozy Fleece Lining House Slippers Memory Foam Slippe",
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Girls Unicorn Slippers Fur Lined Warm Winter House Slippers Cozy Indoo"
+            ]
+          ],
+          "slot_names": [
+            "lounge pants",
+            "cozy top",
+            "slippers"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 5,
+          "items": 20,
+          "match": 17,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 11527.3,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Men\u2019s Modern Fit 2 Button Sport Coat Blazer Jacket - Red, 48 Regular",
+              "Mandarin Collar Blazer Jacket for Men Smart Casual Wool Tweed Sports J",
+              "IDARBI Mens Slim Fit Casual Buttoned Blazer Suit Jacket Khaki M",
+              "MONDAYSUIT Men Modern Fit 3Piece Suit Blazer Jacket Tux Vest Trouser G"
+            ],
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "THE AWOKEN Men's Gray Chinos Regular Fit Cotton Pants (Mid Grey, 38)",
+              "HDE Mens Chino Jogger Pants Slim Fit Joggers for Men Tapered Twill Pan"
+            ],
+            [
+              "Womens Basic Long Sleeve Button Down Oxford Work Shirt Blouse",
+              "Anicco Button Down Shirts For Womens Casual Round Neck Loose Tunic Top",
+              "Women's Elegant Baroque Printed Casual Blouse Button Down Long Sleeve ",
+              "Srendarky Womens Button Down Blouse Long Sleeve Casual Summer Loose Sh"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Cole Haan Zerogrand Wingtip Oxford Casual Dress Shoes \u2013 Cushioned Inso",
+              "Clarks Men's Casual Pitney Limit Oxford, Brown, 12 M US",
+              "Aetrex Erin Lace Up Oxford"
+            ],
+            [
+              "Coach City Zip Tote Shoulder Bag F58846 (SV/CARNATION)",
+              "Tote Bag for Women PU Leather, Lightweight Laptop Shoulder Bag with Ca",
+              "Women Canvas Tote Purse Lightweight Shoulder Bag Casual Handbags Work ",
+              "A N Women Canvas Tote Handbags Casual Shoulder Work Bag Khaki"
+            ]
+          ],
+          "slot_names": [
+            "blazer",
+            "trousers",
+            "top",
+            "shoes",
+            "bag"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 4,
+          "items": 16,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 11512.6,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "SWISSWELL Men's Rain Jacket Waterproof Foul Weather Rainwear for Cycli",
+              "COOFANDY Men's Packable Rain Jacket Outdoor Waterproof Hooded Lightwei",
+              "GEEK LIGHTING Men's Waterproof Rain Jacket, Lightweight Packable Hoode",
+              "Men's Cycling Running Rain Jacket Lightweight Waterproof Biking Hiking"
+            ],
+            [
+              "T&B Men's Cycling Rain Suit Motorcycle Rain Jacket Raincoat Pants Rain",
+              "KESSER Rain Suits for Men Waterproof Rain Gear for Work Fishing Rain C",
+              "SWISSWELL Mens Hiking Pants Waterproof Lightweight Windproof Rain Pant",
+              "Little Donkey Andy Mens Rain Pants Waterproof Lightweight Breathable R"
+            ],
+            [
+              "Per Waterproof Cycling Shoes Covers Reusable Thermal Shoes Covers MTB ",
+              "Limvoo Rain Shoes Boots Covers Outdoor Waterproof Silicone Shoes Cover",
+              "Disposable Boot Covers Plastic Long Waterproof Shoes Cover Over The Kn",
+              "IUL Reusable Rain Boot Rain Shoe Covers Non Slip Waterproof Overshoes "
+            ],
+            [
+              "Cycling Cap Helmet Liner with Ear Flaps, Windproof Head Cover for Cold",
+              "QKURT Cycling Skull Cap, 2PCS Breathable Summer Under Helmet Hat Perfe",
+              "Sweat Wicking Helmet Liner Cap for Men & Women Hard Hat Helmet Skull C",
+              "Dioche Helmet Liner Cap, Unisex Sweat-Wicking Under Helmet Liner Cap S"
+            ]
+          ],
+          "slot_names": [
+            "rain jacket",
+            "waterproof pants",
+            "waterproof shoes",
+            "cycling cap"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "items": 4,
+          "match": 3,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 5508.8,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Unisex Cosy Trendy Sneaker Slippers Comfy Kicks Non-Slip Sole Jordan A",
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "Business Casual Tops for Women Trendy V Neck Button Down Dressy Ruffle"
+            ]
+          ],
+          "slot_names": [
+            "white sneakers"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 4,
+          "items": 16,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10887.6,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Yvette Padded Sports Bra High Impact Moving Comfort Women Bra for Yoga",
+              "SWOMOG Women Sports Bra Cross Back Yoga Bra Medium Support Workout Yog",
+              "Womens Sports Bras Supportive Sports Bras for Women Longline Sports Br",
+              "CharmLeaks Women's Black Running Yoga Sports Bra for Women Workout Yog"
+            ],
+            [
+              "HOFI High Waist Yoga Pants for Women Workout Leggings with Pockets Tum",
+              "Toplook Women Seamless High Waist Yoga Pants Gym Tight Running Workout",
+              "Haining High Waist Yoga Pants with Pockets Tummy Control Leggings, 4 W",
+              "FLOYU Women Seamless Yoga Pants High Waisted Tight Stretchy Yoga Pants"
+            ],
+            [
+              "Biker Shorts for Women with Side Pockets, 5\"/8\" High Waisted Yoga Work",
+              "Wildtrest Women's High Waisted Yoga Shorts Lightweight Gym Shorts Comf",
+              "Women's Sports Running Shorts Breathable Double Layer Short with Pocke",
+              "Casei Women's High Waist Yoga Shorts -Non-See-Through Athletic Workout"
+            ],
+            [
+              "ATA Pilates Grip Socks for Women, Non-Slip Socks with Grippers for Yog",
+              "Yoga Socks for Women Non-Slip Grips & Straps, Ideal for Pilates, Pure ",
+              "Yoga Socks for Women Barre Sock Grip Non-Slip No-Skid Pilates Hospital",
+              "ToeSox Women's Full Toe Bella Grip Non-Slip Yoga Socks 2 Pack (Black, "
+            ]
+          ],
+          "slot_names": [
+            "sports bra",
+            "yoga leggings",
+            "yoga shorts",
+            "grip socks"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 4,
+          "items": 16,
+          "match": 16,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 10503.0,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "Baby Girl Bodysuit Set, 7-Pack Short Sleeve, 6 Mo",
+              "Newborn Boys Overalls Romper Baby Boys Halter Sleeve Bodysuit with Poc",
+              "Oklady Infant Baby Girls Summer Romper Off Shoulder Short SleeveJumpsu",
+              "Toddler Baby Girl Halter Romper Shorts Watermelon Sunflower Print Lace"
+            ],
+            [
+              "Baby Boy Summer Shorts Set Letter Print Tank Tops Drawsting Shorts Pla",
+              "Baby Boy Causal Outfits Infant Daddy's Little Boy Romper T-Shirt+Camou",
+              "2Pcs Summer Baby Boys Clothes Cute Mamas Boy Sleeveless Tank Tops T-Sh",
+              "2PCs Baby Boy Summer Outfits Word Print Black Sleeveless Shirt Top Wav"
+            ],
+            [
+              "Infant Toddler Baby Girls Dress Clothes Cute Sleeveless Stripe Vest Su",
+              "Baby Girl Clothes Ruffle Sleeveless Summer Princess Tutu Sunflower Dre",
+              "Vieille Baby Toddler Girl Casual Summer Dresses 2T Sleeveless Strap Su",
+              "Toddler Baby Girls Sleeveless Casual Dress Floral Print Tulle Skirts D"
+            ],
+            [
+              "DANMY Baby Girl Wide Brim Bucket Hats with UPF 50+ Outdoor Adjustable ",
+              "Baby Sun Hat UPF 50+ for Girls Wide Brim Toddler Sun Hat Adjustable Su",
+              "Baby Sun Hat Toddler Summer UPF 50+ Sun Protection Baby Beach Hats Adj",
+              "4 Pieces Baby Brim Sun Hats Adjustable Sun Protective Summer Bucket Ou"
+            ]
+          ],
+          "slot_names": [
+            "baby bodysuit",
+            "baby shorts",
+            "baby dress",
+            "baby sun hat"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 5,
+          "items": 20,
+          "match": 20,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 12113.9,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "BALEAF Men's Ski Snow Jacket Windproof Waterproof Winter Coat Fleece L",
+              "Farvalue Women's Waterproof Ski Jacket Mountain Winter Warm Snow Coat ",
+              "Little Donkey Andy Men's Waterproof Ski Jacket Warm Winter Snow Coat M",
+              "Winter Jackets for Women Raincoat Ski Jacket Fleece Jacket Waterproof "
+            ],
+            [
+              "FREE SOLDIER Men's Fleece Lined Outdoor Cargo Hiking Pants Water Repel",
+              "Mens Waterproof Ski Snow Pants, Windproof Fleece Lined Warm Hiking Ela",
+              "KAISIKE Women's Outdoor Windproof Fleece Lined Hiking Pants Waterproof",
+              "Jessie Kidden Mens Waterproof Hiking Pants, Outdoor Snow Ski Fishing F"
+            ],
+            [
+              "Sub Sports Womens Compression Tights Leggings Thermal Base Layer Winte",
+              "BaseLayer Mechanics Women's Fleece Lined Base Layers Long Sleeve Therm",
+              "Eizniz Women\u2019s 100% Merino Wool Thermal Leggings 260g Base Layer Botto",
+              "Women's Ultra Soft Thermal Underwear Long Johns Set Base Layer Skiing "
+            ],
+            [
+              "LINERY Ski Gloves Men Waterproof Snowboard Gloves for Cold Weather Ski",
+              "NICEWIN Winter Ski Gloves Men Women Snowboarding Windproof Warm Winter",
+              "Winter Gloves -30\u00b0F Thermal Snow Work Ski Glove Windproof Waterproof W",
+              "CLEARANCE Sale | Fisstina Windproof Ski Snow Gloves Touchscreen Waterp"
+            ],
+            [
+              "Darn Tough Merino Wool Ski Starry Night Over-The-Calf Padded Cushion -",
+              "Fox River Women's Andermatt Over-The-Calf Ultra-Lightweight Ski Socks",
+              "Merino Wool Hiking Socks 4 Pairs for Men & Women Thermal Winter Warm M",
+              "Darn Tough Vermont Merino Wool Boot Socks Full Cushion Plum Heather SM"
+            ]
+          ],
+          "slot_names": [
+            "ski jacket",
+            "ski pants",
+            "base layer",
+            "ski gloves",
+            "ski socks"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 5,
+          "items": 20,
+          "match": 15,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 12379.2,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "E.J. Men's 2 Piece Black Tailcoat Tuxedo Mens Suit (38 R)",
+              "Boyland Men's Tuxedo Suits 3 Pieces Notched Lapel One Button Plaid For",
+              "Boys Suit Black Tuxedo Kids Suit for Boy Formal Blazer Pants Vest Shir",
+              "Cyparissus Men's Suit Vest Business Formal Dress Waistcoat Vest with P"
+            ],
+            [
+              "Real Cotton Mens Fitted White Dress Shirt or Tuxedo Shirt, Convertible",
+              "Tuxedo Shirt- White Wing Collar 1/4\" Pleat (17\" Neck 34/35\" Sleeve)",
+              "J.VER J.Ver Tuxedo Shirts for Men Regular Fit Long Sleeve Button Up Sh",
+              "Men's 1 \" Pleat Black Wing Collar Tuxedo Shirt with Black Bowtie Large"
+            ],
+            [
+              "Oliver George Velvet Bow Tie Set (Black)-B",
+              "D&L Menswear Men's Pre-Tied Black Floral Bow Tie Adjustable Neck Weddi",
+              "Mens Bow Tie Stripe Self Tie Bowtie Pocket Square Classic Formal Tuxed",
+              "RBOCOTT Solid Color Bow Tie Metal Golden Wing Bowties for Men (black.)"
+            ],
+            [
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
+              "Mezlan Bogart Black Oxford In Patent Leather - 9-M",
+              "Very Fine Dance Shoes CM100101 Black Leather & Patent (Competition Gra"
+            ],
+            [
+              "MENDENG Men's Satin Bowtie Cummerbund Handkerchief Gift Set Tuxedo Wed",
+              "Y Back Suspenders Suit Braces for Men Wedding Tuxedo Pant Straps White",
+              "Geoffrey Beene Mens Vertical Stripe Convertible Y-Shaped Suspenders (B",
+              "Wedding Suspenders Wide Adjustable Braces for Mens Straps for Tuxedo P"
+            ]
+          ],
+          "slot_names": [
+            "tuxedo",
+            "dress shirt",
+            "bow tie",
+            "formal shoes",
+            "cummerbund or suspenders"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 4,
+          "items": 16,
+          "match": 14,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 11580.4,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "TAPULCO Mens Summer Quick Dry Golf Shirts Breathable Lightweight Casua",
+              "DRI-EQUIP Mens Moisture Wicking Mineral Freeze T-Shirt-Navy-XL",
+              "ZITY Men's Athletic 100% Polyester Moisture-Wicking Short-Sleeve T-Shi",
+              "LLdress Mens Polo Shirts Short Sleeve Golf Polo Athletic Casual Moistu"
+            ],
+            [
+              "Shallowlulu Mens Cargo Hiking Shorts Water Resistant Quick Dry Lightwe",
+              "Jeater Mens Hiking Shorts Breathable Quick Dry Shorts Mens Outdoor Sho",
+              "Libin Women's Quick Dry Hiking Shorts Lightweight Active Shorts, UPF 5",
+              "Heihuohua Men's Lightweight Hiking Shorts Quick Dry Cycling Camping Tr"
+            ],
+            [
+              "ZASEPY Men's Waterproof Hiking Shoes Non Slip Outdoor Lightweight Brea",
+              "Xero Shoes DayLite Hiker - Women's Barefoot-Inspired Minimalist Lightw",
+              "Men's Hiking Boots Lightweight Non-Slip Mid Top Lightweight Water Resi",
+              "Xero Shoes DayLite Hiker - Women's Barefoot-Inspired Minimalist Lightw"
+            ],
+            [
+              "Sun Hats for Women Men, Fishing Hat Bucket Hat Outdoor UV Protection U",
+              "Sun Hat for Women Wide Brim Hat Sun Visor for Women UV Protection Summ",
+              "Sun Hat Fishing Bucket Cap Outdoor UV Protection Camo Boonie Waterproo",
+              "Outdoor Summer Sun Hat, Fashion UV Protection Wide Brim Bucket Hat for"
+            ]
+          ],
+          "slot_names": [
+            "hiking shirt",
+            "hiking shorts",
+            "hiking shoes",
+            "sun hat"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 3,
+          "items": 12,
+          "match": 12,
+          "price_bad": 0,
+          "empty": 0,
+          "ms": 9478.7,
+          "planner": "llm",
+          "rerank": true,
+          "titles": [
+            [
+              "LEIDAI Women's Long Sleeve Soft Mink Knit Cardigan with Internal Butto",
+              "Fronage Women's V-Neck Solid Long Sleeve Button Down Soft Knit Cardiga",
+              "YourStyle USA Women\u2019s Knit Cardigan \u2013 Classic Open Front Long Sleeve S",
+              "YourStyle Women Open Front Long Sleeve Classic Knit Cardigan (Small, B"
+            ],
+            [
+              "TIMISYO Women's Winter Scarf - 100% Cashmere, Soft Warm Long Plaid Sca",
+              "Japanese Super Soft and Warm Better Than Cashmere Classic Scarf in Ric",
+              "Women's Classic Tassel Warm Long Soft Plaid Scarf Winter Large Blanket",
+              "Bearpaw Women Fashion Chunky Classic Cable Fashion Knit Super Soft Col"
+            ],
+            [
+              "Women's Cozy Memory Foam Suede Slippers with Fuzzy Plush Faux Fur Lini",
+              "Slippers With 2 Pair Socks For Women,Cozy Plush Comfy Warm Slip-On Sli",
+              "Women's Warm Soft Cozy Fleece Lining House Slippers Memory Foam Slippe",
+              "Homeey Women's Winter Sheepskin Slippers Real Wool Soft Warm Indoor Ou"
+            ]
+          ],
+          "slot_names": [
+            "cardigan",
+            "scarf",
+            "slippers"
+          ]
+        }
+      ]
+    }
+  ]
+}

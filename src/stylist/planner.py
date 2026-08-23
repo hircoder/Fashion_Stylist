@@ -29,6 +29,7 @@ HEURISTIC_VERSION = "1"
 MAX_SLOTS = 5
 MIN_ALLOCATION_SHARE = 0.10  # no slot of a total budget gets less than this share
 MAX_KEYWORDS = 6
+MAX_EXCLUDE_KEYWORDS = 4
 MAX_QUERY_CHARS = 500  # same limit as the API request
 
 Audience = Literal["women", "men", "girls", "boys", "baby", "unisex"]
@@ -41,6 +42,7 @@ class SlotOutput(BaseModel):
     name: str
     search_query: str
     keywords: list[str] = Field(default_factory=list)
+    exclude_keywords: list[str] = Field(default_factory=list)
     budget_max: float | None = None
 
 
@@ -63,6 +65,7 @@ class Slot(BaseModel):
     name: str
     search_query: str
     keywords: list[str] = Field(default_factory=list)
+    exclude_keywords: list[str] = Field(default_factory=list)  # title words of a look-alike type
     budget_max: float | None = None
 
 
@@ -266,13 +269,13 @@ class HeuristicPlanner:
 # --------------------------------------------------------------------------- normalize
 
 
-def _clean_keywords(raw: list[str]) -> list[str]:
+def _clean_keywords(raw: list[str], limit: int = MAX_KEYWORDS) -> list[str]:
     out: list[str] = []
     for k in raw or []:
         k = re.sub(r"\s+", " ", str(k)).strip().lower()[:40]
         if k and k not in out:
             out.append(k)
-        if len(out) >= MAX_KEYWORDS:
+        if len(out) >= limit:
             break
     return out
 
@@ -334,6 +337,7 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
                 name=(s.name or "items").strip()[:40] or "items",
                 search_query=sq[:MAX_QUERY_CHARS],
                 keywords=_clean_keywords(s.keywords),
+                exclude_keywords=_clean_keywords(s.exclude_keywords, MAX_EXCLUDE_KEYWORDS),
                 budget_max=_nonneg(s.budget_max),
             )
         )

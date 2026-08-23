@@ -201,3 +201,24 @@ def test_pool_items_are_merged_by_score_with_a_small_in_window_bonus(fixture_ind
     assert scores == sorted(scores, reverse=True)  # one order, not two partitions
     assert any(not c.in_window for c in res.candidates)
     assert any(c.in_window for c in res.candidates)
+
+
+def test_exclude_keywords_push_off_type_candidates_down(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    plain = _plan(Slot(name="swim", search_query="swimsuit cover up", keywords=["swimsuit"]))
+    excl = _plan(
+        Slot(
+            name="swim",
+            search_query="swimsuit cover up",
+            keywords=["swimsuit"],
+            exclude_keywords=["cover up", "coverup", "cover-up"],
+        )
+    )
+    win = [SlotWindow(None, None, None, False)]
+    a = r.retrieve(plain, win, n_candidates=10, k=4)[0].candidates
+    b = r.retrieve(excl, win, n_candidates=10, k=4)[0].candidates
+    covers_a = [i for i, c in enumerate(a) if "cover" in c.title.lower()]
+    covers_b = [i for i, c in enumerate(b) if "cover" in c.title.lower()]
+    assert covers_a, "fixture should contain cover ups for this query"
+    assert not covers_b or min(covers_b) > min(covers_a)  # pushed down or out of the top-10
+    assert not covers_b or any(c.excluded_keywords for c in b)

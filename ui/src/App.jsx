@@ -57,7 +57,7 @@ function ProductCard({ item }) {
   return (
     <article className="card">
       <div className="card-img">
-        {img ? <img src={img} alt="" loading="lazy" /> : <div className="noimg">no image</div>}
+        {img ? <img src={img} alt="" /> : <div className="noimg">no image</div>}
       </div>
       <div className="card-body">
         <div className="card-title">
@@ -120,7 +120,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [k, setK] = useState(4);
-  const [includeUnpriced, setIncludeUnpriced] = useState(false);
+  const [priceMode, setPriceMode] = useState("auto"); // auto | strict | relaxed
   const [useLlm, setUseLlm] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -147,8 +147,9 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const body = { query: text, k: Number(k) || 4, include_unpriced: includeUnpriced, use_llm: useLlm };
+      const body = { query: text, k: Number(k) || 4, use_llm: useLlm };
       if (maxPrice !== "" && !Number.isNaN(Number(maxPrice))) body.max_price = Number(maxPrice);
+      if (priceMode !== "auto") body.include_unpriced = priceMode === "relaxed";
       setResult(await recommend(body));
     } catch (e) {
       setError(e.message);
@@ -211,13 +212,13 @@ export default function App() {
                 items per slot
                 <input type="number" min="1" max="10" value={k} onChange={(e) => setK(e.target.value)} />
               </label>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={includeUnpriced}
-                  onChange={(e) => setIncludeUnpriced(e.target.checked)}
-                />
-                allow items without a price when a budget is set
+              <label>
+                unpriced items
+                <select value={priceMode} onChange={(e) => setPriceMode(e.target.value)}>
+                  <option value="auto">auto (strict for max $, allowed for budgets in the text)</option>
+                  <option value="strict">strict: known prices only when a budget applies</option>
+                  <option value="relaxed">relaxed: allow unknown prices, flagged</option>
+                </select>
               </label>
               <label className="check">
                 <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} />

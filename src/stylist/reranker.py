@@ -98,6 +98,8 @@ def candidate_payload(c: Candidate) -> dict:
         d["features"] = [sanitize(f, 60) for f in c.features[:2]]
     if c.matched_keywords:
         d["matched_keywords"] = c.matched_keywords
+    if c.excluded_keywords:
+        d["off_type_hint"] = c.excluded_keywords
     return d
 
 

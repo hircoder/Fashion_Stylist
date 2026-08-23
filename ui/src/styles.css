@@ -136,6 +136,15 @@ button.ghost {
   align-items: center;
   gap: 6px;
 }
+.options select {
+  padding: 5px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
 .options input[type="number"] {
   width: 70px;
   padding: 5px 7px;
