@@ -198,7 +198,7 @@ def safe_extract(
                     )
                 if member.isdir():
                     target.mkdir(parents=True, exist_ok=True)
-                    os.chmod(target, 0o755)
+                    os.chmod(target, 0o755)  # nosec B103 - a directory, ours, no world write
                     continue
                 src = tar.extractfile(member)
                 if src is None:

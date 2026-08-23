@@ -48,7 +48,8 @@ def _download(url: str, out: Path, max_bytes: int = RAW_MAX_BYTES) -> str:
     h = hashlib.sha256()
     done = 0
     try:
-        with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as f:  # noqa: S310
+        # the url is the constant RAW_URL (https) defined above, never user input
+        with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as f:  # noqa: S310  # nosec B310
             total = int(resp.headers.get("Content-Length") or 0)
             if total > max_bytes:
                 raise DownloadError(f"{url} is {total} bytes, above the {max_bytes} bytes cap")
