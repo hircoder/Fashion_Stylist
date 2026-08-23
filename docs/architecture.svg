@@ -1,177 +1,276 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="1265" viewBox="0 0 1720 1265" font-family="Helvetica, Arial, sans-serif">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b4652"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f5fbf"/>
-    </marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/></marker>
     <style>
-      .box { fill: #ffffff; stroke: #3b4652; stroke-width: 1.5; rx: 8; }
-      .store { fill: #fff8e6; stroke: #b98a1e; stroke-width: 1.5; }
-      .llm { fill: #eef4ff; stroke: #1f5fbf; stroke-width: 1.5; rx: 8; }
-      .lane { fill: #f6f8fa; stroke: #cfd6dd; stroke-width: 1; rx: 12; }
-      .t { font-size: 14px; fill: #1a1a1a; }
-      .h { font-size: 15px; font-weight: bold; fill: #1a1a1a; }
-      .s { font-size: 12px; fill: #4a5560; }
-      .lanetitle { font-size: 18px; font-weight: bold; fill: #0a2540; }
-      .line { stroke: #3b4652; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
-      .blue { stroke: #1f5fbf; stroke-width: 1.6; fill: none; marker-end: url(#arrow-blue); stroke-dasharray: 6 4; }
-      .note { font-size: 12px; fill: #4a5560; font-style: italic; }
+      .title { font-size: 24px; font-weight: bold; fill: #111; }
+      .sub { font-size: 12.5px; fill: #444; }
+      .lane { font-size: 17px; font-weight: bold; fill: #111; }
+      .h { font-size: 14px; font-weight: bold; fill: #111; }
+      .t { font-size: 12.5px; fill: #222; }
+      .s { font-size: 11px; fill: #666; }
+      .lbl { font-size: 11px; fill: #111; font-family: Menlo, Consolas, monospace; }
+      .line { stroke: #111; stroke-width: 1.4; fill: none; marker-end: url(#arr); }
+      .dashed { stroke: #111; stroke-width: 1.4; fill: none; stroke-dasharray: 6 4; marker-end: url(#arr); }
     </style>
   </defs>
-
-  <rect x="0" y="0" width="1400" height="980" fill="#ffffff"/>
-  <text x="40" y="40" font-size="24" font-weight="bold" fill="#0a2540">Semantic fashion recommendation service: data flow</text>
-  <text x="40" y="62" class="s">natural-language request  -&gt;  LLM plan  -&gt;  hybrid retrieval per outfit slot  -&gt;  LLM rerank  -&gt;  ranked products</text>
-
-  <!-- ===================== OFFLINE LANE ===================== -->
-  <rect x="40" y="90" width="1320" height="270" class="lane"/>
-  <text x="60" y="118" class="lanetitle">1. Offline: build the index once (make data / ingest / index)</text>
-
-  <!-- raw file -->
-  <path d="M 70 150 h 170 a 10 10 0 0 1 10 10 v 90 a 10 10 0 0 1 -10 10 h -170 a 10 10 0 0 1 -10 -10 v -90 a 10 10 0 0 1 10 -10 z" class="store"/>
-  <text x="85" y="178" class="h">meta_Amazon_Fashion</text>
-  <text x="85" y="198" class="t">.jsonl.gz (raw)</text>
-  <text x="85" y="218" class="s">826,108 products, 224 MB</text>
-  <text x="85" y="236" class="s">price known for 6%, no taxonomy</text>
-
-  <!-- ingest -->
-  <rect x="300" y="150" width="250" height="110" class="box"/>
-  <text x="315" y="178" class="h">stylist ingest  (catalog.py)</text>
-  <text x="315" y="198" class="t">parse price, guess audience</text>
-  <text x="315" y="216" class="t">group_key for size/colour variants</text>
-  <text x="315" y="234" class="t">doc text = title | features | details</text>
-  <text x="315" y="252" class="s">streams the file, ~30 s, nothing dropped</text>
-
-  <!-- catalog parquet -->
-  <path d="M 600 150 h 170 a 10 10 0 0 1 10 10 v 90 a 10 10 0 0 1 -10 10 h -170 a 10 10 0 0 1 -10 -10 v -90 a 10 10 0 0 1 10 -10 z" class="store"/>
-  <text x="615" y="178" class="h">catalog.parquet</text>
-  <text x="615" y="198" class="t">one row per product, row_id</text>
-  <text x="615" y="218" class="s">typed columns, 150 MB</text>
-
-  <!-- build index -->
-  <rect x="830" y="150" width="260" height="110" class="box"/>
-  <text x="845" y="178" class="h">stylist build-index  (index.py)</text>
-  <text x="845" y="198" class="t">pick subset: popular 100K (default),</text>
-  <text x="845" y="216" class="t">random 100K, or the full catalog</text>
-  <text x="845" y="234" class="t">embed with bge-small-en-v1.5 (local)</text>
-  <text x="845" y="252" class="t">build BM25 over the same text</text>
-
-  <!-- index dir -->
-  <path d="M 1140 150 h 200 a 10 10 0 0 1 10 10 v 120 a 10 10 0 0 1 -10 10 h -200 a 10 10 0 0 1 -10 -10 v -120 a 10 10 0 0 1 10 -10 z" class="store"/>
-  <text x="1155" y="178" class="h">data/index/</text>
-  <text x="1155" y="198" class="t">embeddings.npy (float16)</text>
-  <text x="1155" y="216" class="t">bm25/  and  row_ids.npy</text>
-  <text x="1155" y="234" class="t">catalog.parquet (subset)</text>
-  <text x="1155" y="252" class="t">meta.json: versions, sums</text>
-  <text x="1155" y="272" class="s">self-contained, ships as tarball</text>
-
-  <line x1="250" y1="205" x2="298" y2="205" class="line"/>
-  <line x1="550" y1="205" x2="598" y2="205" class="line"/>
-  <line x1="780" y1="205" x2="828" y2="205" class="line"/>
-  <line x1="1090" y1="205" x2="1138" y2="205" class="line"/>
-
-  <text x="60" y="335" class="note">Deployments (Railway): the container downloads this tarball at boot when INDEX_URL + INDEX_SHA256 are set; checksum, safe extraction, atomic install.</text>
-
-  <!-- ===================== ONLINE LANE ===================== -->
-  <rect x="40" y="390" width="1320" height="560" class="lane"/>
-  <text x="60" y="418" class="lanetitle">2. Online: one request (POST /recommend), one deadline (40 s)</text>
-
-  <!-- client -->
-  <rect x="60" y="450" width="180" height="90" class="box"/>
-  <text x="75" y="478" class="h">Client</text>
-  <text x="75" y="498" class="t">React UI at /</text>
-  <text x="75" y="516" class="t">curl, any HTTP client</text>
-  <text x="75" y="534" class="s">OpenAPI at /docs</text>
-
-  <!-- api -->
-  <rect x="290" y="450" width="200" height="90" class="box"/>
-  <text x="305" y="478" class="h">FastAPI  (api.py)</text>
-  <text x="305" y="498" class="t">validate request (pydantic)</text>
-  <text x="305" y="516" class="t">/recommend /health /ready</text>
-  <text x="305" y="534" class="s">index loaded once at startup</text>
-
-  <!-- planner -->
-  <rect x="540" y="450" width="250" height="110" class="llm"/>
-  <text x="555" y="478" class="h">Query planner  (planner.py)</text>
-  <text x="555" y="498" class="t">LLM, structured JSON output:</text>
-  <text x="555" y="516" class="t">slots (1-5 product types), audience,</text>
-  <text x="555" y="534" class="t">occasion, season, budget + scope</text>
-  <text x="555" y="552" class="s">fallback: regex planner (no key / timeout)</text>
-
-  <!-- constraints -->
-  <rect x="840" y="450" width="220" height="90" class="box"/>
-  <text x="855" y="478" class="h">Merge constraints</text>
-  <text x="855" y="498" class="t">request fields override the plan</text>
-  <text x="855" y="516" class="t">per-slot price window + audience</text>
-  <text x="855" y="534" class="s">strict prices, opt-in unpriced backfill</text>
-
-  <!-- retriever -->
-  <rect x="1100" y="450" width="245" height="170" class="box"/>
-  <text x="1115" y="478" class="h">Retriever  (retrieval.py)</text>
-  <text x="1115" y="498" class="t">all slot queries: ONE matmul</text>
-  <text x="1115" y="516" class="t">BM25 scores for every row</text>
-  <text x="1115" y="534" class="t">audience/price masks before top-N</text>
-  <text x="1115" y="552" class="t">reciprocal rank fusion (k=60)</text>
-  <text x="1115" y="570" class="t">+ keyword boost, + rating prior</text>
-  <text x="1115" y="588" class="t">one item per variant group</text>
-  <text x="1115" y="608" class="s">reads data/index (in memory)</text>
-
-  <line x1="240" y1="495" x2="288" y2="495" class="line"/>
-  <line x1="490" y1="495" x2="538" y2="495" class="line"/>
-  <line x1="790" y1="495" x2="838" y2="495" class="line"/>
-  <line x1="1060" y1="495" x2="1098" y2="495" class="line"/>
-
-  <!-- reranker -->
-  <rect x="840" y="660" width="300" height="120" class="llm"/>
-  <text x="855" y="688" class="h">LLM reranker  (reranker.py)</text>
-  <text x="855" y="708" class="t">one call, all slots, 15 candidates each</text>
-  <text x="855" y="726" class="t">picks + one-line reason + evidence fields</text>
-  <text x="855" y="744" class="t">ids validated against the slot, dupes dropped</text>
-  <text x="855" y="762" class="s">fallback: retrieval order + deterministic reasons</text>
-
-  <!-- select -->
-  <rect x="540" y="660" width="250" height="120" class="box"/>
-  <text x="555" y="688" class="h">Select  (service.py)</text>
-  <text x="555" y="708" class="t">top k per slot</text>
-  <text x="555" y="726" class="t">a product never fills two slots</text>
-  <text x="555" y="744" class="t">backfill from the slot's own ranking</text>
-  <text x="555" y="762" class="s">warnings explain every fallback</text>
-
-  <!-- response -->
-  <rect x="290" y="660" width="200" height="120" class="box"/>
-  <text x="305" y="688" class="h">Response JSON</text>
-  <text x="305" y="708" class="t">plan, slots[] with items[]</text>
-  <text x="305" y="726" class="t">title, price, rating, image, url,</text>
-  <text x="305" y="744" class="t">reason, matched keywords</text>
-  <text x="305" y="762" class="s">note, warnings, timings, llm_info</text>
-
-  <!-- arrows down/back -->
-  <path d="M 1222 620 V 720 H 1142" class="line"/>
-  <line x1="838" y1="720" x2="792" y2="720" class="line"/>
-  <line x1="538" y1="720" x2="492" y2="720" class="line"/>
-  <path d="M 288 720 H 150 V 542" class="line"/>
-
-  <!-- llm provider box -->
-  <rect x="60" y="830" width="600" height="90" class="llm"/>
-  <text x="75" y="858" class="h">LLM provider  (llm/)</text>
-  <text x="75" y="878" class="t">Anthropic or OpenAI SDK behind one async method: complete_json(schema)</text>
-  <text x="75" y="896" class="t">typed errors: auth, rate limit, timeout, refusal, truncation, validation</text>
-  <text x="75" y="914" class="s">LLM_PROVIDER=none runs the whole service without any key</text>
-
-  <path d="M 665 560 V 600 H 300 V 828" class="blue"/>
-  <path d="M 990 780 V 848 H 662" class="blue"/>
-
-  <!-- embedding model box -->
-  <rect x="1110" y="830" width="230" height="90" class="box"/>
-  <text x="1125" y="858" class="h">Embedding model</text>
-  <text x="1125" y="878" class="t">BAAI/bge-small-en-v1.5, 384-d</text>
-  <text x="1125" y="896" class="t">same model offline and online</text>
-  <text x="1125" y="914" class="s">query prefix for bge, local CPU/GPU</text>
-  <line x1="1222" y1="828" x2="1222" y2="622" class="line"/>
-
-  <text x="700" y="896" class="note">Timing on a laptop (M4): plan 2-4 s, retrieval 20-60 ms,</text>
-  <text x="700" y="914" class="note">rerank 3-12 s (model dependent). Both LLM stages are optional:</text>
-  <text x="700" y="932" class="note">use_llm=false = regex plan + hybrid retrieval. Dashed blue = LLM calls.</text>
+  <rect x="0" y="0" width="1720" height="1265" fill="#fff"/>
+<text x="40" y="44" class="title">Fashion stylist: how the service is built and how a request moves through it</text>
+<text x="40" y="62" class="sub">POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM, retrieves per slot with dense + BM25 search over 100,000 indexed listings, reranks each slot with an LLM, and returns k products per slot with reasons. Solid</text>
+<text x="40" y="78" class="sub">arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, the dotted box is the only external service.</text>
+<rect x="26" y="92" width="1668" height="342" rx="8" fill="none" stroke="#bbb"/>
+<text x="40" y="120" class="lane">1. Offline, run once per catalog: raw json to a verified index directory</text>
+<rect x="40.0" y="138" width="218.33333333333334" height="256" rx="4" fill="#fafafa" stroke="#111" stroke-width="1.3"/>
+<text x="52.0" y="163" class="h">Commands (Makefile)</text>
+<text x="52.0" y="182" class="t">make data: download the 224 MB</text>
+<text x="52.0" y="198" class="t">gzip from the McAuley lab mirror</text>
+<text x="52.0" y="215" class="t">make ingest: stylist ingest</text>
+<text x="52.0" y="232" class="t">make index: stylist build-index</text>
+<text x="52.0" y="248" class="t">--limit 100000 --sampling popular</text>
+<text x="52.0" y="264" class="t">make demo: 486 row fixture +</text>
+<text x="52.0" y="281" class="t">hash embedder, no model</text>
+<text x="52.0" y="298" class="t">download</text>
+<rect x="324.33333333333337" y="138" width="218.33333333333334" height="256" rx="4" fill="#f4f4f4" stroke="#111" stroke-width="1.3"/>
+<text x="336.33333333333337" y="163" class="h">meta_Amazon_Fashion.jsonl.gz</text>
+<text x="336.33333333333337" y="181" class="h">(raw)</text>
+<text x="336.33333333333337" y="200" class="t">826,108 listings, 224 MB gzip, one</text>
+<text x="336.33333333333337" y="216" class="t">json object per line: title, price,</text>
+<text x="336.33333333333337" y="233" class="t">average_rating, rating_number,</text>
+<text x="336.33333333333337" y="250" class="t">store, features, description,</text>
+<text x="336.33333333333337" y="266" class="t">details, images, parent_asin</text>
+<text x="336.33333333333337" y="286" class="s">price known for 6% of rows; categories</text>
+<text x="336.33333333333337" y="300" class="s">empty for every row, so no taxonomy</text>
+<rect x="608.6666666666667" y="138" width="218.33333333333334" height="256" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="620.6666666666667" y="163" class="h">stylist ingest (catalog.py)</text>
+<text x="620.6666666666667" y="182" class="t">streams the file, one typed row</text>
+<text x="620.6666666666667" y="198" class="t">per listing</text>
+<text x="620.6666666666667" y="215" class="t">parse_price: floats and "$12.99"</text>
+<text x="620.6666666666667" y="232" class="t">kept, ranges and junk -&gt; null +</text>
+<text x="620.6666666666667" y="248" class="t">status</text>
+<text x="620.6666666666667" y="264" class="t">derive_audience:</text>
+<text x="620.6666666666667" y="281" class="t">details.Department, else title</text>
+<text x="620.6666666666667" y="298" class="t">words</text>
+<text x="620.6666666666667" y="314" class="t">doc_text = title | features |</text>
+<text x="620.6666666666667" y="330" class="t">department, material, style,</text>
+<text x="620.6666666666667" y="347" class="t">colour, brand | store</text>
+<text x="620.6666666666667" y="366" class="s">bad lines skipped and counted; written</text>
+<text x="620.6666666666667" y="381" class="s">to a temp file then renamed; ~30 s</text>
+<rect x="893.0000000000001" y="138" width="218.33333333333334" height="256" rx="4" fill="#f4f4f4" stroke="#111" stroke-width="1.3"/>
+<text x="905.0000000000001" y="163" class="h">catalog.parquet</text>
+<text x="905.0000000000001" y="181" class="h">(data/processed/)</text>
+<text x="905.0000000000001" y="200" class="t">826,108 rows, zstd, 150 MB</text>
+<text x="905.0000000000001" y="216" class="t">row_id, parent_asin, title, price,</text>
+<text x="905.0000000000001" y="233" class="t">price_status, audience,</text>
+<text x="905.0000000000001" y="250" class="t">average_rating (null when</text>
+<text x="905.0000000000001" y="266" class="t">missing), rating_number, store,</text>
+<text x="905.0000000000001" y="282" class="t">image_url, doc_text, details</text>
+<rect x="1177.3333333333335" y="138" width="218.33333333333334" height="256" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="1189.3333333333335" y="163" class="h">stylist build-index (index.py)</text>
+<text x="1189.3333333333335" y="182" class="t">pick rows: popular 100K (default),</text>
+<text x="1189.3333333333335" y="198" class="t">random, or all (Arrow side, nothing</text>
+<text x="1189.3333333333335" y="215" class="t">else materialised)</text>
+<text x="1189.3333333333335" y="232" class="t">embed doc_text with</text>
+<text x="1189.3333333333335" y="248" class="t">BAAI/bge-small-en-v1.5: 384-d,</text>
+<text x="1189.3333333333335" y="264" class="t">L2 normalised, batches of 128</text>
+<text x="1189.3333333333335" y="281" class="t">BM25 (bm25s) over the same text</text>
+<text x="1189.3333333333335" y="298" class="t">sha256 of every file into meta.json</text>
+<text x="1189.3333333333335" y="317" class="s">2.7 min for 100K rows on a laptop</text>
+<text x="1189.3333333333335" y="332" class="s">GPU; built in a scratch dir, swapped in</text>
+<text x="1189.3333333333335" y="346" class="s">at the end</text>
+<rect x="1461.666666666667" y="138" width="218.33333333333334" height="256" rx="4" fill="#f4f4f4" stroke="#111" stroke-width="1.3"/>
+<text x="1473.666666666667" y="163" class="h">data/index/ (ships as one</text>
+<text x="1473.666666666667" y="181" class="h">tarball)</text>
+<text x="1473.666666666667" y="200" class="t">embeddings.npy float16 (100000 x</text>
+<text x="1473.666666666667" y="216" class="t">384)</text>
+<text x="1473.666666666667" y="233" class="t">row_ids.npy int64</text>
+<text x="1473.666666666667" y="250" class="t">catalog.parquet: the indexed rows,</text>
+<text x="1473.666666666667" y="266" class="t">serving columns</text>
+<text x="1473.666666666667" y="282" class="t">bm25/</text>
+<text x="1473.666666666667" y="299" class="t">meta.json: pipeline version, model</text>
+<text x="1473.666666666667" y="316" class="t">+ revision, dim, counts, sampling,</text>
+<text x="1473.666666666667" y="332" class="t">checksums</text>
+<text x="1473.666666666667" y="352" class="s">Railway: INDEX_URL +</text>
+<text x="1473.666666666667" y="366" class="s">INDEX_SHA256, verified and</text>
+<text x="1473.666666666667" y="380" class="s">unpacked at boot</text>
+<path d="M 543 266 L 608 266" class="line"/>
+<rect x="558" y="237" width="34" height="14" fill="#fff" opacity="0.95"/><text x="576" y="247" class="lbl" text-anchor="middle">json</text>
+<rect x="555" y="250" width="41" height="14" fill="#fff" opacity="0.95"/><text x="576" y="260" class="lbl" text-anchor="middle">lines</text>
+<path d="M 827 266 L 892 266" class="line"/>
+<rect x="840" y="237" width="41" height="14" fill="#fff" opacity="0.95"/><text x="860" y="247" class="lbl" text-anchor="middle">typed</text>
+<rect x="843" y="250" width="34" height="14" fill="#fff" opacity="0.95"/><text x="860" y="260" class="lbl" text-anchor="middle">rows</text>
+<path d="M 1111 266 L 1176 266" class="line"/>
+<rect x="1114" y="237" width="61" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="247" class="lbl" text-anchor="middle">selected</text>
+<rect x="1127" y="250" width="34" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="260" class="lbl" text-anchor="middle">rows</text>
+<path d="M 1396 266 L 1461 266" class="line"/>
+<rect x="1395" y="250" width="67" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="260" class="lbl" text-anchor="middle">artifacts</text>
+<text x="40" y="420.5" class="s">Startup check (SearchIndex.load): pipeline version, embedding model name and revision, row counts, row order (row_ids vs catalog), sha256 of every file, finite embeddings. Anything off and the service refuses to start rather than serve misaligned rows.</text>
+<rect x="26" y="474.5" width="1668" height="760" rx="8" fill="none" stroke="#bbb"/>
+<text x="40" y="502.5" class="lane">2. Online, one request: plan, retrieve, rerank, select (one deadline, every fallback reported)</text>
+<rect x="40.0" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="52.0" y="546" class="h">Client</text>
+<text x="52.0" y="564" class="t">React page (ui/), curl, or any</text>
+<text x="52.0" y="581" class="t">HTTP client</text>
+<text x="52.0" y="598" class="t">POST /recommend {query, k,</text>
+<text x="52.0" y="614" class="t">max_price, min_price, audience,</text>
+<text x="52.0" y="630" class="t">include_unpriced, use_llm,</text>
+<text x="52.0" y="647" class="t">rerank}</text>
+<text x="52.0" y="664" class="t">OpenAPI at /docs, health at</text>
+<text x="52.0" y="680" class="t">/health, readiness at /ready</text>
+<rect x="324.33333333333337" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="336.33333333333337" y="546" class="h">FastAPI (api.py)</text>
+<text x="336.33333333333337" y="564" class="t">pydantic validation: unknown</text>
+<text x="336.33333333333337" y="581" class="t">fields rejected, query 1 to 500</text>
+<text x="336.33333333333337" y="598" class="t">chars, k 1 to 10, finite prices, min</text>
+<text x="336.33333333333337" y="614" class="t">&lt;= max</text>
+<text x="336.33333333333337" y="630" class="t">request id, per-ip rate limit, in-flight</text>
+<text x="336.33333333333337" y="647" class="t">cap, body size limit</text>
+<text x="336.33333333333337" y="664" class="t">one 40 s deadline per request;</text>
+<text x="336.33333333333337" y="680" class="t">422 / 429 / 503 / 504 error bodies</text>
+<rect x="608.6666666666667" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="620.6666666666667" y="546" class="h">1. Planner (planner.py)</text>
+<text x="620.6666666666667" y="564" class="t">LLM structured output -&gt;</text>
+<text x="620.6666666666667" y="581" class="t">PlannerOutput: intent, audience,</text>
+<text x="620.6666666666667" y="598" class="t">occasion, season, budget + scope</text>
+<text x="620.6666666666667" y="614" class="t">(per item / total), style words, 1 to</text>
+<text x="620.6666666666667" y="630" class="t">5 slots: name, listing-style search</text>
+<text x="620.6666666666667" y="647" class="t">query, 2 to 6 type keywords, up to</text>
+<text x="620.6666666666667" y="664" class="t">4 exclude words, budget share</text>
+<text x="620.6666666666667" y="680" class="t">normalize_plan: caps, dedupe,</text>
+<text x="620.6666666666667" y="696" class="t">10% floor per slot, never above</text>
+<text x="620.6666666666667" y="713" class="t">the total</text>
+<text x="620.6666666666667" y="732" class="s">cache per (query, mode, provider,</text>
+<text x="620.6666666666667" y="747" class="s">model, prompt version); identical</text>
+<text x="620.6666666666667" y="762" class="s">concurrent requests share one call;</text>
+<text x="620.6666666666667" y="776" class="s">regex planner if the LLM fails or there</text>
+<text x="620.6666666666667" y="790" class="s">is no key</text>
+<rect x="893.0000000000001" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="905.0000000000001" y="546" class="h">2. Merge constraints</text>
+<text x="905.0000000000001" y="564" class="t">request fields override the plan</text>
+<text x="905.0000000000001" y="581" class="t">one SlotWindow per slot: min /</text>
+<text x="905.0000000000001" y="598" class="t">max price, audience, unpriced</text>
+<text x="905.0000000000001" y="614" class="t">policy (strict for an explicit bound,</text>
+<text x="905.0000000000001" y="630" class="t">flagged backfill for an inferred</text>
+<text x="905.0000000000001" y="647" class="t">one)</text>
+<rect x="1177.3333333333335" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="1189.3333333333335" y="546" class="h">3. Retriever (retrieval.py)</text>
+<text x="1189.3333333333335" y="564" class="t">all slot queries embedded in one</text>
+<text x="1189.3333333333335" y="581" class="t">batch, ONE matmul Q (5 x 384)</text>
+<text x="1189.3333333333335" y="598" class="t">against E (384 x 100K)</text>
+<text x="1189.3333333333335" y="614" class="t">BM25 score for every row</text>
+<text x="1189.3333333333335" y="630" class="t">audience + price masks applied</text>
+<text x="1189.3333333333335" y="647" class="t">before top-100</text>
+<text x="1189.3333333333335" y="664" class="t">reciprocal rank fusion (k = 60), +</text>
+<text x="1189.3333333333335" y="680" class="t">keyword boost, - exclude penalty,</text>
+<text x="1189.3333333333335" y="696" class="t">+ Bayesian rating prior, +</text>
+<text x="1189.3333333333335" y="713" class="t">audience match</text>
+<text x="1189.3333333333335" y="730" class="t">one row per variant group</text>
+<text x="1189.3333333333335" y="746" class="t">(group_key from the title)</text>
+<text x="1189.3333333333335" y="766" class="s">50 to 300 ms; unpriced pool ranked</text>
+<text x="1189.3333333333335" y="780" class="s">alongside and flagged when allowed</text>
+<rect x="1461.666666666667" y="520.5" width="218.33333333333334" height="284" rx="4" fill="#f4f4f4" stroke="#111" stroke-width="1.3"/>
+<text x="1473.666666666667" y="546" class="h">In memory (loaded once)</text>
+<text x="1473.666666666667" y="564" class="t">SearchIndex: embeddings float32</text>
+<text x="1473.666666666667" y="581" class="t">(100K x 384), bm25s index,</text>
+<text x="1473.666666666667" y="598" class="t">serving catalog (pandas), row_ids</text>
+<text x="1473.666666666667" y="614" class="t">embedding model</text>
+<text x="1473.666666666667" y="630" class="t">bge-small-en-v1.5 (query prefix),</text>
+<text x="1473.666666666667" y="647" class="t">CPU or GPU</text>
+<text x="1473.666666666667" y="664" class="t">column caches for the masks,</text>
+<text x="1473.666666666667" y="680" class="t">group keys memoised</text>
+<rect x="40.0" y="890.0" width="502.6666666666667" height="275" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4"/>
+<text x="52.0" y="915" class="h">LLM provider (llm/)</text>
+<text x="52.0" y="934" class="t">Anthropic or OpenAI SDK behind one async method complete_json(system, user,</text>
+<text x="52.0" y="950" class="t">schema)</text>
+<text x="52.0" y="967" class="t">structured output parsed into pydantic models; typed errors: auth, rate limit, timeout,</text>
+<text x="52.0" y="984" class="t">refusal, truncation, validation</text>
+<text x="52.0" y="1000" class="t">global concurrency cap (LLM_CONCURRENCY = 8), per stage budgets: plan 15 s,</text>
+<text x="52.0" y="1016" class="t">rerank 20 s</text>
+<text x="52.0" y="1036" class="s">LLM_PROVIDER=none runs the whole service without a key: regex plan + hybrid retrieval +</text>
+<text x="52.0" y="1050" class="s">deterministic reasons</text>
+<rect x="608.6666666666667" y="890.0" width="218.33333333333334" height="275" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="620.6666666666667" y="915" class="h">6. Response (schemas.py)</text>
+<text x="620.6666666666667" y="934" class="t">request_id, plan as used, slots[]:</text>
+<text x="620.6666666666667" y="950" class="t">name, search_query, keywords,</text>
+<text x="620.6666666666667" y="967" class="t">exclude_keywords, budget_max,</text>
+<text x="620.6666666666667" y="984" class="t">n_eligible, items[]: rank,</text>
+<text x="620.6666666666667" y="1000" class="t">parent_asin, title, price,</text>
+<text x="620.6666666666667" y="1016" class="t">price_known, average_rating,</text>
+<text x="620.6666666666667" y="1033" class="t">rating_number, store, audience,</text>
+<text x="620.6666666666667" y="1050" class="t">image_url, url, score,</text>
+<text x="620.6666666666667" y="1066" class="t">matched_keywords, reason,</text>
+<text x="620.6666666666667" y="1082" class="t">evidence</text>
+<text x="620.6666666666667" y="1099" class="t">note, warnings[], index_info,</text>
+<text x="620.6666666666667" y="1116" class="t">llm_info, timings</text>
+<rect x="893.0000000000001" y="890.0" width="218.33333333333334" height="275" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="905.0000000000001" y="915" class="h">5. Select (service.py)</text>
+<text x="905.0000000000001" y="934" class="t">round robin across slots by rank</text>
+<text x="905.0000000000001" y="950" class="t">a product group fills at most one</text>
+<text x="905.0000000000001" y="967" class="t">slot</text>
+<text x="905.0000000000001" y="984" class="t">top k per slot</text>
+<text x="905.0000000000001" y="1000" class="t">warnings for every fallback: slot</text>
+<text x="905.0000000000001" y="1016" class="t">below k, unpriced items under a</text>
+<text x="905.0000000000001" y="1033" class="t">budget, priced picks over a stated</text>
+<text x="905.0000000000001" y="1050" class="t">total, planner or rerank fallback</text>
+<rect x="1177.3333333333335" y="890.0" width="218.33333333333334" height="275" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.3"/>
+<text x="1189.3333333333335" y="915" class="h">4. Reranker (reranker.py)</text>
+<text x="1189.3333333333335" y="934" class="t">one LLM call per slot, all slots in</text>
+<text x="1189.3333333333335" y="950" class="t">parallel (asyncio.wait, rerank</text>
+<text x="1189.3333333333335" y="967" class="t">budget)</text>
+<text x="1189.3333333333335" y="984" class="t">prompt: request, plan summary,</text>
+<text x="1189.3333333333335" y="1000" class="t">slot, top 10 candidates as</text>
+<text x="1189.3333333333335" y="1016" class="t">compact json labelled untrusted</text>
+<text x="1189.3333333333335" y="1033" class="t">output: picks[] (row_id, reason &lt;=</text>
+<text x="1189.3333333333335" y="1050" class="t">15 words, evidence),</text>
+<text x="1189.3333333333335" y="1066" class="t">no_good_match, note</text>
+<text x="1189.3333333333335" y="1082" class="t">ids validated (offered, unique, &lt;=</text>
+<text x="1189.3333333333335" y="1099" class="t">k); a failed or late slot keeps</text>
+<text x="1189.3333333333335" y="1116" class="t">retrieval order; urls stripped from</text>
+<text x="1189.3333333333335" y="1132" class="t">prose</text>
+<text x="1189.3333333333335" y="1152" class="s">3 to 7 s with claude-sonnet-4-6</text>
+<rect x="1461.666666666667" y="890.0" width="218.33333333333334" height="275" rx="4" fill="#fafafa" stroke="#111" stroke-width="1.3"/>
+<text x="1473.666666666667" y="915" class="h">Timing and fallbacks (laptop</text>
+<text x="1473.666666666667" y="933" class="h">M4, claude-sonnet-4-6)</text>
+<text x="1473.666666666667" y="952" class="t">plan 3 to 7 s (cached: 0 ms),</text>
+<text x="1473.666666666667" y="968" class="t">retrieve 0.05 to 0.3 s, rerank 3 to 7</text>
+<text x="1473.666666666667" y="985" class="t">s, total 6 to 12 s</text>
+<text x="1473.666666666667" y="1002" class="t">use_llm=false: regex plan +</text>
+<text x="1473.666666666667" y="1018" class="t">retrieval only, &lt; 1 s</text>
+<text x="1473.666666666667" y="1034" class="t">any LLM failure degrades one</text>
+<text x="1473.666666666667" y="1051" class="t">stage, never the request; every</text>
+<text x="1473.666666666667" y="1068" class="t">fallback is a warning in the</text>
+<text x="1473.666666666667" y="1084" class="t">response</text>
+<path d="M 258 662 L 323 662" class="line"/>
+<rect x="258" y="646" width="67" height="14" fill="#fff" opacity="0.95"/><text x="291" y="656" class="lbl" text-anchor="middle">POST json</text>
+<path d="M 543 662 L 608 662" class="line"/>
+<rect x="549" y="633" width="54" height="14" fill="#fff" opacity="0.95"/><text x="576" y="643" class="lbl" text-anchor="middle">query +</text>
+<rect x="552" y="646" width="48" height="14" fill="#fff" opacity="0.95"/><text x="576" y="656" class="lbl" text-anchor="middle">fields</text>
+<path d="M 827 662 L 892 662" class="line"/>
+<rect x="826" y="633" width="67" height="14" fill="#fff" opacity="0.95"/><text x="860" y="643" class="lbl" text-anchor="middle">plan (1-5</text>
+<rect x="836" y="646" width="48" height="14" fill="#fff" opacity="0.95"/><text x="860" y="656" class="lbl" text-anchor="middle">slots)</text>
+<path d="M 1111 662 L 1176 662" class="line"/>
+<rect x="1127" y="633" width="34" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="643" class="lbl" text-anchor="middle">slot</text>
+<rect x="1117" y="646" width="54" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="656" class="lbl" text-anchor="middle">windows</text>
+<path d="M 1396 646 L 1461 646" class="line"/>
+<rect x="1402" y="604" width="54" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="614" class="lbl" text-anchor="middle">5 query</text>
+<rect x="1398" y="617" width="61" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="627" class="lbl" text-anchor="middle">vectors,</text>
+<rect x="1405" y="630" width="48" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="640" class="lbl" text-anchor="middle">tokens</text>
+<path d="M 1462 678 L 1397 678" class="line"/>
+<rect x="1405" y="682" width="48" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="692" class="lbl" text-anchor="middle">scores</text>
+<rect x="1398" y="695" width="61" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="705" class="lbl" text-anchor="middle">per row,</text>
+<rect x="1411" y="708" width="34" height="14" fill="#fff" opacity="0.95"/><text x="1429" y="718" class="lbl" text-anchor="middle">rows</text>
+<path d="M 1571 394 L 1571 520" class="line"/>
+<rect x="1370" y="452" width="193" height="14" fill="#fff" opacity="0.95"/><text x="1563" y="462" class="lbl" text-anchor="end">loaded + verified at startup</text>
+<path d="M 1287 804 L 1287 889" class="line"/>
+<rect x="868" y="841" width="411" height="14" fill="#fff" opacity="0.95"/><text x="1279" y="851" class="lbl" text-anchor="end">candidate pools: max(10, k x slots) per slot, grouped, masked</text>
+<path d="M 1177 1028 L 1112 1028" class="line"/>
+<rect x="1114" y="998" width="61" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="1008" class="lbl" text-anchor="middle">ranked +</text>
+<rect x="1117" y="1012" width="54" height="14" fill="#fff" opacity="0.95"/><text x="1144" y="1022" class="lbl" text-anchor="middle">reasons</text>
+<path d="M 893 1028 L 828 1028" class="line"/>
+<rect x="840" y="998" width="41" height="14" fill="#fff" opacity="0.95"/><text x="860" y="1008" class="lbl" text-anchor="middle">k per</text>
+<rect x="843" y="1012" width="34" height="14" fill="#fff" opacity="0.95"/><text x="860" y="1022" class="lbl" text-anchor="middle">slot</text>
+<path d="M 718 890 L 718 866 L 149 866 L 149 805" class="line"/>
+<rect x="163" y="850" width="285" height="14" fill="#fff" opacity="0.95"/><text x="163" y="860" class="lbl" text-anchor="start">200 json (slots, items, reasons, warnings)</text>
+<path d="M 649 804 L 649 826 L 483 826 L 483 889" class="dashed" marker-start="url(#arr)"/>
+<rect x="229" y="810" width="246" height="14" fill="#fff" opacity="0.95"/><text x="475" y="820" class="lbl" text-anchor="end">prompt + json schema  &lt;-&gt;  plan json</text>
+<path d="M 1287 1165 L 1287 1199 L 291 1199 L 291 1166" class="dashed" marker-start="url(#arr)"/>
+<rect x="508" y="1183" width="562" height="14" fill="#fff" opacity="0.95"/><text x="789" y="1193" class="lbl" text-anchor="middle">5 prompts, 10 candidates each  &lt;-&gt;  picks + reasons (one call per slot, in parallel)</text>
 </svg>

@@ -19,6 +19,7 @@
   h1 { font-size: 34px; font-weight: 700; margin: 0 0 14px; line-height: 1.2; }
   h2 { font-size: 26px; font-weight: 700; margin: 0 0 14px; line-height: 1.25; padding-bottom: 10px; border-bottom: 1px solid #111; }
   h3 { font-size: 16px; font-weight: 700; margin: 16px 0 6px; }
+  a.tl { text-decoration: none; color: inherit; } a.tl:hover { text-decoration: underline; }
   p { margin: 0 0 12px; }
   ul { margin: 0 0 12px 20px; padding: 0; } li { margin-bottom: 5px; }
   .small { font-size: 14px; color: #555; }
@@ -38,6 +39,23 @@
   .tabs button.on { color: #111; border-bottom-color: #111; }
   .pane { display: none; } .pane.on { display: block; }
   .shot { width: 100%; border: 1px solid #ddd; filter: grayscale(1); }
+  /* agenda panel, top left on every slide */
+  #agenda { position: fixed; top: 14px; left: 14px; width: 208px; background: #fff; border: 1px solid #111; z-index: 20; font-size: 12px; }
+  #agenda .ttl { display: block; padding: 5px 8px 4px; font-weight: 700; text-decoration: none; border-bottom: 1px solid #111; letter-spacing: .02em; }
+  #agenda .ttl span { float: right; font-weight: 400; color: #666; font-variant-numeric: tabular-nums; }
+  #agenda .bar { height: 4px; background: #e6e6e6; } #agenda .bar i { display: block; height: 100%; width: 9%; background: #111; transition: width .4s ease; }
+  #agenda table { margin: 0; font-size: 12px; }
+  #agenda td { padding: 2px 6px; border-bottom: 1px solid #eee; line-height: 1.4; }
+  #agenda td.n { width: 22px; color: #888; text-align: right; font-variant-numeric: tabular-nums; }
+  #agenda tr:last-child td { border-bottom: none; }
+  #agenda a.row { display: block; text-decoration: none; color: #333; }
+  #agenda tr.on td { background: #111; } #agenda tr.on td.n { color: #bbb; } #agenda tr.on a.row { color: #fff; font-weight: 700; }
+  #agenda tr:not(.on):hover td { background: #f3f3f3; }
+  #agenda .hint { padding: 5px 8px; color: #666; font-size: 11px; border-top: 1px solid #111; }
+  #agenda-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 21; font: inherit; font-size: 12px; background: #fff; border: 1px solid #111; padding: 3px 8px; cursor: pointer; }
+  @media (min-width: 1301px) { .slide { padding-left: 252px; } }
+  @media (max-width: 1300px) { #agenda { display: none; top: 44px; } #agenda.open { display: block; } #agenda-toggle { display: block; } }
+  @media print { #agenda, #agenda-toggle, #pos { display: none; } }
   #pos { position: fixed; bottom: 14px; right: 18px; font-size: 12px; color: #666; }
 
   /* ---- data flow stage ---- */
@@ -52,11 +70,13 @@
   .elabel-bg { fill: #fff; }
   .pkt-box { fill: #111; } .pkt-label { fill: #fff; font-size: 10px; font-family: ui-monospace, Menlo, monospace; }
   .tech { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: #555; margin-top: 6px; line-height: 1.5; }
-  .tiers { position: relative; z-index: 2; display: grid; gap: 34px 0; }
-  .tier { display: grid; gap: 14px; }
+  .tiers { position: relative; z-index: 2; display: grid; gap: 40px 0; }
+  .tier { display: grid; gap: 64px; }
   .t1 { grid-template-columns: 1fr 1fr 1fr; }
   .t3, .t4 { grid-template-columns: repeat(4, 1fr); }
-  .t5 { grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .t3 { margin-bottom: 64px; }   /* the band under the stage row carries the cross-column lanes */
+  .t4 { margin-bottom: 24px; }
+  .t5 { grid-template-columns: repeat(5, 1fr); gap: 60px; }
   .node { background: #fff; border: 1px solid #bbb; padding: 9px 11px; font-size: 12.5px; line-height: 1.35; color: #666; transition: all .3s; }
   .node b { display: block; color: #444; font-size: 13px; margin-bottom: 2px; }
   .node.on { border: 2px solid #111; color: #111; padding: 8px 10px; } .node.on b { color: #111; }
@@ -76,11 +96,30 @@
 </head>
 <body>
 <div id="pos">1 / 11</div>
+<button id="agenda-toggle" type="button" aria-controls="agenda" aria-expanded="false">agenda</button>
+<nav id="agenda" aria-label="agenda">
+  <a class="ttl" href="#s1">agenda <span id="ag-pos">1 / 11</span></a>
+  <div class="bar"><i id="ag-bar"></i></div>
+  <table>
+    <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">what this is</a></td></tr>
+    <tr data-s="1"><td class="n">2</td><td><a class="row" href="#s2">scope and business case</a></td></tr>
+    <tr data-s="2"><td class="n">3</td><td><a class="row" href="#s3">data</a></td></tr>
+    <tr data-s="3"><td class="n">4</td><td><a class="row" href="#s4">exploration</a></td></tr>
+    <tr data-s="4"><td class="n">5</td><td><a class="row" href="#s5">the live data flow</a></td></tr>
+    <tr data-s="5"><td class="n">6</td><td><a class="row" href="#s6">the decisions and why</a></td></tr>
+    <tr data-s="6"><td class="n">7</td><td><a class="row" href="#s7">stack</a></td></tr>
+    <tr data-s="7"><td class="n">8</td><td><a class="row" href="#s8">capabilities</a></td></tr>
+    <tr data-s="8"><td class="n">9</td><td><a class="row" href="#s9">samples</a></td></tr>
+    <tr data-s="9"><td class="n">10</td><td><a class="row" href="#s10">test results</a></td></tr>
+    <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">where things live</a></td></tr>
+  </table>
+  <div class="hint">arrow keys or scroll. on slide 5, left / right step the flow.</div>
+</nav>
 
 <section class="slide" id="s1">
   <div class="inner fade">
     <div class="no">take-home notes</div>
-    <h1>Fashion stylist: what i built, why, and how it holds up</h1>
+    <h1><a class="tl" href="#s1">Fashion stylist: what i built, why, and how it holds up</a></h1>
     <p>The brief: a small service that takes a sentence like the one below, works out what the person actually needs, and finds it in the Amazon Fashion catalog (826,108 listings) using semantic search and an LLM. Exposed as an API. This page is the short version; the README, the PRD, the decision records and the evaluation doc in <code>docs/</code> have the long one.</p>
     <p class="small">shopper types:</p>
     <div class="q mono"><span id="typed"></span><span class="cur"></span></div>
@@ -92,14 +131,13 @@
       <li>sun hat &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wide brim straw</li>
       <li>sunglasses &nbsp;&nbsp; uv protection</li>
     </ul>
-    <p class="small" style="margin-top:16px">Arrow keys or scroll. 11 slides: scope, data, exploration, the live data flow, the decisions and why, stack, capabilities, samples, test results, where things live.</p>
   </div>
 </section>
 
 <section class="slide" id="s2">
   <div class="inner fade">
     <div class="no">2 / 11 &middot; scope, business case, requirements</div>
-    <h2>Keyword search stops at "t-shirt". People ask for "something for the beach".</h2>
+    <h2><a class="tl" href="#s1">Keyword search stops at "t-shirt". People ask for "something for the beach".</a></h2>
     <p>A catalog search box understands product words. "I need an outfit to go to the beach this summer" has none, and the budget, the audience or the occasion hiding in a sentence get dropped by keyword search. The business value of fixing that: one search box that accepts situations, bundles instead of single items, and answers that explain themselves so the product team can trust and debug them.</p>
     <p>I wrote a short PRD first (<code>docs/prd.md</code>) and kept it honest as the data pushed back. The requirements and how each one is met:</p>
     <table>
@@ -118,7 +156,7 @@
 <section class="slide" id="s3">
   <div class="inner fade">
     <div class="no">3 / 11 &middot; data exploration</div>
-    <h2>The data decided the design before any code did.</h2>
+    <h2><a class="tl" href="#s3">The data decided the design before any code did.</a></h2>
     <p>I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (<code>categories</code>, <code>bought_together</code>): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.</p>
     <div class="two">
       <div><table>
@@ -145,7 +183,7 @@
 <section class="slide" id="s4">
   <div class="inner fade">
     <div class="no">4 / 11 &middot; notebooks, scripts, prompt experiments</div>
-    <h2>What i used to explore, and what each thing found</h2>
+    <h2><a class="tl" href="#s4">What i used to explore, and what each thing found</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">notebooks/01_explore_data.ipynb (executed)</h3>
@@ -184,7 +222,7 @@
 <section class="slide" id="s5">
   <div class="inner wide fade">
     <div class="no">5 / 11 &middot; architecture, watch one request flow</div>
-    <h2>How the system is designed and how the data moves</h2>
+    <h2><a class="tl" href="#s5">How the system is designed and how the data moves</a></h2>
     <div class="stage" id="stage">
       <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -228,7 +266,7 @@
 <section class="slide" id="s6">
   <div class="inner wide fade">
     <div class="no">6 / 11 &middot; design decisions, and the logic behind each</div>
-    <h2>Every major choice, what it was up against, and the evidence</h2>
+    <h2><a class="tl" href="#s6">Every major choice, what it was up against, and the evidence</a></h2>
     <p class="small">One line each here; each has a full record in <code>docs/adr/</code> (context, decision, why, consequences, alternatives).</p>
     <table>
       <tr><th style="width:21%">decision</th><th>logic</th><th style="width:27%">evidence</th><th style="width:17%">rejected</th></tr>
@@ -252,7 +290,7 @@
 <section class="slide" id="s7">
   <div class="inner fade">
     <div class="no">7 / 11 &middot; stack</div>
-    <h2>Common open source pieces and no framework in the middle</h2>
+    <h2><a class="tl" href="#s7">Common open source pieces and no framework in the middle</a></h2>
     <table>
       <tr><td>Python 3.12, FastAPI, pydantic</td><td>typed request and response models, OpenAPI at <code>/docs</code> for free, async pipeline, <code>/health</code> and <code>/ready</code></td></tr>
       <tr><td>sentence-transformers, bge-small-en-v1.5</td><td>384-d embeddings, local on cpu or gpu, same model offline and online, no per-query cost</td></tr>
@@ -268,7 +306,7 @@
 <section class="slide" id="s8">
   <div class="inner fade">
     <div class="no">8 / 11 &middot; features and capabilities</div>
-    <h2>What it can do</h2>
+    <h2><a class="tl" href="#s8">What it can do</a></h2>
     <ul>
       <li>Outfit decomposition: "what to wear to an outdoor wedding" becomes shirt, pants, blazer, shoes, tie. A single item request stays one slot.</li>
       <li>Constraints from the sentence: audience ("my husband", "my 6 year old daughter"), occasion, season, per item or total budget. A total is split across slots with a 10% floor and never exceeds the total.</li>
@@ -286,7 +324,7 @@
 <section class="slide" id="s9">
   <div class="inner fade">
     <div class="no">9 / 11 &middot; samples</div>
-    <h2>Samples from real runs</h2>
+    <h2><a class="tl" href="#s9">Samples from real runs</a></h2>
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
       <button class="on" data-pane="p1">beach outfit, CLI</button>
@@ -366,7 +404,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 <section class="slide" id="s10">
   <div class="inner wide fade">
     <div class="no">10 / 11 &middot; test results and quality</div>
-    <h2>The numbers, with their caveats</h2>
+    <h2><a class="tl" href="#s10">The numbers, with their caveats</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Evaluation: 20 human style queries, type-match at k=4</h3>
@@ -401,7 +439,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 <section class="slide" id="s11">
   <div class="inner fade">
     <div class="no">11 / 11 &middot; structure, documentation, serving, next</div>
-    <h2>Where things are, how it's documented and served</h2>
+    <h2><a class="tl" href="#s11">Where things are, how it's documented and served</a></h2>
     <div class="two">
       <div>
 <pre>src/stylist/
@@ -460,27 +498,34 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
   /* ---- data flow stage ---- */
   var wires = document.getElementById('wires'), packets = document.getElementById('packets'), stage = document.getElementById('stage');
   var VBW = 1200, VBH = 640, NS = 'http://www.w3.org/2000/svg';
+  /* edges: a -> b is the direction of the data. t: v = straight vertical (same column),
+     h = horizontal neighbour, d/u = drop from / rise to the api bar, z = orthogonal
+     cross-column route (down, across a lane, down again). ox/tx = x offsets at the two
+     ends, lane = distance of the horizontal segment from the source box, lt = where
+     along the path the label sits, lside = which side of a vertical line the label goes */
   var edges = [
-    { id: 'ask', a: 'n-client', b: 'n-api', t: 'v', ox: -16, label: 'POST json' },
-    { id: 'result', a: 'n-api', b: 'n-client', t: 'v', ox: 16, bold: true, label: '200 json' },
-    { id: 'd-plan', a: 'n-api', b: 'n-plan', t: 'd', label: 'query' },
-    { id: 'plan-llm', a: 'n-plan', b: 'n-llm', t: 'v', ox: -12, label: 'prompt + schema' },
-    { id: 'llm-plan', a: 'n-llm', b: 'n-plan', t: 'v', ox: 12, label: 'plan json' },
-    { id: 'h1', a: 'n-plan', b: 'n-retr', t: 'h', label: '5 slot queries' },
-    { id: 'retr-emb', a: 'n-retr', b: 'n-emb', t: 'v', ox: -12, label: '5 x 384 vectors' },
-    { id: 'emb-retr', a: 'n-emb', b: 'n-retr', t: 'v', ox: 12, label: '5 x 100K scores' },
-    { id: 'retr-bm25', a: 'n-retr', b: 'n-bm25', t: 'v', ox: -12, label: 'tokens' },
-    { id: 'bm25-retr', a: 'n-bm25', b: 'n-retr', t: 'v', ox: 12, label: '100K scores' },
-    { id: 'retr-cat', a: 'n-retr', b: 'n-cat', t: 'v', ox: -12, label: 'row ids' },
-    { id: 'cat-retr', a: 'n-cat', b: 'n-retr', t: 'v', ox: 12, label: 'rows' },
-    { id: 'h2', a: 'n-retr', b: 'n-rerank', t: 'h', label: 'candidate pools' },
-    { id: 'rerank-llm', a: 'n-rerank', b: 'n-llm', t: 'v', ox: -12, label: '5 prompts' },
-    { id: 'llm-rerank', a: 'n-llm', b: 'n-rerank', t: 'v', ox: 12, label: 'picks + reasons' },
-    { id: 'h3', a: 'n-rerank', b: 'n-select', t: 'h', label: 'ranked slots' },
-    { id: 'select-api', a: 'n-select', b: 'n-api', t: 'u', label: 'response' },
+    { id: 'ask', a: 'n-client', b: 'n-api', t: 'v', ox: -18, label: 'POST /recommend json', lside: 'l' },
+    { id: 'result', a: 'n-api', b: 'n-client', t: 'v', ox: 18, bold: true, label: '200 json', lside: 'r' },
+    { id: 'd-plan', a: 'n-api', b: 'n-plan', t: 'd', label: 'query, k, filters' },
+    { id: 'plan-llm', a: 'n-plan', b: 'n-llm', t: 'v', ox: -60, label: 'prompt + schema', lside: 'r', ldy: -7 },
+    { id: 'llm-plan', a: 'n-llm', b: 'n-plan', t: 'v', ox: -48, label: 'plan json', lside: 'r', ldy: 7 },
+    { id: 'h1', a: 'n-plan', b: 'n-retr', t: 'h', label: '5 queries' },
+    { id: 'retr-emb', a: 'n-retr', b: 'n-emb', t: 'v', ox: -24, label: 'Q 5x384', lside: 'l', ldy: -7 },
+    { id: 'emb-retr', a: 'n-emb', b: 'n-retr', t: 'v', ox: -12, label: '5 x 100K scores', lside: 'l', ldy: 7 },
+    { id: 'retr-bm25', a: 'n-retr', b: 'n-bm25', t: 'z', ox: 6, tx: -14, lane: 40, label: 'query tokens', lt: 0.55 },
+    { id: 'bm25-retr', a: 'n-bm25', b: 'n-retr', t: 'z', ox: 14, tx: 20, lane: 40, label: '100K scores', lt: 0.55 },
+    { id: 'retr-cat', a: 'n-retr', b: 'n-cat', t: 'z', ox: 34, tx: -14, lane: 26, label: 'top row ids', lt: 0.6 },
+    { id: 'cat-retr', a: 'n-cat', b: 'n-retr', t: 'z', ox: 14, tx: 48, lane: 26, label: 'rows (title, price, rating...)', lt: 0.6 },
+    { id: 'h2', a: 'n-retr', b: 'n-rerank', t: 'h', label: 'pools' },
+    { id: 'rerank-llm', a: 'n-rerank', b: 'n-llm', t: 'z', ox: -14, tx: 70, lane: 12, label: '5 prompts, 10 candidates each', lt: 0.12 },
+    { id: 'llm-rerank', a: 'n-llm', b: 'n-rerank', t: 'z', ox: 88, tx: 14, lane: 12, label: 'picks + reasons', lt: 0.1 },
+    { id: 'h3', a: 'n-rerank', b: 'n-select', t: 'h', label: 'ranked' },
+    { id: 'select-api', a: 'n-select', b: 'n-api', t: 'u', label: 'slots + warnings' },
     { id: 'o1', a: 'n-raw', b: 'n-ingest', t: 'h', label: 'json lines' }, { id: 'o2', a: 'n-ingest', b: 'n-parq', t: 'h', label: 'typed rows' },
     { id: 'o3', a: 'n-parq', b: 'n-build', t: 'h', label: 'top 100K' }, { id: 'o4', a: 'n-build', b: 'n-idx', t: 'h', label: 'artifacts' },
-    { id: 'idx-emb', a: 'n-idx', b: 'n-emb', t: 'v', ox: -10, label: 'load' }, { id: 'idx-bm25', a: 'n-idx', b: 'n-bm25', t: 'v', label: 'load' }, { id: 'idx-cat', a: 'n-idx', b: 'n-cat', t: 'v', ox: 10, label: 'load' }
+    { id: 'idx-emb', a: 'n-idx', b: 'n-emb', t: 'z', ox: -30, tx: 40, lane: 36, label: 'embeddings.npy', lt: 0.5 },
+    { id: 'idx-bm25', a: 'n-idx', b: 'n-bm25', t: 'z', ox: 0, tx: 40, lane: 24, label: 'bm25/', lt: 0.5 },
+    { id: 'idx-cat', a: 'n-idx', b: 'n-cat', t: 'z', ox: 30, tx: 40, lane: 12, label: 'catalog.parquet', lt: 0.5 }
   ];
   var edgeById = {}; edges.forEach(function (e) { edgeById[e.id] = e; });
   function anchor(id) {
@@ -489,15 +534,31 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
              top: (r.top - sb.top) / sb.height * VBH, bot: (r.top - sb.top + r.height) / sb.height * VBH,
              left: (r.left - sb.left) / sb.width * VBW, right: (r.left - sb.left + r.width) / sb.width * VBW };
   }
-  // every path is drawn FROM a TO b, so the marker at the end shows the direction of the data
   function pathFor(e) {
-    var A = anchor(e.a), B = anchor(e.b), ox = e.ox || 0;
+    var A = anchor(e.a), B = anchor(e.b), ox = e.ox || 0, tx = e.tx || 0;
     if (e.t === 'h') { return 'M ' + A.right + ' ' + A.cy + ' L ' + (B.left - 2) + ' ' + B.cy; }
     if (e.t === 'd') { return 'M ' + B.cx + ' ' + A.bot + ' L ' + B.cx + ' ' + (B.top - 2); }
     if (e.t === 'u') { return 'M ' + A.cx + ' ' + A.top + ' L ' + A.cx + ' ' + (B.bot + 2); }
     var down = A.cy < B.cy;
-    var x1 = A.cx + ox, y1 = down ? A.bot : A.top, x2 = B.cx + ox, y2 = down ? (B.top - 2) : (B.bot + 2), m = (y1 + y2) / 2;
-    return 'M ' + x1 + ' ' + y1 + ' C ' + x1 + ' ' + m + ', ' + x2 + ' ' + m + ', ' + x2 + ' ' + y2;
+    if (e.t === 'v') {
+      var y1 = down ? A.bot : A.top, y2 = down ? (B.top - 2) : (B.bot + 2);
+      return 'M ' + (A.cx + ox) + ' ' + y1 + ' L ' + (A.cx + ox) + ' ' + y2;
+    }
+    // z: leave the source vertically, run along a lane, enter the target vertically
+    var sx = A.cx + ox, ex = B.cx + tx, sy = down ? A.bot : A.top, ey = down ? (B.top - 2) : (B.bot + 2);
+    var ly = down ? sy + e.lane : sy - e.lane;
+    return 'M ' + sx + ' ' + sy + ' L ' + sx + ' ' + ly + ' L ' + ex + ' ' + ly + ' L ' + ex + ' ' + ey;
+  }
+  function labelPos(e, p) {
+    var len = p.getTotalLength(), A = anchor(e.a), B = anchor(e.b), down = A.cy < B.cy;
+    if (e.t === 'h') { var m = p.getPointAtLength(len / 2); return { x: m.x, y: m.y - 5, anchor: 'middle' }; }
+    if (e.t === 'd' || e.t === 'u') { var q = p.getPointAtLength(len / 2); return { x: q.x + 7, y: q.y + 3, anchor: 'start' }; }
+    if (e.t === 'v') {
+      var c = p.getPointAtLength(len / 2), left = e.lside === 'l';
+      return { x: c.x + (left ? -7 : 7), y: c.y + (e.ldy || 0) + 3, anchor: left ? 'end' : 'start' };
+    }
+    var z = p.getPointAtLength(len * (e.lt || 0.5));  // on the lane: label above it going down, below it going up
+    return { x: z.x, y: z.y + (down ? -4 : 10), anchor: 'middle' };
   }
   function renderWires() {
     Array.prototype.slice.call(wires.querySelectorAll('path, text, rect.elabel-bg')).forEach(function (n) { n.remove(); });
@@ -506,17 +567,13 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
     });
     edges.forEach(function (e) {
       if (!e.label) return;
-      var p = document.getElementById('w-' + e.id), len = p.getTotalLength(), pt = p.getPointAtLength(len * (e.t === 'h' ? 0.5 : 0.5));
-      var dx = (e.t === 'h') ? 0 : ((e.ox || 0) < 0 ? -8 : 8), dy = (e.t === 'h') ? -6 : 0;
-      var anchorTxt = (e.t === 'h') ? 'middle' : ((e.ox || 0) < 0 ? 'end' : 'start');
-      if (e.t === 'd' || e.t === 'u') { dx = 8; anchorTxt = 'start'; }
-      var w = e.label.length * 5.6 + 6;
+      var p = document.getElementById('w-' + e.id), pos = labelPos(e, p), w = e.label.length * 5.6 + 6;
       var bg = document.createElementNS(NS, 'rect'); bg.setAttribute('class', 'elabel-bg');
-      var tx = pt.x + dx - (anchorTxt === 'middle' ? w / 2 : anchorTxt === 'end' ? w : 0);
-      bg.setAttribute('x', tx); bg.setAttribute('y', pt.y + dy - 8); bg.setAttribute('width', w); bg.setAttribute('height', 12); bg.setAttribute('opacity', '0.9');
+      var bx = pos.x - (pos.anchor === 'middle' ? w / 2 : pos.anchor === 'end' ? w : 0);
+      bg.setAttribute('x', bx); bg.setAttribute('y', pos.y - 9); bg.setAttribute('width', w); bg.setAttribute('height', 12); bg.setAttribute('opacity', '0.92');
       wires.appendChild(bg);
       var t = document.createElementNS(NS, 'text'); t.setAttribute('class', 'elabel'); t.setAttribute('id', 'l-' + e.id);
-      t.setAttribute('x', pt.x + dx); t.setAttribute('y', pt.y + dy + 1); t.setAttribute('text-anchor', anchorTxt); t.textContent = e.label;
+      t.setAttribute('x', pos.x); t.setAttribute('y', pos.y); t.setAttribute('text-anchor', pos.anchor); t.textContent = e.label;
       wires.appendChild(t);
     });
   }
@@ -610,11 +667,23 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
       if (s.id === 's5') { visible = en.isIntersecting; if (visible) startStage(); else stopStage(); }
       if (!en.isIntersecting) return;
       pos.textContent = (i + 1) + ' / ' + slides.length;
+      setAgenda(i);
       s.querySelectorAll('.fade').forEach(function (el) { el.classList.add('in'); });
     });
   }, { threshold: 0.3 });
   slides.forEach(function (s) { io.observe(s); });
 
+  var agenda = document.getElementById('agenda'), agPos = document.getElementById('ag-pos'), agBar = document.getElementById('ag-bar');
+  var agRows = Array.prototype.slice.call(agenda.querySelectorAll('tr[data-s]'));
+  function setAgenda(i) {
+    agRows.forEach(function (r) { r.classList.toggle('on', Number(r.getAttribute('data-s')) === i); });
+    agPos.textContent = (i + 1) + ' / ' + slides.length;
+    agBar.style.width = Math.round((i + 1) / slides.length * 100) + '%';
+  }
+  var agToggle = document.getElementById('agenda-toggle');
+  agToggle.addEventListener('click', function () { var open = agenda.classList.toggle('open'); agToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+  agenda.addEventListener('click', function (e) { if (e.target.closest('a')) { agenda.classList.remove('open'); agToggle.setAttribute('aria-expanded', 'false'); } });
+  setAgenda(0);
   function current() { var y = window.scrollY + window.innerHeight / 2, b = 0; slides.forEach(function (s, i) { if (s.offsetTop <= y) b = i; }); return b; }
   document.addEventListener('keydown', function (e) {
     var n = null;
