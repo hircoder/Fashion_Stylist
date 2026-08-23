@@ -19,9 +19,11 @@ Safety rules, since the archive comes from the network:
 from __future__ import annotations
 
 import contextlib
+import ipaddress
 import logging
 import os
 import shutil
+import socket
 import tarfile
 import urllib.error
 import urllib.parse
@@ -33,8 +35,15 @@ try:
 except ImportError:  # pragma: no cover - windows
     fcntl = None  # type: ignore[assignment]
 
+from stylist.catalog import PIPELINE_VERSION
 from stylist.config import Settings
-from stylist.index import IndexMeta, IndexValidationError, sha256_file, verify_checksums
+from stylist.index import (
+    IndexMeta,
+    IndexValidationError,
+    SearchIndex,
+    sha256_file,
+    verify_checksums,
+)
 
 log = logging.getLogger(__name__)
 
@@ -63,10 +72,38 @@ def _file_lock(path: Path):
                 fcntl.flock(fh, fcntl.LOCK_UN)
 
 
-def check_url(url: str, allow_file: bool) -> None:
-    """Only http(s) may fetch an index; file:// needs the explicit opt-in."""
-    scheme = urllib.parse.urlsplit(url).scheme.lower()
+def _host_is_local(host: str) -> bool:
+    """Loopback, private, link-local (cloud metadata lives there) or reserved addresses,
+    by literal or by resolving the name."""
+    if not host or host.lower() in ("localhost", "localhost.localdomain"):
+        return True
+    try:
+        addrs = {info[4][0] for info in socket.getaddrinfo(host, None)}
+    except socket.gaierror:
+        return False  # unresolvable: the download fails on its own
+    for addr in addrs:
+        try:
+            ip = ipaddress.ip_address(addr.split("%")[0])
+        except ValueError:
+            continue
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            return True
+        if ip.is_unspecified or ip.is_multicast:
+            return True
+    return False
+
+
+def check_url(url: str, allow_file: bool, allow_private: bool = False) -> None:
+    """Only http(s) may fetch an index, and not from a private / loopback / link-local
+    host (INDEX_ALLOW_PRIVATE_URL=1 for an internal mirror); file:// needs INDEX_ALLOW_FILE_URL."""
+    parts = urllib.parse.urlsplit(url)
+    scheme = parts.scheme.lower()
     if scheme in ("http", "https"):
+        if not allow_private and _host_is_local(parts.hostname or ""):
+            raise ArtifactError(
+                f"INDEX_URL host {parts.hostname!r} is a loopback / private / link-local "
+                f"address; set INDEX_ALLOW_PRIVATE_URL=1 for an internal mirror"
+            )
         return
     if scheme == "file":
         if allow_file:
@@ -76,25 +113,29 @@ def check_url(url: str, allow_file: bool) -> None:
 
 
 class _RedirectGuard(urllib.request.HTTPRedirectHandler):
-    """Redirect targets get the same scheme check as the original url."""
+    """Redirect targets get the same scheme and host checks as the original url."""
 
-    def __init__(self, allow_file: bool):
+    def __init__(self, allow_file: bool, allow_private: bool = False):
         super().__init__()
         self.allow_file = allow_file
+        self.allow_private = allow_private
 
     def check(self, newurl: str) -> None:
         scheme = urllib.parse.urlsplit(newurl).scheme.lower()
         if scheme not in ("http", "https"):  # a redirect may never land on a local file
             raise ArtifactError(f"redirect to an unsupported scheme {scheme!r} refused")
+        check_url(newurl, allow_file=False, allow_private=self.allow_private)
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         self.check(newurl)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def _download(url: str, out: Path, max_bytes: int, allow_file: bool = False) -> None:
-    check_url(url, allow_file)
-    opener = urllib.request.build_opener(_RedirectGuard(allow_file))
+def _download(
+    url: str, out: Path, max_bytes: int, allow_file: bool = False, allow_private: bool = False
+) -> None:
+    check_url(url, allow_file, allow_private)
+    opener = urllib.request.build_opener(_RedirectGuard(allow_file, allow_private))
     done = 0
     try:
         resp = opener.open(url, timeout=120)  # noqa: S310 - scheme checked above
@@ -190,19 +231,38 @@ def _find_index_root(extracted: Path) -> Path:
     raise ArtifactError("archive does not contain an index directory (no meta.json found)")
 
 
-def verify_index_files(index_dir: Path) -> None:
+def verify_index_files(index_dir: Path, expected_model: str | None = None) -> None:
+    """Cheap checks: meta parses, checksums match, and the loader would accept the
+    pipeline version and model (so a stale local index counts as missing)."""
     try:
         meta = IndexMeta.from_json((index_dir / "meta.json").read_text())
+        if meta.pipeline_version != PIPELINE_VERSION:
+            raise IndexValidationError(
+                f"pipeline version {meta.pipeline_version} != code {PIPELINE_VERSION}"
+            )
+        if expected_model and meta.embedding_model != expected_model:
+            raise IndexValidationError(
+                f"embedding model {meta.embedding_model!r} != configured {expected_model!r}"
+            )
         verify_checksums(index_dir, meta)
     except (OSError, ValueError, TypeError, KeyError, IndexValidationError) as exc:
         raise ArtifactError(f"index at {index_dir} is not valid: {exc}") from exc
 
 
-def index_is_valid(index_dir: Path) -> bool:
+def verify_index_loads(index_dir: Path, expected_model: str | None = None) -> None:
+    """The full loader, run once on a freshly extracted archive: whatever the service
+    would refuse at startup is refused at install time instead."""
+    try:
+        SearchIndex.load(index_dir, expected_model=expected_model)
+    except IndexValidationError as exc:
+        raise ArtifactError(f"downloaded index fails validation: {exc}") from exc
+
+
+def index_is_valid(index_dir: Path, expected_model: str | None = None) -> bool:
     if not (index_dir / "meta.json").exists():
         return False
     try:
-        verify_index_files(index_dir)
+        verify_index_files(index_dir, expected_model)
     except ArtifactError as exc:
         log.warning("%s", exc)
         return False
@@ -210,14 +270,20 @@ def index_is_valid(index_dir: Path) -> bool:
 
 
 def install_index(
-    url: str, sha256: str, index_dir: Path, max_bytes: int, allow_file: bool = False
+    url: str,
+    sha256: str,
+    index_dir: Path,
+    max_bytes: int,
+    allow_file: bool = False,
+    allow_private: bool = False,
+    expected_model: str | None = None,
 ) -> None:
-    check_url(url, allow_file)
+    check_url(url, allow_file, allow_private)
     parent = index_dir.parent
     parent.mkdir(parents=True, exist_ok=True)
     lock = parent / f".{index_dir.name}.lock"
     with _file_lock(lock):
-        if index_is_valid(index_dir):
+        if index_is_valid(index_dir, expected_model):
             log.info("a valid index appeared while waiting for the lock, nothing to do")
             return
         if index_dir.exists():
@@ -231,13 +297,14 @@ def install_index(
         tmp_dir = parent / f".{index_dir.name}.{pid}.extract"
         try:
             log.info("downloading index from %s", url)
-            _download(url, tmp_tar, max_bytes, allow_file)
+            _download(url, tmp_tar, max_bytes, allow_file, allow_private)
             got = sha256_file(tmp_tar)
             if got.lower() != sha256.lower():
                 raise ArtifactError(f"index archive sha256 mismatch: got {got[:12]}...")
             safe_extract(tmp_tar, tmp_dir, max_bytes)
             root = _find_index_root(tmp_dir)
-            verify_index_files(root)
+            verify_index_files(root, expected_model)
+            verify_index_loads(root, expected_model)
             os.replace(root, index_dir)
             log.info("index installed at %s", index_dir)
         finally:
@@ -251,7 +318,7 @@ def ensure_index(settings: Settings) -> None:
     index_dir = Path(settings.index_dir)
     if not settings.index_url:
         return  # nothing to fetch from; the loader reports a missing/broken index itself
-    if index_is_valid(index_dir):
+    if index_is_valid(index_dir, settings.embedding_name):
         return
     if not settings.index_sha256:
         raise ArtifactError("INDEX_SHA256 must be set together with INDEX_URL")
@@ -261,4 +328,6 @@ def ensure_index(settings: Settings) -> None:
         index_dir,
         settings.index_max_bytes,
         allow_file=settings.index_allow_file_url,
+        allow_private=settings.index_allow_private_url,
+        expected_model=settings.embedding_name,
     )

@@ -16,6 +16,7 @@ worst kind of bug in a retrieval system, so we pay the hashing cost at startup.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.metadata
 import json
@@ -31,6 +32,11 @@ from pathlib import Path
 import bm25s
 import numpy as np
 import pandas as pd
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - windows
+    fcntl = None  # type: ignore[assignment]
 
 from stylist.catalog import PIPELINE_VERSION, load_catalog_subset
 from stylist.embeddings import Embedder
@@ -166,18 +172,38 @@ def build_index(
     return meta
 
 
+def _park_name(final_dir: Path) -> Path:
+    return final_dir.parent / f".{final_dir.name}.old-{os.getpid()}-{int(time.time() * 1000)}"
+
+
+@contextlib.contextmanager
+def _swap_lock(final_dir: Path):
+    """The same lock file the artifact installer uses, so two builders (or a builder and
+    an installer) never rename over each other."""
+    lock = final_dir.parent / f".{final_dir.name}.lock"
+    with open(lock, "a") as fh:
+        if fcntl is not None:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if fcntl is not None:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+
+
 def _swap_in(built: Path, final_dir: Path) -> None:
-    """Replace `final_dir` with `built`. The old index is parked as `.<name>.old` for the
-    instant between the two renames; a crash there is detected by `SearchIndex.load`."""
-    if final_dir.exists():
-        old_dir = final_dir.parent / f".{final_dir.name}.old"
-        if old_dir.exists():
-            shutil.rmtree(old_dir)
-        os.replace(final_dir, old_dir)
-        os.replace(built, final_dir)
-        shutil.rmtree(old_dir, ignore_errors=True)
-    else:
-        os.replace(built, final_dir)
+    """Replace `final_dir` with `built` under the directory lock. POSIX cannot swap two
+    non-empty directories in one step: the old index is parked under a unique name for
+    the instant between the two renames; a crash there is reported by `SearchIndex.load`
+    (it names the parked copy), and the parked copy is removed on success."""
+    with _swap_lock(final_dir):
+        if final_dir.exists():
+            old_dir = _park_name(final_dir)
+            os.replace(final_dir, old_dir)
+            os.replace(built, final_dir)
+            shutil.rmtree(old_dir, ignore_errors=True)
+        else:
+            os.replace(built, final_dir)
 
 
 def _build_into(
@@ -288,10 +314,10 @@ class SearchIndex:
         index_dir = Path(index_dir)
         meta_path = index_dir / "meta.json"
         if not meta_path.exists():
-            parked = index_dir.parent / f".{index_dir.name}.old"
-            if parked.is_dir() and not index_dir.exists():
+            parked = sorted(index_dir.parent.glob(f".{index_dir.name}.old*"))
+            if parked and not index_dir.exists():
                 raise IndexValidationError(
-                    f"no index at {index_dir}, but {parked} exists: an index rebuild was "
+                    f"no index at {index_dir}, but {parked[-1]} exists: an index rebuild was "
                     f"interrupted between its two renames. Rename it back or rebuild."
                 )
             raise IndexValidationError(f"no index at {index_dir} (meta.json missing)")
@@ -338,8 +364,9 @@ class SearchIndex:
             )
         if embeddings.shape[1] != meta.dim:
             raise IndexValidationError("embedding dim does not match meta")
-        if "row_id" not in catalog.columns or "title" not in catalog.columns:
-            raise IndexValidationError("catalog.parquet lacks the serving columns")
+        missing = [c for c in SERVING_COLUMNS if c not in catalog.columns]
+        if missing:
+            raise IndexValidationError(f"catalog.parquet lacks serving columns: {missing}")
         if _sha256_bytes(row_ids.tobytes()) != meta.row_ids_sha256:
             raise IndexValidationError("row_ids hash mismatch")
         if not np.array_equal(catalog["row_id"].to_numpy(dtype=np.int64), row_ids):

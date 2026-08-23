@@ -220,7 +220,7 @@ def test_failed_build_leaves_no_scratch_dir_and_keeps_the_old_index(
 
     with pytest.raises(RuntimeError, match="gpu fell over"):
         build_index(fixture_catalog, index_dir, Boom(dim=256), limit=10, sampling="popular")
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["idx"]
+    assert sorted(p.name for p in tmp_path.iterdir() if p.name != ".idx.lock") == ["idx"]
     assert SearchIndex.load(index_dir).n_rows == 10
 
 

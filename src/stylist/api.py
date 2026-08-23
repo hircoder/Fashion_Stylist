@@ -95,9 +95,12 @@ def build_service(settings: Settings) -> RecommendationService:
             f"embedder dim {embedder.dim} != index dim {index.meta.dim}, rebuild the index"
         )
     revision = getattr(embedder, "revision", None)
-    if revision and index.meta.embedding_revision and revision != index.meta.embedding_revision:
+    if revision != index.meta.embedding_revision:
+        # the weights that encode queries must be the weights that encoded the documents;
+        # a missing value on either side is a mismatch, not a pass
         raise IndexValidationError(
-            f"embedding revision {revision} != index revision {index.meta.embedding_revision}"
+            f"embedding revision {revision!r} != index revision "
+            f"{index.meta.embedding_revision!r}, rebuild the index with this model"
         )
     llm = make_llm_client(settings)
     rerank_llm = (

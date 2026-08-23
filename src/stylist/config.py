@@ -110,6 +110,7 @@ class Settings:
     index_sha256: str | None
     index_max_bytes: int
     index_allow_file_url: bool  # file:// urls are for tests and local dev only
+    index_allow_private_url: bool  # loopback / private / link-local INDEX_URL hosts
 
     # operational limits for a public deployment
     llm_concurrency: int  # llm calls in flight across all requests
@@ -222,6 +223,7 @@ class Settings:
             index_sha256=_get_str(env, "INDEX_SHA256"),
             index_max_bytes=_get_int(env, "INDEX_MAX_BYTES", 4 * 1024**3),
             index_allow_file_url=_get_bool(env, "INDEX_ALLOW_FILE_URL", False),
+            index_allow_private_url=_get_bool(env, "INDEX_ALLOW_PRIVATE_URL", False),
             llm_concurrency=_get_int(env, "LLM_CONCURRENCY", 8),
             planner_failure_ttl_s=_get_float(env, "PLANNER_FAILURE_TTL_S", 30.0),
             cors_allow_origins=tuple(

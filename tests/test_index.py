@@ -108,4 +108,5 @@ def test_build_replaces_an_existing_index_atomically(tmp_path, fixture_catalog, 
     build_index(fixture_catalog, index_dir, hash_embedder, limit=20, sampling="popular")
     assert SearchIndex.load(index_dir).n_rows == 20
     assert not (index_dir / "stale.txt").exists()
-    assert [p.name for p in tmp_path.iterdir()] == ["idx"]  # no temp dirs left behind
+    leftovers = sorted(p.name for p in tmp_path.iterdir() if p.name != ".idx.lock")
+    assert leftovers == ["idx"]  # no temp dirs left behind (the swap lock file stays)

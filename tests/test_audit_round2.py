@@ -383,3 +383,150 @@ def test_body_limit_replays_a_chunked_body_once_and_then_ends(fixture_index, has
     assert seen[0]["body"] == b'{"query": "x"}' and seen[0]["more_body"] is False
     assert seen[1]["body"] == b"" and seen[1]["more_body"] is False
     assert sent[0]["status"] == 200
+
+
+# ------------------------------------------------------------------- index / artifacts round 2
+
+
+def test_loader_requires_every_serving_column(tmp_path, fixture_catalog, hash_embedder):
+    import pandas as pd
+
+    from stylist.index import IndexValidationError, SearchIndex, build_index
+
+    index_dir = tmp_path / "idx"
+    build_index(fixture_catalog, index_dir, hash_embedder, limit=20, sampling="popular")
+    df = pd.read_parquet(index_dir / "catalog.parquet").drop(columns=["price"])
+    df.to_parquet(index_dir / "catalog.parquet", index=False)
+    from tests.test_audit_batch_b import _resign
+
+    _resign(index_dir)
+    with pytest.raises(IndexValidationError, match="price"):
+        SearchIndex.load(index_dir)
+
+
+def test_revision_mismatch_is_rejected_even_when_the_index_has_none(
+    tmp_path, fixture_catalog, hash_embedder
+):
+    from stylist.api import build_service
+
+    class Pinned(type(hash_embedder)):
+        revision = "abc123"
+
+    from stylist.index import IndexValidationError, build_index
+
+    build_index(fixture_catalog, tmp_path / "idx", hash_embedder, limit=20, sampling="popular")
+    settings = Settings.from_env({"EMBEDDER": "hash", "INDEX_DIR": str(tmp_path / "idx")})
+    import stylist.api as api_mod
+
+    real = api_mod.make_embedder
+    api_mod.make_embedder = lambda s: Pinned(dim=256)
+    try:
+        with pytest.raises(IndexValidationError, match="revision"):
+            build_service(settings)
+    finally:
+        api_mod.make_embedder = real
+
+
+def test_artifact_install_rejects_an_index_the_loader_would_refuse(
+    tmp_path, fixture_catalog, hash_embedder
+):
+    import hashlib
+    import json
+    import tarfile
+
+    from stylist.artifacts import ArtifactError, ensure_index
+    from stylist.index import build_index
+
+    src = tmp_path / "src"
+    build_index(fixture_catalog, src / "index", hash_embedder, limit=20, sampling="popular")
+    meta = json.loads((src / "index" / "meta.json").read_text())
+    meta["pipeline_version"] = "0"  # stale pipeline: checksums fine, loader refuses
+    (src / "index" / "meta.json").write_text(json.dumps(meta))
+    tar_path = tmp_path / "stale.tar.gz"
+    with tarfile.open(tar_path, "w:gz") as tar:
+        tar.add(src / "index", arcname="index")
+    sha = hashlib.sha256(tar_path.read_bytes()).hexdigest()
+    settings = Settings.from_env(
+        {
+            "EMBEDDER": "hash",
+            "INDEX_DIR": str(tmp_path / "index"),
+            "INDEX_URL": tar_path.as_uri(),
+            "INDEX_SHA256": sha,
+            "INDEX_ALLOW_FILE_URL": "1",
+        }
+    )
+    with pytest.raises(ArtifactError, match="pipeline"):
+        ensure_index(settings)
+    assert not (tmp_path / "index").exists()
+
+
+def test_stale_local_index_is_replaced_from_the_url(tmp_path, index_tar):
+    import json
+
+    from stylist.artifacts import ensure_index
+    from stylist.index import SearchIndex
+
+    tar_path, sha = index_tar
+    settings = Settings.from_env(
+        {
+            "EMBEDDER": "hash",
+            "INDEX_DIR": str(tmp_path / "index"),
+            "INDEX_URL": tar_path.as_uri(),
+            "INDEX_SHA256": sha,
+            "INDEX_ALLOW_FILE_URL": "1",
+        }
+    )
+    ensure_index(settings)
+    meta_path = tmp_path / "index" / "meta.json"
+    meta = json.loads(meta_path.read_text())
+    meta["pipeline_version"] = "0"
+    meta_path.write_text(json.dumps(meta))
+    ensure_index(settings)  # the stale index is not "valid": it gets reinstalled
+    assert SearchIndex.load(tmp_path / "index").n_rows == 40
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://127.0.0.1/x.tar.gz",
+        "http://169.254.169.254/latest",
+        "https://10.0.0.5/idx.tgz",
+        "http://localhost:8000/i.tgz",
+    ],
+)
+def test_private_and_loopback_hosts_are_refused(url):
+    from stylist.artifacts import ArtifactError, check_url
+
+    with pytest.raises(ArtifactError, match="private|loopback|link-local|local"):
+        check_url(url, allow_file=False)
+
+
+def test_private_hosts_can_be_allowed_explicitly():
+    from stylist.artifacts import check_url
+
+    check_url("http://10.0.0.5/idx.tgz", allow_file=False, allow_private=True)
+
+
+def test_swap_parks_the_old_index_under_a_unique_name(tmp_path, fixture_catalog, hash_embedder):
+    from stylist import index as index_mod
+    from stylist.index import SearchIndex, build_index
+
+    index_dir = tmp_path / "idx"
+    build_index(fixture_catalog, index_dir, hash_embedder, limit=10, sampling="popular")
+    parked = []
+    real = index_mod._park_name
+
+    def spy(final_dir):
+        name = real(final_dir)
+        parked.append(name)
+        return name
+
+    index_mod._park_name = spy
+    try:
+        build_index(fixture_catalog, index_dir, hash_embedder, limit=12, sampling="popular")
+        build_index(fixture_catalog, index_dir, hash_embedder, limit=14, sampling="popular")
+    finally:
+        index_mod._park_name = real
+    assert len(parked) == 2 and parked[0] != parked[1]
+    assert SearchIndex.load(index_dir).n_rows == 14
+    assert sorted(p.name for p in tmp_path.iterdir()) == [".idx.lock", "idx"]
