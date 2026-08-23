@@ -253,4 +253,7 @@ def test_type_match_accepts_the_head_noun_of_a_multi_word_keyword():
     assert type_match("Columbia Women's Fleece Jacket", ["rain jacket"])
     assert type_match("Brooks Ghost Road Running Shoe", ["trail running shoes"])
     assert not type_match("Wool Socks", ["running shoes"])
+    assert not type_match("Shoe Insoles Arch Support", ["running shoes"])  # accessory, not a shoe
+    assert not type_match("Jacket Hanger Set", ["rain jacket"])
+    assert type_match("Men's Running Shoes Laces Free", ["running shoes"])  # exact match still wins
     assert not type_match("Pearl Earrings", ["ear warmers"])  # 'warmers' is the head, not 'ear'

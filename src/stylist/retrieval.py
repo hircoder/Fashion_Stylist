@@ -199,18 +199,29 @@ def keyword_matches(title: str, keywords: list[str]) -> list[str]:
     return [kw for kw in keywords if kw and _keyword_rx(kw).search(low)]
 
 
+# things sold FOR a product type that carry its name in the title: a head-noun match
+# alone ("shoe" in "Shoe Insoles") must not count as the product itself
+_ACCESSORY_RX = re.compile(
+    r"\b(insoles?|inserts?|laces?|shoelaces?|polish|cleaner|protector|stretcher|shoe ?horn|"
+    r"shoe ?trees?|deodori[sz]er|organi[sz]er|hangers?|racks?|covers?|cases?|bags?|liners?|"
+    r"cufflinks?|studs?|pins?|clips?|patches?|stickers?|charms?)\b"
+)
+
+
 def type_match(title: str, keywords: list[str]) -> bool:
     """Looser than keyword_matches, for the type gate: the head noun of a multi-word
     keyword counts too ("rain jacket" accepts any jacket; the reranker sorts out rain vs
-    fleece). Single-word keywords must match as they are."""
+    fleece), unless the title is an accessory for that product (insoles, laces, covers).
+    Single-word keywords must match as they are."""
     low = (title or "").lower()
+    accessory = bool(_ACCESSORY_RX.search(low))
     for kw in keywords:
         if not kw:
             continue
         if _keyword_rx(kw).search(low):
             return True
         head = kw.split()[-1]
-        if head != kw and len(head) > 2 and _keyword_rx(head).search(low):
+        if head != kw and len(head) > 2 and not accessory and _keyword_rx(head).search(low):
             return True
     return False
 
