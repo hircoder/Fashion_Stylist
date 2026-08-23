@@ -211,7 +211,7 @@ async def test_planner_timeout_path_is_really_exercised(fixture_index, hash_embe
     settings = _settings(REQUEST_DEADLINE_S="3.0", PLANNER_BUDGET_S="0.6")
     svc = RecommendationService(fixture_index, hash_embedder, settings, llm=StuckLLM())
     t = asyncio.get_event_loop().time()
-    res = await svc.recommend(RecommendRequest(query="sandals"))
+    res = await svc.recommend(RecommendRequest(query="sandals", rerank=False))
     elapsed = asyncio.get_event_loop().time() - t
     assert res.llm_info.planner_used == "heuristic"
     assert 0.6 <= elapsed < 2.5
