@@ -192,7 +192,16 @@ class Settings:
             processed_path=processed_path,
             index_dir=index_dir,
             embedding_model=_get_str(env, "EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5") or "",
-            embedding_revision=_get_str(env, "EMBEDDING_REVISION", DEFAULT_EMBEDDING_REVISION),
+            embedding_revision=_get_str(
+                env,
+                "EMBEDDING_REVISION",
+                # the pin belongs to the default model only; a different model must bring
+                # its own revision (or none) rather than inherit a foreign commit hash
+                DEFAULT_EMBEDDING_REVISION
+                if (_get_str(env, "EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5") or "")
+                == "BAAI/bge-small-en-v1.5"
+                else None,
+            ),
             embedder=embedder,
             embed_device=_get_str(env, "EMBED_DEVICE"),
             max_seq_length=_get_int(env, "MAX_SEQ_LENGTH", 256),

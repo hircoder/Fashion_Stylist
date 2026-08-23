@@ -656,3 +656,16 @@ async def test_retrieval_is_never_queued_past_the_deadline(fixture_index, hash_e
             await svc._retrieve_with_deadline(plan, windows, 10, 4, deadline)
     finally:
         svc.close()
+
+
+def test_revision_pin_applies_to_the_default_model_only():
+    from stylist.config import DEFAULT_EMBEDDING_REVISION
+
+    s = Settings.from_env({"EMBEDDER": "hash"})
+    assert s.embedding_revision == DEFAULT_EMBEDDING_REVISION
+    s = Settings.from_env({"EMBEDDER": "hash", "EMBEDDING_MODEL": "some/other-model"})
+    assert s.embedding_revision is None
+    s = Settings.from_env(
+        {"EMBEDDER": "hash", "EMBEDDING_MODEL": "some/other-model", "EMBEDDING_REVISION": "abc"}
+    )
+    assert s.embedding_revision == "abc"
