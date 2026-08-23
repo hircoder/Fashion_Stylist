@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from stylist.config import Settings
 from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
-from stylist.llm import LLMClient, LLMError, ThrottledLLM
+from stylist.llm import LLMClient, LLMError, ThrottledLLM, Usage, usage_scope
 from stylist.llm.prompts import PROMPT_VERSION
 from stylist.planner import HeuristicPlanner, LLMPlanner, QueryPlan, merge_constraints
 from stylist.reranker import (
@@ -217,6 +217,10 @@ class RecommendationService:
     # ------------------------------------------------------------------ main entry
 
     async def recommend(self, req: RecommendRequest) -> RecommendResponse:
+        with usage_scope() as usage:
+            return await self._recommend(req, usage)
+
+    async def _recommend(self, req: RecommendRequest, usage: Usage) -> RecommendResponse:
         t0 = time.monotonic()
         deadline = t0 + self.settings.request_deadline_s
         request_id = uuid.uuid4().hex[:12]
@@ -360,6 +364,9 @@ class RecommendationService:
                 model=self.llm.model if self.llm else None,
                 planner_used=planner_used,
                 rerank_used=rerank_used,
+                calls=usage.calls,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
             ),
             timings=timings,
         )

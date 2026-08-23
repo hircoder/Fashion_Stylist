@@ -97,6 +97,9 @@ class LLMInfo(BaseModel):
     model: str | None
     planner_used: str  # llm | heuristic
     rerank_used: bool
+    calls: int = 0  # LLM calls made for this request (a cached plan costs none)
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class RecommendResponse(BaseModel):

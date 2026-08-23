@@ -19,6 +19,7 @@ from stylist.llm import (
     LLMTransportError,
     LLMTruncatedError,
     LLMValidationError,
+    record_usage,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -95,4 +96,8 @@ class OpenAILLM:
         parsed = getattr(choice.message, "parsed", None)
         if parsed is None:
             raise LLMValidationError("no parsed output in response")
+        usage = getattr(resp, "usage", None)
+        record_usage(
+            getattr(usage, "prompt_tokens", None), getattr(usage, "completion_tokens", None)
+        )
         return parsed

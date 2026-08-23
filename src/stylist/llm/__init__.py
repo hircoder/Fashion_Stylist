@@ -8,7 +8,10 @@ stage, fall back to the heuristic planner) without knowing which SDK is undernea
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+import contextlib
+import contextvars
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass
 from typing import Any, Protocol, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -50,6 +53,41 @@ class LLMTransportError(LLMError):
     """Connection problems, 5xx, anything else we can only retry or give up on."""
 
 
+@dataclass
+class Usage:
+    """Token counts for one request (plan + every rerank call), filled in by the adapters."""
+
+    calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+    def add(self, input_tokens: int | None, output_tokens: int | None) -> None:
+        self.calls += 1
+        self.input_tokens += int(input_tokens or 0)
+        self.output_tokens += int(output_tokens or 0)
+
+
+_usage_var: contextvars.ContextVar[Usage | None] = contextvars.ContextVar("llm_usage", default=None)
+
+
+@contextlib.contextmanager
+def usage_scope() -> Iterator[Usage]:
+    """Collect the usage of every LLM call made inside the block (and in tasks spawned from
+    it: context variables propagate into asyncio tasks)."""
+    usage = Usage()
+    token = _usage_var.set(usage)
+    try:
+        yield usage
+    finally:
+        _usage_var.reset(token)
+
+
+def record_usage(input_tokens: int | None, output_tokens: int | None) -> None:
+    usage = _usage_var.get()
+    if usage is not None:
+        usage.add(input_tokens, output_tokens)
+
+
 class LLMClient(Protocol):
     provider: str
     model: str
@@ -75,9 +113,11 @@ class FakeLLM:
         self,
         responses: list[Any] | None = None,
         handler: Callable[[str, str, type[BaseModel]], Any] | None = None,
+        usage: tuple[int, int] = (0, 0),
     ):
         self._responses = list(responses or [])
         self._handler = handler
+        self._usage = usage
         self.calls: list[dict[str, Any]] = []
 
     async def complete_json(
@@ -100,6 +140,7 @@ class FakeLLM:
             raise LLMTransportError("FakeLLM has no scripted response left")
         if isinstance(item, Exception):
             raise item
+        record_usage(*self._usage)
         if isinstance(item, BaseModel):
             return item  # type: ignore[return-value]
         try:

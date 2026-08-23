@@ -260,7 +260,7 @@ class Retriever:
         c.average_rating = float(rating) if rating is not None else None
         c.rating_number = int(_none_if_nan(row["rating_number"]) or 0)
         price = _none_if_nan(row["price"])
-        c.price = float(price) if price is not None else None
+        c.price = round(float(price), 2) if price is not None else None  # float32 -> cents
         c.store = _none_if_nan(row["store"])
         c.audience = str(row["audience"])
         c.image_url = _none_if_nan(row["image_url"])

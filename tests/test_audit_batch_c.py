@@ -245,3 +245,50 @@ def test_serve_binds_loopback_by_default():
 
     args = build_parser().parse_args(["serve"])
     assert args.host == "127.0.0.1"
+
+
+# ----------------------------------------------------------------------------- usage accounting
+
+
+async def test_llm_usage_is_counted_per_request_and_reported(fixture_index, hash_embedder):
+    from stylist.llm import FakeLLM, usage_scope
+    from stylist.planner import PlannerOutput
+    from stylist.reranker import SlotRerankOutput
+    from stylist.schemas import RecommendRequest
+
+    def handler(system, user, schema):
+        if schema is PlannerOutput:
+            return PlannerOutput(
+                intent="boots",
+                slots=[{"name": "boots", "search_query": "snow boots", "keywords": ["boot"]}],
+            )
+        return SlotRerankOutput(picks=[], no_good_match=False, note="")
+
+    llm = FakeLLM(handler=handler, usage=(120, 30))  # every call reports 120 in / 30 out
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env({"EMBEDDER": "hash", "PLAN_CACHE_SIZE": "0"}),
+        llm=llm,
+    )
+    resp = await svc.recommend(RecommendRequest(query="snow boots", k=2))
+    assert resp.llm_info.calls == 2  # one plan + one rerank
+    assert resp.llm_info.input_tokens == 240 and resp.llm_info.output_tokens == 60
+
+    with usage_scope() as usage:  # scopes nest per task: a second request starts at zero
+        await llm.complete_json(system="s", user="u", schema=PlannerOutput)
+    assert usage.calls == 1 and usage.input_tokens == 120
+
+
+def test_prices_are_rounded_to_cents(fixture_index, hash_embedder):
+    from stylist.retrieval import Candidate, Retriever
+
+    r = Retriever(fixture_index, hash_embedder, Settings.from_env({"EMBEDDER": "hash"}))
+    old = fixture_index.catalog.loc[0, "price"]
+    fixture_index.catalog.loc[0, "price"] = 8.99
+    try:
+        assert (
+            r._hydrate(Candidate(0, 0, 0.0)).price == 8.99
+        )  # float32 storage would give 8.98999977
+    finally:
+        fixture_index.catalog.loc[0, "price"] = old
