@@ -104,7 +104,7 @@ class RecommendationService:
                     )
                     self._cache_put(key, plan)
                     return plan.model_copy(deep=True), "llm"
-                except (LLMError, asyncio.TimeoutError) as exc:
+                except (TimeoutError, LLMError) as exc:
                     warnings.append(f"planner fell back to regex rules ({type(exc).__name__})")
                     log.warning("planner failed: %s: %s", type(exc).__name__, exc)
             else:
@@ -187,7 +187,7 @@ class RecommendationService:
                     )
                     ranked, rerank_used, note = result.slots, result.used_llm, result.note
                     warnings.extend(result.warnings)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     warnings.append("rerank skipped (timeout), results are in retrieval order")
                     ranked = [fused_slot(sc) for sc in slot_cands]
         else:
