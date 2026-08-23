@@ -1,135 +1,202 @@
 # Evaluation
 
 What this measures, honestly: whether the service returns the *right kind of product*
-for each slot of 20 human style queries. It does not measure taste, and it has no human
-relevance labels. Treat every number below as a regression diagnostic, not as accuracy.
+(and, for brand queries, the right brand) for each slot of 28 human style queries. It does
+not measure taste and it has no human relevance labels. Treat every number below as a
+regression diagnostic, not as accuracy.
 
 ## Setup
 
-* Queries: `scripts/eval_queries.json`, 20 requests written the way people type
-  ("what should my husband wear to an outdoor wedding in june", "something to keep my
-  ears warm in winter", "white sneakers under $40"). For each query i wrote, before
-  running anything, the slots i expected and a rule per slot: a list of words of which at
-  least one must appear in the title (`any`) and words that must not (`none`).
-* `keyword_match@k`: share of returned items (k=4 per slot) whose title passes the rule of
-  the slot they came back in. Returned slots are matched to my rules by name overlap;
-  a slot the planner invented that i had no rule for (the planner added "gym bag" to the
-  yoga query, "cummerbund" to black tie) falls back to the union of that query's rules,
-  which is stricter than it should be. So the LLM configs are under-counted a little.
-* `empty slots`, `price violations` (items with a known price above an explicit
-  max_price) and wall clock p50/p95 per request, measured on a laptop (M4, 24 GB) with
-  `claude-sonnet-4-6` through an Azure endpoint, so the LLM latencies are one provider's.
-* Configs: `bm25` / `dense` / `hybrid` use the regex planner (one slot = the raw query),
-  `hybrid_noboost` switches off the keyword boost and the rating prior, `llm_plan` uses
-  the LLM planner with hybrid retrieval and no rerank, `llm_plan_rerank` is the full
-  pipeline. `llm_plan_dense` / `llm_plan_bm25` are the LLM planner with one channel only.
-* Three indexes: the default popular-100K, a seeded random 100K, and the full 826,108 rows.
+* Queries: `scripts/eval_queries.json`. 20 requests written the way people type ("what
+  should my husband wear to an outdoor wedding in june", "something to keep my ears warm
+  in winter", "white sneakers under $40") plus 8 brand requests ("nike running shoes for
+  men", "levi's jeans for men"). For each query the expected slots and a rule per slot were
+  written before running anything: `any` = at least one of these words must appear in the
+  title (whole words, plural tolerant), `none` = none of these may, `all` = one of these
+  must (the brand, so a branded sock never passes a jeans slot).
+* Metrics, all at k=4 items per slot:
+  * `match@k`: share of returned items whose title passes the rule of the slot they came
+    back in. A returned slot is mapped to a rule by exact name, then by the best word
+    overlap; a slot the planner invented that has no rule ("beach bag" in the beach
+    query) is scored against the union of the query's rules, which keeps the forbidden
+    words and the brand requirement. Those slots are counted in `unmapped`, about 20 of
+    65 slots on every index, and they make the LLM configs look a little worse than they
+    are.
+  * `macro`: the same rate averaged per query, with a percentile bootstrap 95% interval
+    over queries. A failed request or an all-empty answer counts as zero.
+  * `mapped precision`: `match@k` restricted to slots that mapped to a rule.
+  * `slot recall`: share of the expected slots (rule names) that some returned slot mapped
+    to. The regex planner returns one slot called "items", so its recall is zero by
+    construction; compare it on `match@k` only.
+  * `query success`: every expected slot came back, none is empty, and every returned
+    slot has at least one passing item. Strict on purpose.
+  * `empty slots`, `price violations` (a known price outside an explicit min/max), wall
+    clock p50/p95 per request.
+  * Paired deltas: the mean of per-query differences between two configurations on the
+    same queries, with a bootstrap interval. An interval that excludes zero is a real
+    difference on this set; most are not.
+* Configurations: `bm25` / `dense` / `hybrid` use the regex planner (one slot = the raw
+  sentence); `hybrid_nokw` and `hybrid_noquality` switch off the keyword boost and the
+  rating prior one at a time; `llm_plan` is the LLM planner with hybrid retrieval and no
+  rerank; `llm_plan_dense` / `llm_plan_bm25` the LLM planner with one channel; and
+  `llm_plan_rerank` the full pipeline. Every llm configuration on every index uses the
+  same 28 plans (`docs/eval_plans.json`, written by the first run and reloaded by the
+  others), so the comparison is paired.
+* LLM: `claude-sonnet-4-6` through an Azure endpoint, prompt version 2, evaluation
+  budgets of 45 s per stage (so a slow provider hour measures quality, not timeouts; the
+  production defaults are 15 s and 20 s). Latencies of the llm configs on the random and
+  full indexes are with the plan cache warm; the cold numbers, 4 to 7 s for the plan, are
+  the popular index's `llm_plan` row and `docs/live_run_sonnet.json`.
+* Three indexes: the default popular-100K, a seeded random 100K, and the full 826,108
+  rows, all built with pipeline version 3 and the pinned model revision.
 
-Re-run with `make eval` (or `uv run python scripts/evaluate.py --index-dir ... --configs ...`),
-tables come from `scripts/eval_report.py`.
+Re-run with `make eval` (or `python scripts/evaluate.py --index-dir ... --configs ...
+--plan-cache docs/eval_plans.json`); the tables come from `scripts/eval_report.py`.
 
 ## Results
 
-### eval_popular100k
+### popular 100K (the default index)
 
-index: `index` (100,000 rows, sampling=popular), llm: claude-sonnet-4-6
+index: `index` (100,000 rows, sampling=popular), llm: claude-sonnet-4-6, prompt v2, 28 queries, code b4be12b
 
-| config | keyword_match@k | empty slots | price violations | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| bm25 | 0.463 | 0/20 | 0 | 8 | 11 |
-| dense | 0.787 | 0/20 | 0 | 48 | 96 |
-| hybrid | 0.725 | 0/20 | 0 | 53 | 70 |
-| hybrid_noboost | 0.725 | 0/20 | 0 | 55 | 71 |
-| llm_plan | 0.882 | 0/57 | 0 | 4496 | 6579 |
-| llm_plan_rerank | 0.915 | 0/56 | 0 | 9841 | 12024 |
+| config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
+|---|---|---|---|---|---|---|---|---|---|
+| bm25 | 0.500 | 0.500 (0.35 to 0.66) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 8 | 10 |
+| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 28 | 35 |
+| hybrid | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 32 | 40 |
+| hybrid_nokw | 0.625 | 0.625 (0.49 to 0.77) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 42 |
+| hybrid_noquality | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 39 |
+| llm_plan | 0.881 | 0.848 (0.74 to 0.94) | 0.900 | 0.88 | 0.61 | 0/65 | 0 | 4357 | 7110 |
+| llm_plan_dense | 0.862 | 0.840 (0.73 to 0.93) | 0.906 | 0.88 | 0.64 | 0/65 | 0 | 59 | 100 |
+| llm_plan_bm25 | 0.865 | 0.826 (0.70 to 0.93) | 0.889 | 0.88 | 0.61 | 0/65 | 0 | 33 | 52 |
+| llm_plan_rerank | 0.885 | 0.857 (0.76 to 0.94) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5501 | 6766 |
 
-### eval_random100k
+paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 
-index: `index_random100k` (100,000 rows, sampling=random), llm: claude-sonnet-4-6
+| comparison | mean delta | 95% CI | n |
+|---|---|---|---|
+| bm25 - hybrid | -0.125 | -0.23 to -0.02 | 28 |
+| dense - hybrid | +0.071 | +0.01 to +0.13 | 28 |
+| hybrid_nokw - hybrid | +0.000 | -0.05 to +0.05 | 28 |
+| hybrid_noquality - hybrid | +0.000 | +0.00 to +0.00 | 28 |
+| llm_plan_dense - llm_plan | -0.008 | -0.04 to +0.02 | 28 |
+| llm_plan_bm25 - llm_plan | -0.022 | -0.05 to -0.00 | 28 |
+| llm_plan_rerank - llm_plan | +0.009 | -0.00 to +0.03 | 28 |
 
-| config | keyword_match@k | empty slots | price violations | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| bm25 | 0.575 | 0/20 | 0 | 8 | 14 |
-| dense | 0.812 | 0/20 | 0 | 28 | 38 |
-| hybrid | 0.762 | 0/20 | 0 | 32 | 34 |
-| hybrid_noboost | 0.775 | 0/20 | 0 | 33 | 36 |
-| llm_plan | 0.873 | 0/55 | 0 | 4332 | 6555 |
-| llm_plan_rerank | 0.871 | 0/58 | 0 | 10610 | 12379 |
+### random 100K
 
-### eval_full
+index: `index_random100k` (100,000 rows, sampling=random), llm: claude-sonnet-4-6, prompt v2, 28 queries, code 6d28732
 
-index: `index_full` (826,108 rows, sampling=all), llm: claude-sonnet-4-6
+| config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
+|---|---|---|---|---|---|---|---|---|---|
+| bm25 | 0.562 | 0.562 (0.40 to 0.73) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 7 | 10 |
+| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 29 | 39 |
+| hybrid | 0.679 | 0.679 (0.54 to 0.81) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 36 | 45 |
+| hybrid_nokw | 0.705 | 0.705 (0.57 to 0.83) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 33 | 45 |
+| hybrid_noquality | 0.679 | 0.679 (0.54 to 0.81) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 42 |
+| llm_plan | 0.881 | 0.849 (0.76 to 0.93) | 0.906 | 0.88 | 0.68 | 0/65 | 0 | 59 | 123 |
+| llm_plan_dense | 0.877 | 0.861 (0.77 to 0.94) | 0.911 | 0.88 | 0.68 | 0/65 | 0 | 59 | 92 |
+| llm_plan_bm25 | 0.877 | 0.839 (0.75 to 0.92) | 0.900 | 0.88 | 0.64 | 0/65 | 0 | 31 | 45 |
+| llm_plan_rerank | 0.885 | 0.857 (0.75 to 0.95) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5360 | 6367 |
 
-| config | keyword_match@k | empty slots | price violations | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| bm25 | 0.588 | 0/20 | 0 | 11 | 41 |
-| dense | 0.838 | 0/20 | 0 | 99 | 105 |
-| hybrid | 0.738 | 0/20 | 0 | 109 | 113 |
-| hybrid_noboost | 0.750 | 0/20 | 0 | 110 | 114 |
-| llm_plan | 0.895 | 0/55 | 0 | 4667 | 6400 |
-| llm_plan_rerank | 0.893 | 0/56 | 0 | 10294 | 12200 |
+paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 
-### eval_popular100k_channels
+| comparison | mean delta | 95% CI | n |
+|---|---|---|---|
+| bm25 - hybrid | -0.116 | -0.25 to +0.01 | 28 |
+| dense - hybrid | +0.018 | -0.07 to +0.11 | 28 |
+| hybrid_nokw - hybrid | +0.027 | +0.00 to +0.07 | 28 |
+| hybrid_noquality - hybrid | +0.000 | +0.00 to +0.00 | 28 |
+| llm_plan_dense - llm_plan | +0.012 | -0.01 to +0.04 | 28 |
+| llm_plan_bm25 - llm_plan | -0.009 | -0.03 to +0.01 | 28 |
+| llm_plan_rerank - llm_plan | +0.008 | -0.04 to +0.05 | 28 |
 
-index: `index` (100,000 rows, sampling=popular), llm: claude-sonnet-4-6
+### full catalog, 826,108 rows
 
-| config | keyword_match@k | empty slots | price violations | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| llm_plan_dense | 0.886 | 0/57 | 0 | 4462 | 6088 |
-| llm_plan_bm25 | 0.873 | 0/55 | 0 | 4465 | 5749 |
+index: `index_full` (826,108 rows, sampling=all), llm: claude-sonnet-4-6, prompt v2, 28 queries, code 6d28732
 
-### eval_full_channels
+| config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
+|---|---|---|---|---|---|---|---|---|---|
+| bm25 | 0.652 | 0.652 (0.48 to 0.80) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 12 | 37 |
+| dense | 0.786 | 0.786 (0.67 to 0.89) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 106 | 128 |
+| hybrid | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 114 | 124 |
+| hybrid_nokw | 0.750 | 0.750 (0.62 to 0.87) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 110 | 127 |
+| hybrid_noquality | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 111 | 126 |
+| llm_plan | 0.935 | 0.959 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 244 | 463 |
+| llm_plan_dense | 0.923 | 0.953 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 234 | 419 |
+| llm_plan_bm25 | 0.915 | 0.935 (0.87 to 0.98) | 0.961 | 0.88 | 0.68 | 0/65 | 0 | 87 | 200 |
+| llm_plan_rerank | 0.935 | 0.967 (0.94 to 0.99) | 0.978 | 0.88 | 0.71 | 0/65 | 0 | 5529 | 6472 |
 
-index: `index_full` (826,108 rows, sampling=all), llm: claude-sonnet-4-6
+paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 
-| config | keyword_match@k | empty slots | price violations | p50 ms | p95 ms |
-|---|---|---|---|---|---|
-| llm_plan_dense | 0.917 | 0/54 | 0 | 4686 | 6529 |
-| llm_plan_bm25 | 0.895 | 0/55 | 0 | 4553 | 6019 |
+| comparison | mean delta | 95% CI | n |
+|---|---|---|---|
+| bm25 - hybrid | -0.098 | -0.18 to -0.02 | 28 |
+| dense - hybrid | +0.036 | -0.06 to +0.12 | 28 |
+| hybrid_nokw - hybrid | +0.000 | -0.03 to +0.03 | 28 |
+| hybrid_noquality - hybrid | +0.000 | +0.00 to +0.00 | 28 |
+| llm_plan_dense - llm_plan | -0.006 | -0.01 to +0.00 | 28 |
+| llm_plan_bm25 - llm_plan | -0.024 | -0.06 to +0.00 | 28 |
+| llm_plan_rerank - llm_plan | +0.008 | -0.01 to +0.03 | 28 |
 
+## What the numbers say
 
+* The planner is the feature. The raw sentence gets 0.63 to 0.75 on hybrid retrieval;
+  the planner's listing-style queries lift every index to 0.88 to 0.94 and give the
+  outfit queries their slots (recall 0.88: the planner skips one expected slot in about
+  one query in eight, typically "sunglasses" for "beach bag").
+* Dense beats bm25 on sentences on every index (bm25 - hybrid is -0.12 to -0.13 with the
+  regex planner). Under the LLM planner the two channels are within 2 points and the
+  intervals include zero; hybrid is kept for brand and exact-phrase queries, where bm25
+  is the channel that carries the brand token.
+* The reranker adds about 1 point of match@k on the same plans (+0.009, interval
+  -0.00 to +0.03). Its value is elsewhere: it reads the constraints (audience, budget,
+  occasion), writes the reasons, and it is what keeps an off-type item out of a slot
+  when retrieval order would have shown it (the admissibility rule, ADR-0015).
+* The keyword boost and the rating prior do nothing measurable on this metric (deltas of
+  0.00 to +0.03 with intervals through zero). They stay for the ordering inside a slot,
+  which the metric cannot see.
+* The full catalog is better than any 100K subset on the same plans: 0.935 against 0.885,
+  and all eight brand queries come back fully on-brand, where the popular subset has no
+  Levi's jeans at all and three Columbia fleeces for a rain jacket request. The popular
+  subset is not losing product type; it loses coverage of specific brands and the long
+  tail, which is the trade the default makes for a 3 minute build and 1 GB of memory.
+* Zero empty slots and zero price violations in every configuration on every index.
+  `query success` is 0.61 to 0.71 for the full pipeline because it demands every
+  expected slot plus a passing item in every returned slot, including the invented ones
+  scored against the union.
 
-Brand queries are not in the 20, so i checked them separately on the full index with the
-regex planner: for 8 brand queries ("levi's 501 original fit jeans", "adidas samba
-sneakers", "birkenstock arizona sandals", ...) the brand name appeared in the top 4 for
-25/32 results with dense only, 31/32 with hybrid, 32/32 with bm25 only.
+## Brand queries, by index
 
-## What i take from it
+| query | popular 100K | random 100K | full |
+|---|---|---|---|
+| nike running shoes for men | 4/4 | 4/4 | 4/4 |
+| adidas track pants | 4/4 | 3/4 | 4/4 |
+| the north face jacket for women | 4/4 | 4/4 | 4/4 |
+| champion hoodie | 4/4 | 4/4 | 4/4 |
+| fruit of the loom underwear for men | 4/4 | 2/4 | 4/4 |
+| columbia rain jacket for women | 0/4 | 0/4 | 4/4 |
+| levi's jeans for men | 0/4 | 0/4 | 4/4 |
+| calvin klein underwear for men | 2/4 | 3/4 | 4/4 |
 
-1. **The LLM planner is the feature.** With the raw sentence, even the best single
-   channel stays under 0.84; product-listing style queries from the planner lift every
-   index to 0.87-0.92, and they are what makes multi-slot requests possible at all (the
-   regex planner can't split "outfit for the beach" into five product types).
-2. **Dense beats bm25 on conversational text, bm25 beats dense on brands.** Raw sentences
-   contain words like "outfit", "something", "summer" that bm25 happily matches in the
-   wrong listings. Once the planner rewrites the query, the two channels are within one
-   or two points of each other and hybrid sits in between. I kept hybrid as the default
-   because of the brand check (31/32 vs 25/32), and because brand and model-number queries
-   are common in real shops even if my 20 queries have none.
-3. **The reranker helps on the popular index (+3.3 points) and is flat on the other two.**
-   Its value on this metric is small because the planner already fixed product type; what
-   it adds is constraint handling ("under 200 total", "for my 6 year old") and the reasons,
-   which this metric cannot see. It costs ~5 s of latency (one call per slot, in parallel).
-4. **Popular-100K vs full catalog.** With the full pipeline the popular subset scores
-   0.915 against 0.893 for the full index, so the default subset is not hurting product
-   type. The full index wins on raw dense retrieval (0.838 vs 0.787) and it has more priced
-   items, which matters for strict price queries ("white sneakers under $40" found kids
-   sneakers and shoelaces among the priced items of the 100K index). Serving cost: 1.0 GB
-   RSS and p50 32 ms retrieval for 100K, 3.3 GB and p50 113 ms for the full index
-   (`scripts/benchmark.py`, concurrency 1).
-5. **Boosts are neutral here.** `hybrid_noboost` is within a point of `hybrid` on all
-   three indexes. The keyword boost only does something when keywords are selective
-   (planner keywords are type synonyms; the regex planner's keywords are just the query's
-   content words, which nearly every candidate matches).
-6. **No empty slots and no price violations** in the 798 slot results across the tables
-   above, which is what the mask-before-top-N design and the strict explicit bound were for.
+Items passing the brand-and-type rule out of 4, full pipeline. The zeros are catalog
+gaps on the subsets (one Levi's jeans row, no Columbia rain jacket); in those cases the
+response says so in a warning and shows the product type from other brands.
 
-## Known gaps
+## Caveats, so nobody over-reads this
 
-* No relevance labels. Next step: label the pooled top results of these 20 queries by
-  hand, then report nDCG against that instead of keyword rules.
-* The keyword rules are mine and written once; they are blind to style, fit, colour and
-  to whether an outfit hangs together.
-* One LLM, one run per config. Planner output varies between runs (slot names and counts
-  change), so differences under ~2 points are noise.
-* Latency numbers include a shared machine and a remote endpoint; they are indicative.
+* 28 queries is enough to catch a regression of 5 points or more and not enough to
+  rank two configurations that differ by 2; the intervals say so.
+* The rules check titles. A correct product whose title never names its type (model
+  names only) fails the rule, and a wrong product that mentions the type word passes.
+  `mapped precision` of 0.91 to 0.98 is therefore an upper bound on precision and a
+  lower bound at the same time.
+* The LLM is not deterministic. Run to run, `llm_plan_rerank` moved by up to 3 points
+  on the popular index in this project's history; the paired plan cache removes the
+  planner's share of that noise, not the reranker's.
+* Everything was measured on one machine (M4 laptop) against one provider endpoint;
+  latency columns describe that setup only. `docs/production.md` has the throughput and
+  cost measurements.
+* There is no human judgement anywhere in this. The next step in `docs/production.md`
+  (200 labelled queries, nDCG, a calibrated LLM judge) is the step that turns these into
+  relevance numbers.
