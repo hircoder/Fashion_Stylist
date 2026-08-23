@@ -15,7 +15,11 @@ from pathlib import Path
 from dotenv import dotenv_values
 
 PROVIDERS = ("anthropic", "openai", "none")
-DEFAULT_MODELS = {"anthropic": "claude-opus-5", "openai": "gpt-5-mini"}
+# the anthropic default is the model every number in docs/ was measured with; set
+# LLM_MODEL to move (claude-sonnet-5, claude-opus-5, ...) and re-run the evaluation
+DEFAULT_MODELS = {"anthropic": "claude-sonnet-4-6", "openai": "gpt-5-mini"}
+# commit of BAAI/bge-small-en-v1.5 the indexes are built with; a build and a runtime must agree
+DEFAULT_EMBEDDING_REVISION = "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
 
 
 class ConfigError(ValueError):
@@ -79,6 +83,7 @@ class Settings:
     # llm
     llm_provider: str
     llm_model: str | None
+    llm_rerank_model: str | None  # a cheaper model for the per-slot rerank calls, else llm_model
     anthropic_api_key: str | None
     anthropic_base_url: str | None
     openai_api_key: str | None
@@ -117,6 +122,7 @@ class Settings:
     max_body_bytes: int
     log_queries: bool
     startup_fail_fast: bool
+    trust_proxy_headers: bool  # read the client ip from x-forwarded-for (behind a proxy only)
 
     log_level: str
 
@@ -185,12 +191,13 @@ class Settings:
             processed_path=processed_path,
             index_dir=index_dir,
             embedding_model=_get_str(env, "EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5") or "",
-            embedding_revision=_get_str(env, "EMBEDDING_REVISION"),
+            embedding_revision=_get_str(env, "EMBEDDING_REVISION", DEFAULT_EMBEDDING_REVISION),
             embedder=embedder,
             embed_device=_get_str(env, "EMBED_DEVICE"),
             max_seq_length=_get_int(env, "MAX_SEQ_LENGTH", 256),
             llm_provider=provider,
             llm_model=model,
+            llm_rerank_model=_get_str(env, "LLM_RERANK_MODEL") if model else None,
             anthropic_api_key=anthropic_key,
             anthropic_base_url=_get_str(env, "ANTHROPIC_BASE_URL"),
             openai_api_key=openai_key,
@@ -227,6 +234,7 @@ class Settings:
             max_body_bytes=_get_int(env, "MAX_BODY_BYTES", 16 * 1024),
             log_queries=_get_bool(env, "LOG_QUERIES", False),
             startup_fail_fast=_get_bool(env, "STARTUP_FAIL_FAST", False),
+            trust_proxy_headers=_get_bool(env, "TRUST_PROXY_HEADERS", False),
             log_level=(_get_str(env, "LOG_LEVEL", "INFO") or "INFO").upper(),
         )
         settings.validate()

@@ -43,6 +43,7 @@ function StatusPill({ health, error }) {
 
 function Stars({ rating, count }) {
   if (!count) return <span className="muted">no ratings yet</span>;
+  if (rating == null) return <span className="muted">rating unavailable ({count.toLocaleString()} ratings)</span>;
   return (
     <span title={`${rating} average from ${count} ratings`}>
       {"★".repeat(Math.round(rating))}

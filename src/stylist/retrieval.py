@@ -210,24 +210,37 @@ _ACCESSORY_RX = re.compile(
 )
 
 
+def _accessory_veto(low: str, type_start: int, type_end: int) -> bool:
+    """An accessory word (insoles, laces, hanger, cover...) makes the title an accessory
+    FOR the product when it comes before the type word ("Insoles for Running Shoes") or
+    right after it as a compound ("Shoe Insoles", "Boot Laces"). Later mentions are
+    extras ("Rain Jacket with Storage Bag") and do not count."""
+    for m in _ACCESSORY_RX.finditer(low):
+        if m.start() < type_start:
+            return True
+        if m.start() >= type_end and not low[type_end : m.start()].strip():
+            return True  # directly after the type word: a compound noun
+    return False
+
+
 def type_match(title: str, keywords: list[str]) -> bool:
     """Is this title the product type the slot asks for? A keyword match counts, and so
     does the head noun of a multi-word keyword ("rain jacket" accepts any jacket; the
-    reranker sorts out rain vs fleece). An accessory word in the title (insoles, laces,
-    hangers, covers) vetoes both, unless the slot itself asks for that accessory."""
+    reranker sorts out rain vs fleece), unless the title is an accessory for that type
+    (insoles, laces, hangers, covers), which an accessory-seeking slot may still ask for."""
     low = (title or "").lower()
-    accessory = bool(_ACCESSORY_RX.search(low))
-    if accessory and any(_ACCESSORY_RX.search(kw.lower()) for kw in keywords if kw):
-        accessory = False  # "shoe laces" slot: laces are the product
-    if accessory:
-        return False
+    wants_accessory = any(_ACCESSORY_RX.search(kw.lower()) for kw in keywords if kw)
     for kw in keywords:
         if not kw:
             continue
-        if _keyword_rx(kw).search(low):
-            return True
-        head = kw.split()[-1]
-        if head != kw and len(head) > 2 and _keyword_rx(head).search(low):
+        m = _keyword_rx(kw).search(low)
+        if m is None:
+            head = kw.split()[-1]
+            if head != kw and len(head) > 2:
+                m = _keyword_rx(head).search(low)
+        if m is None:
+            continue
+        if wants_accessory or not _accessory_veto(low, m.start(), m.end()):
             return True
     return False
 

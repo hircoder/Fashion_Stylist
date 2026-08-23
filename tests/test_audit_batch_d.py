@@ -283,24 +283,32 @@ async def test_a_waiters_own_timeout_does_not_poison_the_planner_cache(
     from stylist.schemas import RecommendRequest
     from stylist.service import RecommendationService
 
-    async def slow_handler(system, user, schema):
-        await asyncio.sleep(0.6)
-        return PlannerOutput(
-            intent="x", slots=[{"name": "boots", "search_query": "boots", "keywords": ["boot"]}]
-        )
-
     class SlowLLM(FakeLLM):
         async def complete_json(self, *, system, user, schema, max_tokens=2000, timeout=30.0):
-            return await slow_handler(system, user, schema)
+            await asyncio.sleep(1.0)  # slower than the first request's budget, not the second's
+            return PlannerOutput(
+                intent="x", slots=[{"name": "boots", "search_query": "boots", "keywords": ["boot"]}]
+            )
 
     svc = RecommendationService(
         fixture_index,
         hash_embedder,
         Settings.from_env(
-            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.2", "PLANNER_FAILURE_TTL_S": "30"}
+            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.7", "PLANNER_FAILURE_TTL_S": "30"}
         ),
         llm=SlowLLM(),
     )
-    r1 = await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
-    assert r1.llm_info.planner_used == "heuristic"  # this request's budget ran out
-    assert not svc._plan_failed_until  # but the planner itself did not fail: no negative cache
+    try:
+        short = asyncio.create_task(
+            svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+        )
+        await asyncio.sleep(0.05)
+        assert svc._plan_inflight  # the shared planner task is running
+        r1 = await short
+        assert r1.llm_info.planner_used == "heuristic"  # its own budget ran out
+        assert not svc._plan_failed_until  # the shared call did not fail: no negative cache
+        await asyncio.sleep(1.1)  # let the shared task finish and cache its plan
+        r2 = await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+        assert r2.llm_info.planner_used == "llm" and r2.llm_info.plan_cache_hit
+    finally:
+        svc.close()

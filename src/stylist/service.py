@@ -62,17 +62,23 @@ class RecommendationService:
         settings: Settings,
         llm: LLMClient | None = None,
         plan_cache: OrderedDict[tuple, QueryPlan] | None = None,
+        rerank_llm: LLMClient | None = None,
     ):
         self.index = index
         self.settings = settings
         # one global cap on llm calls in flight, shared by the planner and the reranker
-        self.llm = ThrottledLLM(llm, asyncio.Semaphore(settings.llm_concurrency)) if llm else None
+        sem = asyncio.Semaphore(settings.llm_concurrency)
+        self.llm = ThrottledLLM(llm, sem) if llm else None
+        self.rerank_llm = ThrottledLLM(rerank_llm, sem) if rerank_llm else self.llm
         self.retriever = Retriever(index, embedder, settings)
         self.heuristic = HeuristicPlanner()
         self.llm_planner = LLMPlanner(self.llm) if self.llm else None
         self.reranker = (
-            LLMReranker(self.llm, candidates=settings.rerank_candidates) if self.llm else None
+            LLMReranker(self.rerank_llm, candidates=settings.rerank_candidates)
+            if self.rerank_llm
+            else None
         )
+        self._closed = False
         # a caller may share one cache between services (the evaluation pairs configs)
         self._plan_cache: OrderedDict[tuple, QueryPlan] = (
             plan_cache if plan_cache is not None else OrderedDict()
@@ -109,6 +115,12 @@ class RecommendationService:
         while len(self._plan_cache) > self.settings.plan_cache_size:
             self._plan_cache.popitem(last=False)
 
+    def close(self) -> None:
+        """Release the retrieval thread pool (the API calls this on shutdown, the CLI at exit)."""
+        if not self._closed:
+            self._closed = True
+            self._executor.shutdown(wait=False, cancel_futures=True)
+
     async def _plan(
         self, req: RecommendRequest, deadline: float, warnings: list[str]
     ) -> tuple[QueryPlan, str]:
@@ -117,7 +129,9 @@ class RecommendationService:
         key = self._cache_key(req.query, mode)
         cached = self._cache_get(key)
         if cached is not None:
+            self._last_cache_hit = True
             return cached.model_copy(deep=True), mode
+        self._last_cache_hit = False
         if use_llm:
             if time.monotonic() < self._plan_failed_until.get(key, 0.0):
                 warnings.append("planner fell back to regex rules (recent planner failure)")
@@ -128,6 +142,13 @@ class RecommendationService:
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
         return plan.model_copy(deep=True), "heuristic"
+
+    def _cache_shared_result(self, key: tuple, fut: asyncio.Future) -> None:
+        if fut.cancelled() or fut.exception() is not None:
+            return
+        plan = fut.result()
+        if plan is not None:
+            self._cache_put(key, plan)
 
     async def _plan_with_llm(
         self, query: str, key: tuple, deadline: float, warnings: list[str]
@@ -146,6 +167,9 @@ class RecommendationService:
             )
             self._plan_inflight[key] = inflight
             inflight.add_done_callback(lambda _f: self._plan_inflight.pop(key, None))
+            # the shared call outlives a waiter that gave up: when it succeeds its plan is
+            # cached for the next request even if nobody is left waiting for it
+            inflight.add_done_callback(lambda f: self._cache_shared_result(key, f))
         try:
             plan = await asyncio.wait_for(asyncio.shield(inflight), timeout=budget)
         except (LLMError, TimeoutError) as exc:
@@ -235,6 +259,7 @@ class RecommendationService:
         timings: dict[str, float] = {}
 
         plan, planner_used = await self._plan(req, deadline, warnings)
+        plan_cache_hit = bool(getattr(self, "_last_cache_hit", False))
         warnings.extend(plan.warnings)
         timings["plan_ms"] = round((time.monotonic() - t0) * 1000, 1)
 
@@ -293,11 +318,14 @@ class RecommendationService:
                 "claimed to fit the budget"
             )
         if plan.budget_scope == "total" and plan.budget_max is not None:
-            priced_sum = sum(c.price for items in picked for c in items if c.price is not None)
+            # one item per slot is what the shopper buys: compare the top picks, not every
+            # alternative shown
+            tops = [items[0].price for items in picked if items and items[0].price is not None]
+            priced_sum = sum(tops)
             if priced_sum > plan.budget_max + 1e-6:
                 warnings.append(
-                    f"the priced picks add up to ${priced_sum:.2f}, above the stated total "
-                    f"budget of ${plan.budget_max:.2f}"
+                    f"the top pick of each slot adds up to ${priced_sum:.2f}, above the stated "
+                    f"total budget of ${plan.budget_max:.2f}"
                 )
 
         slots_out: list[SlotResult] = []
@@ -335,6 +363,7 @@ class RecommendationService:
                     exclude_keywords=rs.slot.exclude_keywords,
                     budget_max=rs.window.max_price,
                     n_eligible=rs.n_eligible,
+                    eligible_rows=rs.eligible_rows,
                     items=out_items,
                 )
             )
@@ -369,9 +398,16 @@ class RecommendationService:
             llm_info=LLMInfo(
                 provider=self.llm.provider if self.llm else None,
                 model=self.llm.model if self.llm else None,
+                rerank_model=(
+                    self.rerank_llm.model
+                    if self.rerank_llm and self.rerank_llm is not self.llm
+                    else None
+                ),
                 planner_used=planner_used,
                 rerank_used=rerank_used,
+                plan_cache_hit=plan_cache_hit,
                 calls=usage.calls,
+                failed_calls=usage.failed_calls,
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
             ),

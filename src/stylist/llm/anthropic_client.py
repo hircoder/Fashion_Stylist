@@ -9,12 +9,15 @@ from pydantic import BaseModel, ValidationError
 
 from stylist.llm import (
     LLMAuthError,
+    LLMError,
     LLMRateLimitError,
     LLMRefusalError,
     LLMTimeoutError,
     LLMTransportError,
     LLMTruncatedError,
     LLMValidationError,
+    record_attempt,
+    record_failure,
     record_usage,
 )
 
@@ -44,6 +47,24 @@ class AnthropicLLM:
         schema: type[T],
         max_tokens: int = 2000,
         timeout: float = 30.0,
+    ) -> T:
+        record_attempt()
+        try:
+            return await self._complete(
+                system=system, user=user, schema=schema, max_tokens=max_tokens, timeout=timeout
+            )
+        except LLMError:
+            record_failure()
+            raise
+
+    async def _complete(
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: type[T],
+        max_tokens: int,
+        timeout: float,
     ) -> T:
         kwargs: dict[str, Any] = {}
         if self.effort:

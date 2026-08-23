@@ -57,12 +57,12 @@ class LLMTransportError(LLMError):
 class Usage:
     """Token counts for one request (plan + every rerank call), filled in by the adapters."""
 
-    calls: int = 0
+    calls: int = 0  # attempted calls (a failed or truncated call is still billed)
+    failed_calls: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
 
     def add(self, input_tokens: int | None, output_tokens: int | None) -> None:
-        self.calls += 1
         self.input_tokens += int(input_tokens or 0)
         self.output_tokens += int(output_tokens or 0)
 
@@ -86,6 +86,18 @@ def record_usage(input_tokens: int | None, output_tokens: int | None) -> None:
     usage = _usage_var.get()
     if usage is not None:
         usage.add(input_tokens, output_tokens)
+
+
+def record_attempt() -> None:
+    usage = _usage_var.get()
+    if usage is not None:
+        usage.calls += 1
+
+
+def record_failure() -> None:
+    usage = _usage_var.get()
+    if usage is not None:
+        usage.failed_calls += 1
 
 
 class LLMClient(Protocol):
@@ -138,7 +150,9 @@ class FakeLLM:
             item = self._responses.pop(0)
         else:
             raise LLMTransportError("FakeLLM has no scripted response left")
+        record_attempt()
         if isinstance(item, Exception):
+            record_failure()
             raise item
         record_usage(*self._usage)
         if isinstance(item, BaseModel):
@@ -173,16 +187,18 @@ class ThrottledLLM:
             )
 
 
-def make_llm_client(settings: Settings) -> LLMClient | None:
-    """Build the configured provider adapter, or None when the service runs without an LLM."""
-    if settings.llm_provider == "none" or not settings.llm_model:
+def make_llm_client(settings: Settings, model: str | None = None) -> LLMClient | None:
+    """Build the configured provider adapter, or None when the service runs without an LLM.
+    `model` overrides settings.llm_model (used for the reranker's cheaper model)."""
+    model = model or settings.llm_model
+    if settings.llm_provider == "none" or not model:
         return None
     if settings.llm_provider == "anthropic":
         from stylist.llm.anthropic_client import AnthropicLLM
 
         return AnthropicLLM(
             api_key=settings.anthropic_api_key or "",
-            model=settings.llm_model,
+            model=model,
             base_url=settings.anthropic_base_url,
             effort=settings.llm_effort,
         )
@@ -191,7 +207,7 @@ def make_llm_client(settings: Settings) -> LLMClient | None:
 
         return OpenAILLM(
             api_key=settings.openai_api_key or "",
-            model=settings.llm_model,
+            model=model,
             base_url=settings.openai_base_url,
             effort=settings.llm_effort,
         )

@@ -49,7 +49,7 @@ def test_make_llm_client_none_when_no_provider():
 
 def test_make_llm_client_builds_provider_adapters():
     a = make_llm_client(Settings.from_env({"ANTHROPIC_API_KEY": "k"}))
-    assert isinstance(a, AnthropicLLM) and a.model == "claude-opus-5"
+    assert isinstance(a, AnthropicLLM) and a.model == "claude-sonnet-4-6"
     o = make_llm_client(Settings.from_env({"OPENAI_API_KEY": "k", "LLM_MODEL": "gpt-5-mini"}))
     assert isinstance(o, OpenAILLM) and o.model == "gpt-5-mini"
 

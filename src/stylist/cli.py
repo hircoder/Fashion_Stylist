@@ -32,6 +32,13 @@ class DownloadError(RuntimeError):
     pass
 
 
+def _positive_int(text: str) -> int:
+    value = int(text)
+    if value <= 0:
+        raise argparse.ArgumentTypeError(f"must be a positive integer, got {text}")
+    return value
+
+
 def _download(url: str, out: Path, max_bytes: int = RAW_MAX_BYTES) -> str:
     """Stream `url` to `out` through a temp file; returns the sha256 of what was written."""
     import hashlib
@@ -133,9 +140,14 @@ def _format_pretty(res) -> str:
             lines.append("  (nothing found)")
         for it in slot.items:
             price = f"${it.price:.2f}" if it.price is not None else "price n/a"
+            rating = (
+                f"{it.average_rating:.1f} stars ({it.rating_number:,})"
+                if it.average_rating is not None
+                else "no rating"
+            )
             lines.append(
                 f"  {it.rank}. {it.title[:90]}\n"
-                f"     {price} | {it.average_rating:.1f} stars ({it.rating_number:,}) | {it.url}\n"
+                f"     {price} | {rating} | {it.url or 'no link'}\n"
                 f"     {it.reason}"
             )
     if res.note:
@@ -169,7 +181,10 @@ def cmd_recommend(args, settings: Settings) -> int:
         use_llm=not args.no_llm,
         rerank=not args.no_rerank,
     )
-    res = asyncio.run(svc.recommend(req))
+    try:
+        res = asyncio.run(svc.recommend(req))
+    finally:
+        svc.close()
     if args.json:
         print(res.model_dump_json(indent=2))
     else:
@@ -203,21 +218,21 @@ def build_parser() -> argparse.ArgumentParser:
     i = sub.add_parser("ingest", help="raw jsonl.gz -> clean catalog parquet")
     i.add_argument("--raw")
     i.add_argument("--out")
-    i.add_argument("--limit", type=int, default=None, help="only read the first N rows")
+    i.add_argument("--limit", type=_positive_int, default=None, help="only read the first N rows")
     i.set_defaults(func=cmd_ingest)
 
     b = sub.add_parser("build-index", help="embed + bm25 index a subset of the catalog")
     b.add_argument("--catalog")
     b.add_argument("--index-dir")
-    b.add_argument("--limit", type=int, default=100_000)
+    b.add_argument("--limit", type=_positive_int, default=100_000, help="rows to index")
     b.add_argument("--sampling", choices=["popular", "random", "all"], default="popular")
     b.add_argument("--seed", type=int, default=42)
-    b.add_argument("--batch-size", type=int, default=128)
+    b.add_argument("--batch-size", type=_positive_int, default=128)
     b.set_defaults(func=cmd_build_index)
 
     r = sub.add_parser("recommend", help="run one query")
     r.add_argument("query")
-    r.add_argument("--k", type=int, default=4)
+    r.add_argument("--k", type=_positive_int, default=4)
     r.add_argument("--max-price", type=float)
     r.add_argument("--min-price", type=float)
     r.add_argument("--audience", choices=["women", "men", "girls", "boys", "baby", "unisex"])

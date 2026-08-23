@@ -60,6 +60,7 @@ class RankedSlot:
     n_eligible: int
     reasons: dict[int, Reason] = field(default_factory=dict)  # row_id -> llm reason
     warnings: list[str] = field(default_factory=list)
+    eligible_rows: int = 0
 
 
 @dataclass
@@ -175,7 +176,15 @@ def deterministic_reason(c: Candidate, window: SlotWindow) -> str:
 
 
 def fused_slot(sc: SlotCandidates) -> RankedSlot:
-    return RankedSlot(sc.slot, sc.window, list(sc.candidates), sc.n_eligible, {}, list(sc.warnings))
+    return RankedSlot(
+        sc.slot,
+        sc.window,
+        list(sc.candidates),
+        sc.n_eligible,
+        {},
+        list(sc.warnings),
+        eligible_rows=sc.eligible_rows,
+    )
 
 
 def apply_slot_rerank(
@@ -244,7 +253,13 @@ def apply_slot_rerank(
                 f"not match the product type"
             )
     ranked = RankedSlot(
-        sc.slot, sc.window, chosen + rest, sc.n_eligible, reasons, list(sc.warnings)
+        sc.slot,
+        sc.window,
+        chosen + rest,
+        sc.n_eligible,
+        reasons,
+        list(sc.warnings),
+        eligible_rows=sc.eligible_rows,
     )
     return ranked, warnings
 

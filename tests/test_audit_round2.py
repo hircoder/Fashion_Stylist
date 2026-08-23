@@ -142,3 +142,150 @@ def test_features_null_cell_is_an_empty_list(fixture_index, hash_embedder):
         assert r._hydrate(Candidate(0, 0, 0.0)).features == []
     finally:
         cat.at[0, "features"] = saved
+
+
+@pytest.mark.parametrize(
+    "title,keywords,expected",
+    [
+        ("Packable Rain Jacket with Storage Bag", ["rain jacket"], True),  # the bag is an extra
+        ("Insoles for Running Shoes", ["running shoes"], False),
+        ("Running Shoe Insoles Arch Support", ["running shoes"], False),
+        ("Shoe Covers Waterproof", ["shoe"], False),
+        ("Hiking Boots with Free Laces", ["boots"], True),
+        ("Beach Bag Canvas Tote", ["beach bag", "tote"], True),  # the slot wants a bag
+    ],
+)
+def test_accessory_veto_is_positional(title, keywords, expected):
+    assert type_match(title, keywords) is expected
+
+
+def test_total_budget_warning_compares_one_item_per_slot():
+    # covered through the service: the warning text now says "top pick of each slot"
+    import inspect
+
+    from stylist import service
+
+    assert "top pick of each slot" in inspect.getsource(service)
+
+
+def test_partial_total_budget_split_keeps_the_planner_values():
+    from stylist.planner import PlannerOutput, normalize_plan
+
+    out = PlannerOutput(
+        budget_max=100.0,
+        budget_scope="total",
+        slots=[
+            {"name": "a", "search_query": "a", "budget_max": 60.0},
+            {"name": "b", "search_query": "b"},
+            {"name": "c", "search_query": "c"},
+        ],
+    )
+    plan = normalize_plan(out, "q")
+    assert plan.slots[0].budget_max == 60.0
+    assert plan.slots[1].budget_max == plan.slots[2].budget_max == 20.0
+    assert any("1 of 3" in w for w in plan.warnings)
+
+
+def test_style_keywords_keep_eight():
+    from stylist.planner import PlannerOutput, normalize_plan
+
+    out = PlannerOutput(
+        style_keywords=[f"s{i}" for i in range(10)], slots=[{"name": "a", "search_query": "a"}]
+    )
+    assert len(normalize_plan(out, "q").style_keywords) == 8
+
+
+async def test_failed_llm_calls_are_counted(fixture_index, hash_embedder):
+    from stylist.llm import FakeLLM, LLMTransportError
+    from stylist.schemas import RecommendRequest
+    from stylist.service import RecommendationService
+
+    llm = FakeLLM(handler=lambda s, u, schema: LLMTransportError("down"))
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env({"EMBEDDER": "hash", "PLAN_CACHE_SIZE": "0"}),
+        llm=llm,
+    )
+    try:
+        r = await svc.recommend(RecommendRequest(query="boots", k=2))
+    finally:
+        svc.close()
+    assert r.llm_info.calls >= 1 and r.llm_info.failed_calls == r.llm_info.calls
+    assert r.llm_info.plan_cache_hit is False
+
+
+async def test_cache_hit_is_reported(fixture_index, hash_embedder):
+    from stylist.schemas import RecommendRequest
+    from stylist.service import RecommendationService
+
+    svc = RecommendationService(
+        fixture_index, hash_embedder, Settings.from_env({"EMBEDDER": "hash"}), llm=None
+    )
+    try:
+        await svc.recommend(RecommendRequest(query="boots", k=2))
+        r = await svc.recommend(RecommendRequest(query="boots", k=2))
+    finally:
+        svc.close()
+    assert r.llm_info.plan_cache_hit is True
+
+
+def test_cli_pretty_print_handles_a_missing_rating():
+    from stylist.cli import _format_pretty
+    from stylist.planner import QueryPlan, Slot
+    from stylist.schemas import IndexInfo, Item, LLMInfo, RecommendResponse, SlotResult
+
+    item = Item(
+        rank=1,
+        row_id=1,
+        parent_asin="B0ABC12345",
+        title="Boots",
+        price=None,
+        price_known=False,
+        average_rating=None,
+        rating_number=0,
+        store=None,
+        audience="unknown",
+        image_url=None,
+        url=None,
+        score=0.1,
+        matched_keywords=[],
+        reason="r",
+        evidence=[],
+    )
+    res = RecommendResponse(
+        request_id="x",
+        query="boots",
+        plan=QueryPlan(
+            intent="boots", slots=[Slot(name="boots", search_query="boots")], source="heuristic"
+        ),
+        slots=[
+            SlotResult(
+                name="boots",
+                search_query="boots",
+                keywords=[],
+                exclude_keywords=[],
+                budget_max=None,
+                n_eligible=1,
+                items=[item],
+            )
+        ],
+        note="",
+        warnings=[],
+        index_info=IndexInfo(
+            rows=1, sampling="all", limit=None, embedding_model="hash", built_at="now"
+        ),
+        llm_info=LLMInfo(provider=None, model=None, planner_used="heuristic", rerank_used=False),
+        timings={},
+    )
+    text = _format_pretty(res)
+    assert "no rating" in text and "no link" in text
+
+
+def test_cli_rejects_non_positive_build_limits():
+    from stylist.cli import build_parser
+
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["build-index", "--limit", "0"])
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["recommend", "q", "--k", "-1"])

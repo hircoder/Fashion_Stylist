@@ -80,7 +80,8 @@ class SlotResult(BaseModel):
     keywords: list[str]
     exclude_keywords: list[str] = Field(default_factory=list)
     budget_max: float | None
-    n_eligible: int
+    n_eligible: int  # candidates retrieved inside the window (capped by the candidate depth)
+    eligible_rows: int = 0  # index rows that pass the slot's audience / price masks at all
     items: list[Item]
 
 
@@ -97,7 +98,10 @@ class LLMInfo(BaseModel):
     model: str | None
     planner_used: str  # llm | heuristic
     rerank_used: bool
-    calls: int = 0  # LLM calls made for this request (a cached plan costs none)
+    rerank_model: str | None = None  # when a cheaper model reranks (LLM_RERANK_MODEL)
+    plan_cache_hit: bool = False  # the plan came from the cache: no planner call was made
+    calls: int = 0  # LLM calls attempted for this request (a cached plan costs none)
+    failed_calls: int = 0  # attempts that ended in an error (still billed by most providers)
     input_tokens: int = 0
     output_tokens: int = 0
 

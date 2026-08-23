@@ -18,7 +18,7 @@ def test_defaults_without_env_use_data_dir_and_no_llm():
 def test_provider_precedence_anthropic_wins_when_both_keys_present():
     s = Settings.from_env({"ANTHROPIC_API_KEY": "a", "OPENAI_API_KEY": "b"})
     assert s.llm_provider == "anthropic"
-    assert s.llm_model == "claude-opus-5"
+    assert s.llm_model == "claude-sonnet-4-6"  # the evaluated default
 
 
 def test_openai_is_picked_when_only_openai_key_present():

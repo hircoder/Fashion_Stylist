@@ -100,6 +100,9 @@ def build_service(settings: Settings) -> RecommendationService:
             f"embedding revision {revision} != index revision {index.meta.embedding_revision}"
         )
     llm = make_llm_client(settings)
+    rerank_llm = (
+        make_llm_client(settings, settings.llm_rerank_model) if settings.llm_rerank_model else None
+    )
     log.info(
         "service ready: %d rows (%s), embedder=%s, llm=%s/%s",
         index.n_rows,
@@ -108,7 +111,7 @@ def build_service(settings: Settings) -> RecommendationService:
         llm.provider if llm else "none",
         llm.model if llm else "-",
     )
-    return RecommendationService(index, embedder, settings, llm)
+    return RecommendationService(index, embedder, settings, llm, rerank_llm=rerank_llm)
 
 
 class _TokenBucket:
@@ -221,6 +224,8 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
                 if settings.startup_fail_fast:
                     raise
         yield
+        if app.state.service is not None:
+            app.state.service.close()
 
     app = FastAPI(
         title="Fashion stylist recommendation API",

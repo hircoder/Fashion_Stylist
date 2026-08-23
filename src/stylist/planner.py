@@ -397,15 +397,26 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
                 s.budget_max = budget_max
         else:  # total budget across several slots
             allocs = [s.budget_max for s in slots]
-            if any(a is None for a in allocs):
-                warnings.append("total budget split evenly across slots (planner gave no split)")
-                for s in slots:
-                    s.budget_max = round(budget_max / len(slots), 2)
-            else:
-                fixed, notes = _fit_allocation([a or 0.0 for a in allocs], budget_max)
-                warnings.extend(notes)
-                for s, a in zip(slots, fixed, strict=True):
-                    s.budget_max = a
+            missing = [i for i, a in enumerate(allocs) if a is None]
+            if missing:
+                # keep what the planner did split; share what is left among the rest
+                given = sum(a for a in allocs if a is not None)
+                left = max(budget_max - given, 0.0)
+                each = (
+                    round(left / len(missing), 2) if left > 0 else round(budget_max / len(slots), 2)
+                )
+                for i in missing:
+                    allocs[i] = each
+                warnings.append(
+                    "total budget split evenly across slots (planner gave no split)"
+                    if len(missing) == len(slots)
+                    else f"planner split the total budget for {len(slots) - len(missing)} of "
+                    f"{len(slots)} slots, the rest share what is left"
+                )
+            fixed, notes = _fit_allocation([a or 0.0 for a in allocs], budget_max)
+            warnings.extend(notes)
+            for s, a in zip(slots, fixed, strict=True):
+                s.budget_max = a
     else:
         for s in slots:
             s.budget_max = None
@@ -418,7 +429,7 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
         budget_min=budget_min,
         budget_max=budget_max,
         budget_scope=scope,
-        style_keywords=_clean_keywords(out.style_keywords)[:8],
+        style_keywords=_clean_keywords(out.style_keywords, 8),
         brand=_clean_text(out.brand, 40).lower() or None,
         slots=slots,
         source="llm",
