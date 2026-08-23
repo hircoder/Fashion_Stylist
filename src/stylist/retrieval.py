@@ -409,14 +409,16 @@ class Retriever:
                 own = self._rank_distinct(
                     dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate
                 )
-                if gate:
-                    own = [c for c in own if c.matched_keywords]
-                if len(own) >= k:
-                    ranked = own
+                typed_own = [c for c in own if c.matched_keywords] if gate else own
+                if len(typed_own) >= k:
+                    ranked = typed_own
                 else:
+                    # the brand's untyped rows stay in the pool (typed first): "Go Run 5"
+                    # from a shoe brand is a shoe even without the word, the reranker can
+                    # tell; other brands must match the type to follow
                     warnings.append(
-                        f"slot '{slot.name}': only {len(own)} '{plan.brand}' items of this type "
-                        f"match the constraints, other brands follow"
+                        f"slot '{slot.name}': only {len(typed_own)} '{plan.brand}' items of this "
+                        f"type match the constraints, other brands follow"
                     )
                     rest = self._rank_distinct(
                         dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate
