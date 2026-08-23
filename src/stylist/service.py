@@ -151,7 +151,10 @@ class RecommendationService:
         except (LLMError, TimeoutError) as exc:
             warnings.append(f"planner fell back to regex rules ({type(exc).__name__})")
             log.warning("planner failed: %s: %s", type(exc).__name__, exc)
-            if self.settings.planner_failure_ttl_s > 0:
+            # only a failure of the shared call itself goes into the negative cache; a
+            # waiter whose own budget ran out must not poison the query for everyone
+            own_timeout = isinstance(exc, TimeoutError) and not inflight.done()
+            if self.settings.planner_failure_ttl_s > 0 and not own_timeout:
                 self._plan_failed_until[key] = (
                     time.monotonic() + self.settings.planner_failure_ttl_s
                 )

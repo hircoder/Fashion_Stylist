@@ -93,7 +93,7 @@ def candidate_payload(c: Candidate) -> dict:
         "title": sanitize(c.title, 140),
         "price": c.price,
         "price_known": c.price is not None,
-        "rating": round(c.average_rating, 1),
+        "rating": round(c.average_rating, 1) if c.average_rating is not None else None,
         "ratings": c.rating_number,
         "audience": c.audience,
     }
@@ -141,7 +141,7 @@ def deterministic_reason(c: Candidate, window: SlotWindow) -> str:
     bits: list[str] = []
     if c.matched_keywords:
         bits.append("matched: " + ", ".join(c.matched_keywords))
-    if c.rating_number:
+    if c.rating_number and c.average_rating is not None:
         bits.append(f"{c.average_rating:.1f} stars from {c.rating_number:,} ratings")
     has_bound = window.max_price is not None or window.min_price is not None
     if c.price is not None:

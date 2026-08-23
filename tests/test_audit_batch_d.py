@@ -257,3 +257,50 @@ def test_type_match_accepts_the_head_noun_of_a_multi_word_keyword():
     assert not type_match("Jacket Hanger Set", ["rain jacket"])
     assert type_match("Men's Running Shoes Laces Free", ["running shoes"])  # exact match still wins
     assert not type_match("Pearl Earrings", ["ear warmers"])  # 'warmers' is the head, not 'ear'
+
+
+# ----------------------------------------------------------------------------- round 2 findings
+
+
+def test_reranker_payload_and_reasons_survive_a_missing_rating():
+    from stylist.reranker import candidate_payload, deterministic_reason
+
+    c = Candidate(
+        idx=1, row_id=1, score=0.5, title="Boots", average_rating=None, rating_number=3, price=9.99
+    )
+    assert candidate_payload(c)["rating"] is None
+    reason = deterministic_reason(c, SlotWindow(None, None, None, False))
+    assert "stars" not in reason and "$9.99" in reason
+
+
+async def test_a_waiters_own_timeout_does_not_poison_the_planner_cache(
+    fixture_index, hash_embedder
+):
+    import asyncio
+
+    from stylist.llm import FakeLLM
+    from stylist.planner import PlannerOutput
+    from stylist.schemas import RecommendRequest
+    from stylist.service import RecommendationService
+
+    async def slow_handler(system, user, schema):
+        await asyncio.sleep(0.6)
+        return PlannerOutput(
+            intent="x", slots=[{"name": "boots", "search_query": "boots", "keywords": ["boot"]}]
+        )
+
+    class SlowLLM(FakeLLM):
+        async def complete_json(self, *, system, user, schema, max_tokens=2000, timeout=30.0):
+            return await slow_handler(system, user, schema)
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.2", "PLANNER_FAILURE_TTL_S": "30"}
+        ),
+        llm=SlowLLM(),
+    )
+    r1 = await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+    assert r1.llm_info.planner_used == "heuristic"  # this request's budget ran out
+    assert not svc._plan_failed_until  # but the planner itself did not fail: no negative cache
