@@ -223,3 +223,58 @@ async def test_no_rerank_path_fetches_a_deep_enough_pool(fixture_index, hash_emb
     svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
     res = await svc.recommend(RecommendRequest(query="dresses", k=5, rerank=False))
     assert len(res.slots[0].items) == 5 and len(res.slots[1].items) == 5
+
+
+async def test_timed_out_retrieval_keeps_its_concurrency_permit_until_the_thread_ends(
+    fixture_index, hash_embedder
+):
+    import time
+
+    settings = _settings(REQUEST_DEADLINE_S="0.4", RETRIEVAL_CONCURRENCY="1")
+    svc = RecommendationService(fixture_index, hash_embedder, settings, llm=None)
+    real = svc.retriever.retrieve
+    state = {"slow_done_at": None, "second_started_at": None}
+
+    def slow(*a, **kw):
+        time.sleep(1.0)
+        state["slow_done_at"] = time.monotonic()
+        return real(*a, **kw)
+
+    def fast(*a, **kw):
+        state["second_started_at"] = time.monotonic()
+        return real(*a, **kw)
+
+    svc.retriever.retrieve = slow
+    from stylist.service import RequestTimeout
+
+    with pytest.raises(RequestTimeout):
+        await svc.recommend(RecommendRequest(query="boots"))
+    svc.retriever.retrieve = fast
+    fast_settings = _settings(REQUEST_DEADLINE_S="5", RETRIEVAL_CONCURRENCY="1")
+    svc.settings = fast_settings
+    await svc.recommend(RecommendRequest(query="hat"))
+    assert state["second_started_at"] >= state["slow_done_at"]
+
+
+async def test_five_overlapping_slots_all_get_filled(fixture_index, hash_embedder):
+    slots = tuple((f"s{i}", "women dress", ["dress"]) for i in range(5))
+    llm = _stylist_llm(_plan_out(*slots))
+    svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
+    res = await svc.recommend(RecommendRequest(query="dresses", k=3, rerank=False))
+    assert [len(s.items) for s in res.slots] == [3, 3, 3, 3, 3]
+    ids = [i.row_id for s in res.slots for i in s.items]
+    assert len(ids) == len(set(ids))
+
+
+async def test_late_stage_never_returns_after_the_deadline(fixture_index, hash_embedder):
+    class SlowLLM(FakeLLM):
+        async def complete_json(self, **kw):
+            await asyncio.sleep(0.9)
+            return _plan_out(("x", "sandals", ["sandal"]))
+
+    settings = _settings(REQUEST_DEADLINE_S="1.0", PLANNER_BUDGET_S="0.5")
+    svc = RecommendationService(fixture_index, hash_embedder, settings, llm=SlowLLM())
+    t = asyncio.get_event_loop().time()
+    res = await svc.recommend(RecommendRequest(query="sandals"))
+    assert asyncio.get_event_loop().time() - t < 1.0  # no grace period past the deadline
+    assert res.llm_info.planner_used == "heuristic"

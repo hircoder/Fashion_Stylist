@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, TypeVar
 
 import anthropic
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from stylist.llm import (
     LLMAuthError,
@@ -65,6 +65,10 @@ class AnthropicLLM:
             raise LLMTimeoutError(str(exc)) from exc
         except (anthropic.APIConnectionError, anthropic.APIStatusError) as exc:
             raise LLMTransportError(str(exc)) from exc
+        except ValidationError as exc:
+            raise LLMValidationError(str(exc)) from exc
+        except Exception as exc:  # anything else the sdk throws: still an llm failure
+            raise LLMTransportError(f"{type(exc).__name__}: {exc}") from exc
 
         stop = getattr(resp, "stop_reason", None)
         if stop == "refusal":

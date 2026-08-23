@@ -216,3 +216,25 @@ async def test_live_provider_roundtrip():
         timeout=60,
     )
     assert out.count == 2
+
+
+async def test_openai_adapter_maps_sdk_parse_exceptions():
+    # the sdk raises these from parse() before any response object exists
+    for exc_cls, mapped in [
+        (openai.LengthFinishReasonError, LLMTruncatedError),
+        (openai.ContentFilterFinishReasonError, LLMRefusalError),
+    ]:
+        llm = OpenAILLM("k", "m", client=_OpenAIRecorder(raises=_sdk_exc(exc_cls)))
+        with pytest.raises(mapped):
+            await llm.complete_json(system="S", user="U", schema=Answer)
+
+
+async def test_adapters_map_any_other_exception_to_an_llm_error():
+    from stylist.llm import LLMError
+
+    for llm in (
+        OpenAILLM("k", "m", client=_OpenAIRecorder(raises=KeyError("weird"))),
+        AnthropicLLM(api_key="k", model="m", client=_AnthropicRecorder(raises=ValueError("odd"))),
+    ):
+        with pytest.raises(LLMError):
+            await llm.complete_json(system="S", user="U", schema=Answer)

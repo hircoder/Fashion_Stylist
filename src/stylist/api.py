@@ -38,12 +38,16 @@ per slot inside the price/audience constraints, and the LLM reranks and explains
 """
 
 
-def _public_error(exc: Exception) -> str:
-    """Error text safe to show to any client: class name + message without local paths."""
+def _scrub(text: str) -> str:
+    """Strip local filesystem paths out of text that goes to a client."""
     import re
 
-    text = re.sub(r"(/[\w.\-]+)+", "<path>", str(exc))
-    return f"{type(exc).__name__}: {text}"[:300]
+    return re.sub(r"(/[\w.\-]+){2,}", "<path>", text)[:300]
+
+
+def _public_error(exc: Exception) -> str:
+    """Error text safe to show to any client: class name + message without local paths."""
+    return f"{type(exc).__name__}: {_scrub(str(exc))}"
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -122,7 +126,7 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException):
-        return _error(exc.status_code, f"http_{exc.status_code}", str(exc.detail))
+        return _error(exc.status_code, f"http_{exc.status_code}", _scrub(str(exc.detail)))
 
     @app.exception_handler(IndexNotLoaded)
     async def _not_loaded(_: Request, exc: IndexNotLoaded):

@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from stylist.artifacts import ArtifactError
 from stylist.config import ConfigError, Settings
 from stylist.index import IndexValidationError
+from stylist.service import RequestTimeout
 
 RAW_URL = (
     "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/"
@@ -191,7 +192,12 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--max-price", type=float)
     r.add_argument("--min-price", type=float)
     r.add_argument("--audience", choices=["women", "men", "girls", "boys", "baby", "unisex"])
-    r.add_argument("--include-unpriced", action="store_true")
+    r.add_argument(
+        "--include-unpriced",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="allow items with unknown price when a budget applies (default: auto, see README)",
+    )
     r.add_argument("--no-llm", action="store_true")
     r.add_argument("--no-rerank", action="store_true")
     r.add_argument("--json", action="store_true")
@@ -223,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
         first = exc.errors()[0] if exc.errors() else {}
         print(f"invalid request: {first.get('msg', exc)}", file=sys.stderr)
         return 2
-    except (IndexValidationError, ArtifactError, ConfigError, OSError) as exc:
+    except (IndexValidationError, ArtifactError, ConfigError, OSError, RequestTimeout) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

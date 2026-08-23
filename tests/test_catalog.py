@@ -253,3 +253,12 @@ def test_group_key_strips_trailing_shoe_sizes_but_keeps_model_numbers():
     assert group_key(a) == group_key(b) == group_key(a[:-2])
     assert group_key("Nike Air Zoom Pegasus 38") != group_key("Nike Air Zoom Pegasus 39")
     assert group_key("Levi's 501 Original Fit Jeans").endswith("jeans")
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [(5, 5), ("12", 12), (-3, 0), (float("inf"), 0), ("x", 0), (None, 0), (2**40, 2**31 - 1)],
+)
+def test_rating_number_is_a_bounded_int(raw, expected):
+    row = normalize_record({"title": "t", "rating_number": raw, "parent_asin": "A"}, row_id=1)
+    assert row["rating_number"] == expected

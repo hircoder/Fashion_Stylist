@@ -156,8 +156,9 @@ def keyword_matches(title: str, keywords: list[str]) -> list[str]:
     return out
 
 
-def bayes_rating(avg: float, count: int, m: int = RATING_PRIOR_M, prior: float = 4.0) -> float:
-    """Bayesian average: shrinks low-count ratings toward the catalog mean."""
+def bayes_rating(avg: float, count: int, m: int, prior: float) -> float:
+    """Bayesian average: shrinks low-count ratings toward `prior` (the catalog mean at
+    serving time), with `m` pseudo-ratings of weight."""
     v = max(int(count or 0), 0)
     return (v / (v + m)) * float(avg or 0.0) + (m / (v + m)) * prior
 
@@ -256,7 +257,9 @@ class Retriever:
             c.excluded_keywords = keyword_matches(c.title, slot.exclude_keywords)
             if c.excluded_keywords:  # look-alike type
                 c.score -= EXCLUDE_PENALTY * self.s.keyword_boost * self._unit
-            quality = bayes_rating(c.average_rating, c.rating_number, prior=self.rating_prior)
+            quality = bayes_rating(
+                c.average_rating, c.rating_number, m=RATING_PRIOR_M, prior=self.rating_prior
+            )
             c.score += self.s.quality_weight * self._unit * (quality / 5.0)
         fused.sort(key=lambda c: (-c.score, c.idx))
         return fused

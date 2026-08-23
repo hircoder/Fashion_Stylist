@@ -92,3 +92,15 @@ def test_cli_invalid_request_is_a_clean_exit(built, capsys, monkeypatch_module):
     monkeypatch_module.setenv("LLM_PROVIDER", "none")
     assert main(["recommend", "x", "--min-price", "50", "--max-price", "10"]) == 2
     assert "min_price" in capsys.readouterr().err
+
+
+def test_cli_unpriced_flag_is_tri_state(built, capsys, monkeypatch_module):
+    _, index_dir = built
+    monkeypatch_module.setenv("INDEX_DIR", str(index_dir))
+    monkeypatch_module.setenv("LLM_PROVIDER", "none")
+    assert main(["recommend", "swimsuit under $5", "--json"]) == 0
+    auto = json.loads(capsys.readouterr().out)
+    assert any(not i["price_known"] for i in auto["slots"][0]["items"])  # auto: inferred budget
+    assert main(["recommend", "swimsuit under $5", "--json", "--no-include-unpriced"]) == 0
+    strict = json.loads(capsys.readouterr().out)
+    assert all(i["price_known"] for i in strict["slots"][0]["items"])

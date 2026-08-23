@@ -211,6 +211,8 @@ def verify_checksums(index_dir: Path, meta: IndexMeta) -> None:
     """Every file listed in meta must exist and match; extra/missing bm25 files fail too."""
     expected = set(meta.checksums)
     present = set(index_files(index_dir))
+    if not any(name.startswith(f"{BM25_DIR}/") for name in expected):
+        raise IndexValidationError("meta.json lists no bm25 files, the index is incomplete")
     if expected != present:
         raise IndexValidationError(
             f"index files do not match meta.json (missing {sorted(expected - present)}, "

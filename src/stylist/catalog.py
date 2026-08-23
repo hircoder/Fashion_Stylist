@@ -291,6 +291,17 @@ def _finite(value: object) -> float:
     return f if math.isfinite(f) and f >= 0 else 0.0
 
 
+def _count(value: object) -> int:
+    """Non-negative int32 rating count; anything unparsable counts as 0."""
+    try:
+        f = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
+    if not math.isfinite(f) or f < 0:
+        return 0
+    return int(min(f, 2**31 - 1))
+
+
 def _first_image_url(images: object) -> str | None:
     if not isinstance(images, list) or not images:
         return None
@@ -355,7 +366,7 @@ def normalize_record(raw: dict, row_id: int) -> dict:
         "parent_asin": str(raw.get("parent_asin") or ""),
         "title": title,
         "average_rating": _finite(raw.get("average_rating")),
-        "rating_number": int(raw.get("rating_number") or 0),
+        "rating_number": _count(raw.get("rating_number")),
         "price": price,
         "price_status": status,
         "store": (raw.get("store") or None),

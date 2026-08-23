@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import os
 import tarfile
 
@@ -126,3 +127,17 @@ def test_second_process_finds_installed_index_under_lock(tmp_path, index_tar, mo
     mtime = os.stat(tmp_path / "index" / "meta.json").st_mtime
     ensure_index(s)  # no second download / reinstall
     assert os.stat(tmp_path / "index" / "meta.json").st_mtime == mtime
+
+
+def test_index_without_bm25_files_is_not_considered_installed(tmp_path, index_tar):
+    tar_path, sha = index_tar
+    s = _settings(tmp_path, INDEX_URL=tar_path.as_uri(), INDEX_SHA256=sha)
+    ensure_index(s)
+    import shutil
+
+    shutil.rmtree(tmp_path / "index" / "bm25")
+    meta = json.loads((tmp_path / "index" / "meta.json").read_text())
+    meta["checksums"] = {k: v for k, v in meta["checksums"].items() if not k.startswith("bm25/")}
+    (tmp_path / "index" / "meta.json").write_text(json.dumps(meta))
+    ensure_index(s)  # must notice and reinstall
+    assert (tmp_path / "index" / "bm25").is_dir()

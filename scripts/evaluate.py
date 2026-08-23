@@ -62,10 +62,9 @@ def _passes(title: str, rule: dict) -> bool:
 
 def _match_slot_rule(slot_name: str, rules: dict) -> dict | None:
     """Find the rule for a returned slot by name overlap; falls back to the union of all."""
-    name = slot_name.lower()
+    name_words = set(re.findall(r"[a-z]+", slot_name.lower()))
     for rule_name, rule in rules.items():
-        words = re.findall(r"[a-z]+", rule_name.lower())
-        if any(w in name for w in words) or any(w in rule_name.lower() for w in name.split()):
+        if set(re.findall(r"[a-z]+", rule_name.lower())) & name_words:
             return rule
     return None
 

@@ -58,15 +58,15 @@ class Item(BaseModel):
     row_id: int
     parent_asin: str
     title: str
-    price: float | None
+    price: float | None = Field(None, allow_inf_nan=False)
     price_known: bool
-    average_rating: float
+    average_rating: float = Field(..., allow_inf_nan=False)
     rating_number: int
     store: str | None
     audience: str
     image_url: str | None
     url: str
-    score: float
+    score: float = Field(..., allow_inf_nan=False)
     matched_keywords: list[str]
     reason: str
     evidence: list[str] = Field(default_factory=list)

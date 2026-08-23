@@ -275,3 +275,17 @@ def test_normalize_keeps_cleaned_exclude_keywords():
     plan = normalize_plan(out, "q")
     assert plan.slots[0].exclude_keywords == ["cover up", "coverup", "cover-up", "x"]
     assert HeuristicPlanner().plan("swimsuit").slots[0].exclude_keywords == []
+
+
+def test_total_budget_rounding_never_exceeds_the_total():
+    out = _out(
+        budget_max=100.0,
+        budget_scope="total",
+        slots=[
+            {"name": "a", "search_query": "a", "keywords": [], "budget_max": 33.335},
+            {"name": "b", "search_query": "b", "keywords": [], "budget_max": 33.335},
+            {"name": "c", "search_query": "c", "keywords": [], "budget_max": 33.33},
+        ],
+    )
+    plan = normalize_plan(out, "q")
+    assert sum(s.budget_max for s in plan.slots) <= 100.0

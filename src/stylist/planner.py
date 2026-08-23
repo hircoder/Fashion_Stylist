@@ -321,7 +321,12 @@ def _fit_allocation(allocs: list[float], total: float) -> tuple[list[float], lis
             total_room = sum(room)
             if total_room > 0:
                 fixed = [a - excess * (r / total_room) for a, r in zip(fixed, room, strict=True)]
-    return [round(a, 2) for a in fixed], notes
+    rounded = [round(a, 2) for a in fixed]
+    overshoot = round(sum(rounded) - total, 2)
+    if overshoot > 0:  # cents lost to rounding come out of the biggest slot
+        i = max(range(len(rounded)), key=lambda j: rounded[j])
+        rounded[i] = round(rounded[i] - overshoot, 2)
+    return rounded, notes
 
 
 def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:

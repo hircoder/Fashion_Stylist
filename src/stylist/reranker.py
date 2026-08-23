@@ -170,16 +170,20 @@ def apply_slot_rerank(out: SlotRerankOutput, sc: SlotCandidates) -> tuple[Ranked
 
 
 class LLMReranker:
-    def __init__(self, llm: LLMClient, max_tokens: int = 1500):
+    def __init__(self, llm: LLMClient, max_tokens: int = 1500, candidates: int = 10):
         self._llm = llm
         self._max_tokens = max_tokens
+        self._candidates = candidates  # how many of a slot's ranked candidates the model sees
 
     async def _rerank_slot(
         self, query: str, plan: QueryPlan, sc: SlotCandidates, k: int, timeout: float
     ) -> SlotRerankOutput:
+        shown = SlotCandidates(
+            sc.slot, sc.window, sc.candidates[: self._candidates], sc.n_eligible, sc.warnings
+        )
         return await self._llm.complete_json(
             system=RERANK_SYSTEM,
-            user=build_rerank_user(query, plan, sc, k),
+            user=build_rerank_user(query, plan, shown, k),
             schema=SlotRerankOutput,
             max_tokens=self._max_tokens,
             timeout=timeout,
@@ -193,7 +197,7 @@ class LLMReranker:
         ranked: list[RankedSlot] = [fused_slot(sc) for sc in slots]
         warnings: list[str] = []
         notes: list[str] = []
-        todo = [i for i, sc in enumerate(slots) if any(c.in_window for c in sc.candidates)]
+        todo = [i for i, sc in enumerate(slots) if sc.candidates]
         if not todo:
             return RerankResult(ranked, "", False, warnings)
         results = await asyncio.gather(
@@ -203,15 +207,14 @@ class LLMReranker:
         used = False
         for i, result in zip(todo, results, strict=True):
             name = slots[i].slot.name
-            if isinstance(result, LLMError):
-                log.warning(
-                    "rerank of slot %r skipped: %s: %s", name, type(result).__name__, result
-                )
+            if isinstance(result, Exception):  # LLMError or anything unexpected: this slot only
+                level = log.warning if isinstance(result, LLMError) else log.error
+                level("rerank of slot %r skipped: %s: %s", name, type(result).__name__, result)
                 warnings.append(
                     f"rerank skipped for '{name}' ({type(result).__name__}), retrieval order kept"
                 )
                 continue
-            if isinstance(result, BaseException):
+            if isinstance(result, BaseException):  # cancellation and friends propagate
                 raise result
             ranked[i], slot_warnings = apply_slot_rerank(result, slots[i])
             warnings.extend(slot_warnings)

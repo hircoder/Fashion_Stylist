@@ -220,3 +220,48 @@ def test_rerank_payload_flags_excluded_keyword_matches():
     by_id = {c["row_id"]: c for c in payload["candidates"]}
     assert by_id[3]["off_type_hint"] == ["cover up"]
     assert "off_type_hint" not in by_id[1]
+
+
+async def test_slot_with_only_unpriced_candidates_is_still_reranked():
+    plan, slots = _slots()
+    for c in slots[0].candidates:
+        c.in_window = False  # budget given, nothing priced matched, pool only
+    llm = _by_slot(
+        {
+            "swimsuit": {"picks": [{"row_id": 2, "reason": "bikini", "evidence": []}]},
+            "sandals": {"picks": []},
+        }
+    )
+    res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
+    assert [c.row_id for c in res.slots[0].ordered][:1] == [2]
+    assert 2 in res.slots[0].reasons
+
+
+async def test_unexpected_exception_in_one_slot_falls_back_for_that_slot():
+    plan, slots = _slots()
+
+    def handler(system, user, schema):
+        payload = json.loads(user[user.index("{") :])
+        if payload["slot"]["name"] == "swimsuit":
+            raise RuntimeError("sdk exploded")
+        return {"picks": [{"row_id": 11, "reason": "wedge", "evidence": []}]}
+
+    res = await LLMReranker(FakeLLM(handler=handler)).rerank("beach", plan, slots, k=2, timeout=5)
+    assert [c.row_id for c in res.slots[0].ordered] == [1, 2, 3, 4]
+    assert [c.row_id for c in res.slots[1].ordered] == [11, 10]
+    assert any("RuntimeError" in w for w in res.warnings)
+
+
+async def test_reranker_only_sees_the_configured_number_of_candidates():
+    plan, slots = _slots()
+    seen = {}
+
+    def handler(system, user, schema):
+        payload = json.loads(user[user.index("{") :])
+        seen[payload["slot"]["name"]] = len(payload["candidates"])
+        return {"picks": []}
+
+    await LLMReranker(FakeLLM(handler=handler), candidates=2).rerank(
+        "beach", plan, slots, k=2, timeout=5
+    )
+    assert seen == {"swimsuit": 2, "sandals": 2}

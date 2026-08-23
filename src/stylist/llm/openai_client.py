@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any, TypeVar
 
 import openai
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from stylist.llm import (
     LLMAuthError,
@@ -68,6 +68,10 @@ class OpenAILLM:
                 timeout=timeout,
                 **kwargs,
             )
+        except openai.LengthFinishReasonError as exc:
+            raise LLMTruncatedError(str(exc)) from exc
+        except openai.ContentFilterFinishReasonError as exc:
+            raise LLMRefusalError(str(exc)) from exc
         except openai.AuthenticationError as exc:
             raise LLMAuthError(str(exc)) from exc
         except openai.RateLimitError as exc:
@@ -76,6 +80,10 @@ class OpenAILLM:
             raise LLMTimeoutError(str(exc)) from exc
         except (openai.APIConnectionError, openai.APIStatusError) as exc:
             raise LLMTransportError(str(exc)) from exc
+        except ValidationError as exc:
+            raise LLMValidationError(str(exc)) from exc
+        except Exception as exc:  # anything else the sdk throws: still an llm failure
+            raise LLMTransportError(f"{type(exc).__name__}: {exc}") from exc
 
         if not getattr(resp, "choices", None):
             raise LLMValidationError("empty choices in response")

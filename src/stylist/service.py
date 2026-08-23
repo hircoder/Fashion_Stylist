@@ -104,7 +104,7 @@ class RecommendationService:
                 try:
                     plan = await asyncio.wait_for(
                         self.llm_planner.plan(req.query, timeout=budget),  # type: ignore[union-attr]
-                        timeout=budget + 0.5,
+                        timeout=budget,
                     )
                     self._cache_put(key, plan)
                     return plan.model_copy(deep=True), "llm"
@@ -145,6 +145,19 @@ class RecommendationService:
         async with self._retrieval_sem:
             return await asyncio.to_thread(self.retriever.retrieve, plan, windows, n_candidates, k)
 
+    async def _retrieve_with_deadline(self, plan, windows, n_candidates: int, k: int, deadline):
+        """Time out the *wait*, not the work: the thread cannot be cancelled, so the task
+        that holds the concurrency permit keeps running until the thread returns. That is
+        what keeps RETRIEVAL_CONCURRENCY honest under a burst of timeouts."""
+        task = asyncio.ensure_future(self._retrieve(plan, windows, n_candidates, k))
+        try:
+            return await asyncio.wait_for(
+                asyncio.shield(task), timeout=max(deadline - time.monotonic(), 0.01)
+            )
+        except TimeoutError:
+            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+            raise
+
     # ------------------------------------------------------------------ main entry
 
     async def recommend(self, req: RecommendRequest) -> RecommendResponse:
@@ -168,13 +181,13 @@ class RecommendationService:
         warnings.extend(merge_warnings)
 
         do_rerank = req.use_llm and req.rerank and self.reranker is not None
-        # a deep enough pool that cross-slot de-duplication can still fill every slot
-        n_candidates = max(self.settings.rerank_candidates, 3 * req.k)
+        # a pool deep enough that cross-slot de-duplication can still fill every slot even
+        # when all slots overlap (the reranker only sees the top rerank_candidates of it)
+        n_candidates = max(self.settings.rerank_candidates, req.k * max(3, len(plan.slots)))
         t1 = time.monotonic()
         try:
-            slot_cands = await asyncio.wait_for(
-                self._retrieve(plan, windows, n_candidates, req.k),
-                timeout=max(deadline - time.monotonic(), 0.01),
+            slot_cands = await self._retrieve_with_deadline(
+                plan, windows, n_candidates, req.k, deadline
             )
         except TimeoutError as exc:
             log.warning("request %s: retrieval exceeded the deadline", request_id)
@@ -196,7 +209,7 @@ class RecommendationService:
                 try:
                     result: RerankResult = await asyncio.wait_for(
                         self.reranker.rerank(req.query, plan, slot_cands, req.k, budget),  # type: ignore[union-attr]
-                        timeout=budget + 0.5,
+                        timeout=budget,
                     )
                     ranked, rerank_used, note = result.slots, result.used_llm, result.note
                     warnings.extend(result.warnings)
