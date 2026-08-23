@@ -43,7 +43,7 @@
   #agenda { position: fixed; top: 14px; left: 14px; width: 208px; background: #fff; border: 1px solid #111; z-index: 20; font-size: 12px; }
   #agenda .ttl { display: block; padding: 5px 8px 4px; font-weight: 700; text-decoration: none; border-bottom: 1px solid #111; letter-spacing: .02em; }
   #agenda .ttl span { float: right; font-weight: 400; color: #666; font-variant-numeric: tabular-nums; }
-  #agenda .bar { height: 4px; background: #e6e6e6; } #agenda .bar i { display: block; height: 100%; width: 9%; background: #111; transition: width .4s ease; }
+  #agenda .bar { height: 4px; background: #e6e6e6; } #agenda .bar i { display: block; height: 100%; width: 7%; background: #111; transition: width .4s ease; }
   #agenda table { margin: 0; font-size: 12px; }
   #agenda td { padding: 2px 6px; border-bottom: 1px solid #eee; line-height: 1.4; }
   #agenda td.n { width: 22px; color: #888; text-align: right; font-variant-numeric: tabular-nums; }
@@ -95,10 +95,10 @@
 </style>
 </head>
 <body>
-<div id="pos">1 / 11</div>
+<div id="pos">1 / 15</div>
 <button id="agenda-toggle" type="button" aria-controls="agenda" aria-expanded="false">agenda</button>
 <nav id="agenda" aria-label="agenda">
-  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 11</span></a>
+  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 15</span></a>
   <div class="bar"><i id="ag-bar"></i></div>
   <table>
     <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">Overview</a></td></tr>
@@ -111,14 +111,18 @@
     <tr data-s="7"><td class="n">8</td><td><a class="row" href="#s8">Capabilities</a></td></tr>
     <tr data-s="8"><td class="n">9</td><td><a class="row" href="#s9">Sample results</a></td></tr>
     <tr data-s="9"><td class="n">10</td><td><a class="row" href="#s10">Evaluation</a></td></tr>
-    <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">Files and deployment</a></td></tr>
+    <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">Production numbers</a></td></tr>
+    <tr data-s="11"><td class="n">12</td><td><a class="row" href="#s12">Production setup</a></td></tr>
+    <tr data-s="12"><td class="n">13</td><td><a class="row" href="#s13">Guardrails and observability</a></td></tr>
+    <tr data-s="13"><td class="n">14</td><td><a class="row" href="#s14">Gaps and next actions</a></td></tr>
+    <tr data-s="14"><td class="n">15</td><td><a class="row" href="#s15">Files and deployment</a></td></tr>
   </table>
   <div class="hint">Arrow keys or scroll. On slide 5, left / right step the flow.</div>
 </nav>
 
 <section class="slide" id="s1">
   <div class="inner fade">
-    <div class="no">1 / 11 &middot; Take-home project</div>
+    <div class="no">1 / 15 &middot; Take-home project</div>
     <h1><a class="tl" href="#s1">Fashion Stylist: a semantic recommendation service</a></h1>
     <p>The brief: a small service that takes a sentence like the one below, works out what the person actually needs, and finds it in the Amazon Fashion catalog (826,108 listings) using semantic search and an LLM. Exposed as an API. This page is the short version; the README, the PRD, the decision records and the evaluation doc in <code>docs/</code> have the long one.</p>
     <p class="small">shopper types:</p>
@@ -136,7 +140,7 @@
 
 <section class="slide" id="s2">
   <div class="inner fade">
-    <div class="no">2 / 11 &middot; Scope and business case</div>
+    <div class="no">2 / 15 &middot; Scope and business case</div>
     <h2><a class="tl" href="#s2">Scope and business case</a></h2>
     <p>A catalog search box understands product words. "I need an outfit to go to the beach this summer" has none, and the budget, the audience or the occasion hiding in a sentence get dropped by keyword search. The business value of fixing that: one search box that accepts situations, bundles instead of single items, and answers that explain themselves so the product team can trust and debug them.</p>
     <p>I wrote a short PRD first (<code>docs/prd.md</code>) and kept it honest as the data pushed back. The requirements and how each one is met:</p>
@@ -155,7 +159,7 @@
 
 <section class="slide" id="s3">
   <div class="inner fade">
-    <div class="no">3 / 11 &middot; Data</div>
+    <div class="no">3 / 15 &middot; Data</div>
     <h2><a class="tl" href="#s3">Data: what the catalog contains and what it lacks</a></h2>
     <p>I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (<code>categories</code>, <code>bought_together</code>): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.</p>
     <div class="two">
@@ -182,7 +186,7 @@
 
 <section class="slide" id="s4">
   <div class="inner fade">
-    <div class="no">4 / 11 &middot; Exploration</div>
+    <div class="no">4 / 15 &middot; Exploration</div>
     <h2><a class="tl" href="#s4">Exploration: scripts, notebooks and prompt experiments</a></h2>
     <div class="two">
       <div>
@@ -221,7 +225,7 @@
 
 <section class="slide" id="s5">
   <div class="inner wide fade">
-    <div class="no">5 / 11 &middot; Architecture, one request animated</div>
+    <div class="no">5 / 15 &middot; Architecture, one request animated</div>
     <h2><a class="tl" href="#s5">Architecture and data flow</a></h2>
     <div class="stage" id="stage">
       <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
@@ -265,7 +269,7 @@
 
 <section class="slide" id="s6">
   <div class="inner wide fade">
-    <div class="no">6 / 11 &middot; Design decisions</div>
+    <div class="no">6 / 15 &middot; Design decisions</div>
     <h2><a class="tl" href="#s6">Design decisions and their rationale</a></h2>
     <p class="small">One line each here; each has a full record in <code>docs/adr/</code> (context, decision, why, consequences, alternatives).</p>
     <table>
@@ -289,7 +293,7 @@
 
 <section class="slide" id="s7">
   <div class="inner fade">
-    <div class="no">7 / 11 &middot; Technology stack</div>
+    <div class="no">7 / 15 &middot; Technology stack</div>
     <h2><a class="tl" href="#s7">Technology stack</a></h2>
     <table>
       <tr><td>Python 3.12, FastAPI, pydantic</td><td>typed request and response models, OpenAPI at <code>/docs</code> for free, async pipeline, <code>/health</code> and <code>/ready</code></td></tr>
@@ -305,7 +309,7 @@
 
 <section class="slide" id="s8">
   <div class="inner fade">
-    <div class="no">8 / 11 &middot; Capabilities</div>
+    <div class="no">8 / 15 &middot; Capabilities</div>
     <h2><a class="tl" href="#s8">Features and capabilities</a></h2>
     <ul>
       <li>Outfit decomposition: "what to wear to an outdoor wedding" becomes shirt, pants, blazer, shoes, tie. A single item request stays one slot.</li>
@@ -323,7 +327,7 @@
 
 <section class="slide" id="s9">
   <div class="inner fade">
-    <div class="no">9 / 11 &middot; Sample results</div>
+    <div class="no">9 / 15 &middot; Sample results</div>
     <h2><a class="tl" href="#s9">Sample results</a></h2>
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
@@ -403,7 +407,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s10">
   <div class="inner wide fade">
-    <div class="no">10 / 11 &middot; Evaluation</div>
+    <div class="no">10 / 15 &middot; Evaluation</div>
     <h2><a class="tl" href="#s10">Evaluation and quality</a></h2>
     <div class="two">
       <div>
@@ -437,9 +441,178 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 </section>
 
 <section class="slide" id="s11">
+  <div class="inner wide fade">
+    <div class="no">11 / 15 &middot; Production numbers</div>
+    <h2><a class="tl" href="#s11">Latency, throughput and cost, measured</a></h2>
+    <div class="two">
+      <div>
+        <h3 style="margin-top:0">One process, retrieval only (use_llm=false), 100K index, CPU</h3>
+        <table>
+          <tr><th class="r">concurrency</th><th class="r">p50</th><th class="r">p95</th><th class="r">req/s</th></tr>
+          <tr><td class="r">1</td><td class="r">22 ms</td><td class="r">32 ms</td><td class="r">42</td></tr>
+          <tr><td class="r">2</td><td class="r">33 ms</td><td class="r">41 ms</td><td class="r">58</td></tr>
+          <tr><td class="r">4</td><td class="r">65 ms</td><td class="r">82 ms</td><td class="r">62</td></tr>
+          <tr><td class="r">8</td><td class="r">126 ms</td><td class="r">145 ms</td><td class="r">62</td></tr>
+        </table>
+        <p class="small">60 requests per setting, M4 laptop pinned to CPU (<code>scripts/benchmark.py --device cpu</code>, <code>docs/bench_cpu.json</code>). Throughput flattens at about 60 req/s per process because the embedding call and the matmul hold the GIL; more capacity means more processes, not more threads. RSS after load: 1.0 GB (torch + model about 0.5 GB, index 0.25 GB, pandas catalog and bm25 the rest). Load time 0.1 s including sha256 of every file.</p>
+        <h3>Full pipeline with the LLM, 20 eval queries, claude-sonnet-4-6</h3>
+        <table>
+          <tr><th>stage</th><th class="r">p50</th><th class="r">p95</th><th class="r">share</th></tr>
+          <tr><td>plan (1 LLM call)</td><td class="r">5.2 s</td><td class="r">7.1 s</td><td class="r">45%</td></tr>
+          <tr><td>retrieve (all slots)</td><td class="r">0.13 s</td><td class="r">0.28 s</td><td class="r">1%</td></tr>
+          <tr><td>rerank (1 call per slot, parallel)</td><td class="r">5.9 s</td><td class="r">6.9 s</td><td class="r">51%</td></tr>
+          <tr><td>total</td><td class="r">11.5 s</td><td class="r">13.5 s</td><td class="r"></td></tr>
+        </table>
+        <p class="small">Sequential run, cold plan cache, 2.9 slots and 3.9 LLM calls per request on average, 0 empty slots in 58, 12 warnings (mostly "3 of 4 items chosen by the reranker"). A burst of 8 concurrent requests finished in 18.5 s with no errors (p50 8.7 s, max 18.5 s) under LLM_CONCURRENCY=8. Source: <code>docs/live_run_sonnet.json</code>.</p>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Economics</h3>
+        <table>
+          <tr><th>per request</th><th class="r">mean</th><th class="r">min</th><th class="r">max</th></tr>
+          <tr><td>input tokens</td><td class="r">8,200</td><td class="r">3,900</td><td class="r">13,100</td></tr>
+          <tr><td>output tokens</td><td class="r">760</td><td class="r">250</td><td class="r">1,380</td></tr>
+          <tr><td>LLM cost at $3 / $15 per M (Sonnet class)</td><td class="r">$0.036</td><td class="r">$0.016</td><td class="r">$0.060</td></tr>
+          <tr><td>same traffic on a $1 / $5 per M model (Haiku class)</td><td class="r">$0.012</td><td class="r">$0.005</td><td class="r">$0.020</td></tr>
+          <tr><td>compute (2 vCPU container, $20 / month, 40K req/day)</td><td class="r">$0.00002</td><td class="r"></td><td class="r"></td></tr>
+        </table>
+        <p class="small">Token counts come from the SDK usage fields and are returned in every response (<code>llm_info.calls / input_tokens / output_tokens</code>), so cost per request is a number in the logs, not an estimate. Roughly 2,100 input and 195 output tokens per call: the system prompts and the 10 candidate rows dominate.</p>
+        <h3>At 10,000 requests a day</h3>
+        <ul>
+          <li>LLM: $360 / day on the Sonnet class, $120 on the Haiku class, $36 with a 90% plan cache hit rate plus prompt caching on the two system prompts (about 1,200 cached tokens per call, billed at 10%).</li>
+          <li>Compute: one 2 vCPU / 4 GB container serves 40K LLM-mode requests a day at LLM_CONCURRENCY=8 (0.45 req/s sustained) or 5M retrieval-only requests; the LLM provider's rate limit is the ceiling, not the CPU.</li>
+          <li>Levers in order of payoff: cache plans across replicas (Redis), rerank with a smaller model (quality check first: the 20 query eval showed the reranker adds 3 points), cut candidate rows to 8, shorten system prompts, one rerank call for all slots when slots &lt;= 2.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <div class="inner wide fade">
+    <div class="no">12 / 15 &middot; Production deployment</div>
+    <h2><a class="tl" href="#s12">Recommended production setup</a></h2>
+    <div class="two">
+      <div>
+        <h3 style="margin-top:0">Shape</h3>
+        <table>
+          <tr><th>piece</th><th>recommendation</th><th>why</th></tr>
+          <tr><td>runtime</td><td>the existing container (python:3.12-slim, CPU torch), 2 vCPU / 4 GB per replica, 8 GB if the full 826K index is served</td><td>1.0 GB RSS measured for 100K rows, 3.3 GB for 826K; query embedding needs 5 to 10 ms on CPU, a GPU buys nothing at this size</td></tr>
+          <tr><td>processes</td><td>1 uvicorn worker per replica, 3 replicas minimum across zones, autoscale on in-flight requests (target 6 per replica)</td><td>the process is stateless; one worker keeps LLM_CONCURRENCY and the rate limiter meaningful per replica</td></tr>
+          <tr><td>index artifact</td><td>tarball in object storage (S3 / GCS), pinned by INDEX_URL + INDEX_SHA256, rebuilt by a scheduled job when the catalog changes, rolled out by changing two variables</td><td>already implemented: verified download, safe extraction, atomic install, refuses to serve a mismatched index</td></tr>
+          <tr><td>platform</td><td>Railway or Fly.io for a team of one; ECS Fargate, Cloud Run or Kubernetes when it joins a platform that already runs one of them</td><td>no database, no queue, no GPU: any container host with health checks works</td></tr>
+          <tr><td>LLM</td><td>Anthropic Claude (Sonnet class for plan + rerank, Haiku class as the cost option), prompt caching on, a second provider configured as failover</td><td>the adapters already hide the SDK; ANTHROPIC / OPENAI switch by environment</td></tr>
+          <tr><td>shared state</td><td>Redis for the plan cache (key: normalised query + model + prompt version, TTL 24 h) and the rate limiter</td><td>today both are per process; with 3 replicas the hit rate drops and limits triple</td></tr>
+          <tr><td>edge</td><td>TLS, CDN for <code>/assets</code>, WAF rate rules, request size limit at the edge too</td><td>the in-app limits are the second line, not the first</td></tr>
+          <tr><td>secrets</td><td>platform secret store or Vault, rotated keys, no key in images or logs</td><td>the settings repr hides keys; error messages are scrubbed; LOG_QUERIES is off by default</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Sizing rule of thumb</h3>
+        <ul>
+          <li>Retrieval-only traffic: 60 req/s per vCPU pair, scale linearly with replicas.</li>
+          <li>LLM traffic: capacity = replicas x LLM_CONCURRENCY / mean LLM seconds per request (about 11 s with 4 calls) = 0.7 req/s per replica at 8; the provider's tokens-per-minute quota usually binds first (8,200 input tokens x 0.7 req/s = 350K TPM).</li>
+          <li>Memory: index bytes x 2 (float16 on disk, float32 in memory) + 600 MB fixed.</li>
+          <li>Startup: 10 to 20 s including the index download; set the readiness probe to <code>/ready</code> with a 60 s initial delay, liveness to <code>/health</code>.</li>
+        </ul>
+        <h3>Rollout</h3>
+        <ul>
+          <li>Build: CI produces the image and the index tarball as versioned artifacts; the index is rebuilt only when the catalog or PIPELINE_VERSION changes.</li>
+          <li>Deploy: rolling replicas behind readiness; an index change is a config change (two variables), reversible in one step.</li>
+          <li>Canary: 5% of traffic on the new image or prompt version for an hour, compared on fallback rate, p95, tokens per request and the offline eval run against the same index.</li>
+        </ul>
+        <h3>Configuration that matters in production</h3>
+        <p class="small mono">REQUEST_DEADLINE_S=40 PLANNER_BUDGET_S=15 RERANK_BUDGET_S=20 LLM_CONCURRENCY=8 MAX_INFLIGHT_REQUESTS=16 RATE_LIMIT_PER_MINUTE=60 MAX_BODY_BYTES=16384 CORS_ALLOW_ORIGINS=https://app.example STARTUP_FAIL_FAST=1 LOG_QUERIES=0 INDEX_URL=... INDEX_SHA256=...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13">
+  <div class="inner wide fade">
+    <div class="no">13 / 15 &middot; Guardrails, observability, reliability</div>
+    <h2><a class="tl" href="#s13">Guardrails, observability, fallback and monitoring</a></h2>
+    <div class="two">
+      <div>
+        <h3 style="margin-top:0">Guardrails in place today</h3>
+        <ul>
+          <li>Input: strict schema (unknown fields rejected, 1 to 500 chars, k 1 to 10, finite prices, min &lt;= max), 16 KB body cap, 60 req/min per client, 16 in-flight requests per process.</li>
+          <li>LLM: structured output only, every id validated against the offered candidates, picks capped at k, reasons capped at 15 words with urls and emails stripped, catalog text labelled untrusted in the prompt, the user sentence passed as data inside the json, no tool use.</li>
+          <li>Budgets: one 40 s deadline, 15 s plan, 20 s rerank, global cap of 8 LLM calls in flight, retrieval pool bounded with deadline-aware queueing, typed LLM errors (auth, rate limit, timeout, refusal, truncation, validation, transport).</li>
+          <li>Data: checksum-verified index, loader fails closed on any mismatch, safe tarball extraction (scheme allowlist, member caps, fixed permissions), keys never in repr / errors / logs, queries not logged unless LOG_QUERIES=1.</li>
+        </ul>
+        <h3>Fallback ladder (each step is reported as a warning)</h3>
+        <table>
+          <tr><th>failure</th><th>behaviour</th></tr>
+          <tr><td>LLM planner error or 15 s timeout</td><td>regex planner: budget, audience and content words; one slot; a 30 s negative cache stops a stampede</td></tr>
+          <tr><td>one rerank call fails or is late</td><td>that slot keeps retrieval order, the other slots keep their picks</td></tr>
+          <tr><td>reranker returns nothing usable</td><td>retrieval order plus deterministic reasons (keywords, rating, price vs budget)</td></tr>
+          <tr><td>a slot below k in the price window</td><td>flagged unpriced backfill when the bound was inferred, a warning when it was explicit</td></tr>
+          <tr><td>index missing or invalid at boot</td><td>/health stays up with a curated message, /ready and /recommend return 503, or the process exits with STARTUP_FAIL_FAST</td></tr>
+          <tr><td>no key at all</td><td>LLM_PROVIDER=none: the whole service runs as search</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-top:0">What to add before real traffic</h3>
+        <table>
+          <tr><th>area</th><th>add</th><th>tool</th></tr>
+          <tr><td>logs</td><td>json lines with request_id, stage timings, tokens, fallback reasons; sampled query text behind a flag</td><td>structlog, shipped to Loki or CloudWatch</td></tr>
+          <tr><td>traces</td><td>one span per stage and per LLM call, propagated request id, provider latency separated from queueing</td><td>OpenTelemetry SDK + FastAPI and httpx instrumentation, Tempo or Honeycomb</td></tr>
+          <tr><td>metrics</td><td>histograms per stage, LLM errors by class, fallback rate, cache hit rate, tokens per request, in-flight and 429 counts</td><td>prometheus-client at /metrics, Grafana dashboards</td></tr>
+          <tr><td>alerts / SLOs</td><td>p95 total &lt; 20 s, fallback rate &lt; 10%, 5xx &lt; 0.5%, LLM 429 burst, empty-slot rate, readiness flaps</td><td>Grafana alerting or PagerDuty</td></tr>
+          <tr><td>provider resilience</td><td>circuit breaker (open after 5 failures in 30 s, heuristic mode while open), one retry with jitter on transport errors inside the budget, second provider failover</td><td>small in-process breaker; both adapters exist already</td></tr>
+          <tr><td>content guardrails</td><td>off-domain and unsafe request filter before the planner (cheap classifier or moderation endpoint), profanity and PII scrub on reasons, an allowlist of evidence fields (exists)</td><td>provider moderation API or a Haiku-class classifier</td></tr>
+          <tr><td>quality monitoring</td><td>daily offline eval against the live index, sampled LLM-as-judge on production traffic, drift on empty-slot and unpriced rates</td><td>scripts/evaluate.py on a schedule, results to the metrics store</td></tr>
+          <tr><td>errors</td><td>exception tracking with request id and scrubbed context</td><td>Sentry</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s14">
+  <div class="inner wide fade">
+    <div class="no">14 / 15 &middot; Gaps and next actions</div>
+    <h2><a class="tl" href="#s14">What is missing, and the plan to close it</a></h2>
+    <div class="two">
+      <div>
+        <h3 style="margin-top:0">Gaps, by impact</h3>
+        <table>
+          <tr><th>gap</th><th>why it matters</th><th>plan</th></tr>
+          <tr><td>relevance is judged by 20 hand-written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job</td></tr>
+          <tr><td>no online signal</td><td>offline metrics drift from what shoppers do</td><td>week 3: impression and click logging with request_id, a holdout, CTR and add-to-cart per configuration; A/B switch on prompt version and reranker model</td></tr>
+          <tr><td>latency is LLM-bound (97%)</td><td>11 s median is fine for a stylist page, too slow for type-ahead</td><td>week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s</td></tr>
+          <tr><td>no outfit coherence</td><td>slots are ranked independently; a floral shirt and a striped blazer can both win</td><td>week 4-5: a coherence pass over the top 3 per slot (colour and style fields, one LLM call on the cross product), evaluated on the labelled set</td></tr>
+          <tr><td>catalog scale</td><td>brute-force matmul is fine to about 1M rows x 384-d; beyond that memory and p95 grow linearly</td><td>when needed: HNSW (faiss or usearch) with the same masks applied after search, int8 embeddings, the catalog served from parquet row groups instead of pandas</td></tr>
+          <tr><td>single-tenant, single-language</td><td>the prompts and the audience heuristic are English only</td><td>multilingual embedding model (bge-m3) and a language field in the plan; per-tenant index and prompt version</td></tr>
+          <tr><td>personalisation</td><td>size, past purchases and brand affinity are ignored</td><td>a user profile object merged into the plan the same way request fields are: explicit beats inferred</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Tests still to run</h3>
+        <table>
+          <tr><th>test</th><th>tool</th><th>pass condition</th></tr>
+          <tr><td>load, retrieval only: 50 req/s for 10 min on the production container</td><td>k6 or Locust</td><td>p95 &lt; 150 ms, 0 errors, RSS flat</td></tr>
+          <tr><td>load, LLM mode: 1 req/s for 30 min</td><td>k6 against a staging key</td><td>p95 &lt; 20 s, 429 handled, fallback rate &lt; 5%</td></tr>
+          <tr><td>soak: 12 h at 20% capacity</td><td>k6 + Grafana</td><td>no memory growth, no thread pool leak, cache bounded</td></tr>
+          <tr><td>chaos: LLM returns 500 / garbage / hangs, index corrupted mid-run, replica killed during install</td><td>toxiproxy, a fake provider, kill -9</td><td>every case ends in a warning or a clean 503, never a 500 or a wrong answer</td></tr>
+          <tr><td>prompt injection corpus (catalog text and queries)</td><td>a fixture of 100 hostile strings</td><td>no url, no instruction echo, ids still validated</td></tr>
+          <tr><td>property-based: planner normalisation and budget allocation</td><td>hypothesis</td><td>invariants hold for any input (sum &lt;= total, floors, caps)</td></tr>
+          <tr><td>contract: recorded LLM responses replayed</td><td>cassette fixtures per prompt version</td><td>a prompt change that breaks parsing fails CI, not production</td></tr>
+          <tr><td>security: image and dependency scanning, dynamic scan of the API</td><td>trivy, pip-audit, ZAP baseline, bandit (already run)</td><td>no high findings</td></tr>
+          <tr><td>UI end to end</td><td>Playwright</td><td>query, results, warnings, error states render</td></tr>
+          <tr><td>multi-replica install race</td><td>3 containers booting against one INDEX_URL</td><td>one download, all ready</td></tr>
+        </table>
+        <h3>Stack to add</h3>
+        <p class="small">OpenTelemetry + Prometheus + Grafana (or Datadog), Sentry, Redis, S3 for artifacts, k6, hypothesis, trivy and pip-audit in CI, Playwright, a nightly eval job. Nothing here changes the service code's shape: the stages already have boundaries, ids and timings to hang all of it on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s15">
   <div class="inner fade">
-    <div class="no">11 / 11 &middot; Files and deployment</div>
-    <h2><a class="tl" href="#s11">Repository structure, documentation and deployment</a></h2>
+    <div class="no">15 / 15 &middot; Files and deployment</div>
+    <h2><a class="tl" href="#s15">Repository structure, documentation and deployment</a></h2>
     <div class="two">
       <div>
 <pre>src/stylist/

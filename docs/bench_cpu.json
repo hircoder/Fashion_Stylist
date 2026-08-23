@@ -1,0 +1,39 @@
+{
+  "index_dir": "data/index",
+  "rows": 100000,
+  "sampling": "popular",
+  "device": "cpu",
+  "load_seconds": 0.1,
+  "rss_mb_after_load": 1006.0,
+  "rss_mb_delta": 892.0,
+  "runs": [
+    {
+      "concurrency": 1,
+      "requests": 60,
+      "p50_ms": 22.1,
+      "p95_ms": 31.6,
+      "throughput_rps": 42.1
+    },
+    {
+      "concurrency": 2,
+      "requests": 60,
+      "p50_ms": 33.2,
+      "p95_ms": 41.3,
+      "throughput_rps": 58.4
+    },
+    {
+      "concurrency": 4,
+      "requests": 60,
+      "p50_ms": 65.0,
+      "p95_ms": 81.7,
+      "throughput_rps": 61.8
+    },
+    {
+      "concurrency": 8,
+      "requests": 60,
+      "p50_ms": 125.5,
+      "p95_ms": 145.0,
+      "throughput_rps": 62.3
+    }
+  ]
+}
