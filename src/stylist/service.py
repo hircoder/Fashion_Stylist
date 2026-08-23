@@ -13,6 +13,7 @@ that slot keeps retrieval order. The response always says which path was taken
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import re
 import time
@@ -52,7 +53,9 @@ log = logging.getLogger(__name__)
 
 MIN_RERANK_SECONDS = 2.0  # do not start a rerank call with less than this left
 MIN_PLAN_SECONDS = 0.5
-SEMANTIC_PLAN_TTL_S = 3600.0  # an hour; catalog and prompts move slowly, plans should too
+SEMANTIC_PLAN_TTL_S = 3600.0  # an hour
+RESPONSE_CACHE_SIZE = 512
+MAX_INFLIGHT_PLANS = 8  # background planner calls allowed at once, across all queries
 
 
 class RequestTimeout(Exception):
@@ -90,6 +93,7 @@ class RecommendationService:
             plan_cache if plan_cache is not None else OrderedDict()
         )
         self._plan_inflight: dict[tuple, asyncio.Future] = {}
+        self._response_cache: OrderedDict[str, tuple[float, RecommendResponse]] = OrderedDict()
         # semantic plan cache: near-duplicate queries reuse the nearest llm plan
         self._sem_capacity = 2048
         self._sem_vecs: np.ndarray | None = None
@@ -142,7 +146,7 @@ class RecommendationService:
         deterministic guard does not."""
         if not self.settings.semantic_plan_cache:
             return None, None
-        vec = self._embedder.encode_queries([query])[0].astype(np.float32)
+        vec = self.retriever.encode_cached([query])[0]
         if self._sem_vecs is None or not len(self._sem_plans):
             return None, vec
         n = len(self._sem_plans)
@@ -201,15 +205,17 @@ class RecommendationService:
             if time.monotonic() < self._plan_failed_until.get(key, 0.0):
                 warnings.append("planner fell back to regex rules (recent planner failure)")
             else:
-                plan = await self._plan_with_llm(req.query, key, deadline, warnings)
+                plan = await self._plan_with_llm(req.query, key, deadline, warnings, qvec)
                 if plan is not None:
-                    self._semantic_store(qvec, req.query, plan)
+                    # the completion callback stored it in the exact and semantic caches
                     return plan.model_copy(deep=True), "llm", self._last_plan_shared
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
         return plan.model_copy(deep=True), "heuristic", False
 
-    def _cache_shared_result(self, key: tuple, fut: asyncio.Future) -> None:
+    def _cache_shared_result(
+        self, key: tuple, query: str, qvec: np.ndarray | None, fut: asyncio.Future
+    ) -> None:
         if fut.cancelled():
             return
         exc = fut.exception()
@@ -225,9 +231,18 @@ class RecommendationService:
         plan = fut.result()
         if plan is not None:
             self._cache_put(key, plan)
+            # the semantic cache too: in the fast profile the waiter is long gone when the
+            # plan arrives, and without this line paraphrases would pay for a fresh llm
+            # call forever while the exact query rode the cache
+            self._semantic_store(qvec, query, plan)
 
     async def _plan_with_llm(
-        self, query: str, key: tuple, deadline: float, warnings: list[str]
+        self,
+        query: str,
+        key: tuple,
+        deadline: float,
+        warnings: list[str],
+        qvec: np.ndarray | None = None,
     ) -> QueryPlan | None:
         """One planner call per key at a time: concurrent identical requests share it.
         A failure is remembered for PLANNER_FAILURE_TTL_S so an outage is not retried on
@@ -242,6 +257,11 @@ class RecommendationService:
         budget = max(0.05, min(self.settings.planner_budget_s, remaining))
         inflight = self._plan_inflight.get(key)
         joined_existing = inflight is not None
+        if inflight is None and len(self._plan_inflight) >= MAX_INFLIGHT_PLANS:
+            # a flood of unique cold queries must not build an unbounded bedrock queue
+            # behind clients who already got their regex answer
+            warnings.append("planner fell back to regex rules (planner queue full)")
+            return None
         if inflight is None:
             # the shared call gets its own, longer timeout: a request only WAITS for
             # `budget`, but a plan that outlives every waiter still completes in the
@@ -255,7 +275,7 @@ class RecommendationService:
             inflight.add_done_callback(lambda _f: self._plan_inflight.pop(key, None))
             # the shared call outlives a waiter that gave up: when it succeeds its plan is
             # cached for the next request even if noone is left waiting for it
-            inflight.add_done_callback(lambda f: self._cache_shared_result(key, f))
+            inflight.add_done_callback(lambda f: self._cache_shared_result(key, query, qvec, f))
         try:
             plan = await asyncio.wait_for(asyncio.shield(inflight), timeout=budget)
             if joined_existing:
@@ -344,8 +364,62 @@ class RecommendationService:
     # ------------------------------------------------------------------ main entry
 
     async def recommend(self, req: RecommendRequest) -> RecommendResponse:
+        cache_key = self._response_cache_key(req)
+        if cache_key is not None:
+            hit = self._response_cache_get(cache_key)
+            if hit is not None:
+                return hit
         with usage_scope() as usage:
-            return await self._recommend(req, usage)
+            resp = await self._recommend(req, usage)
+        if cache_key is not None and not resp.warnings:
+            # a degraded answer (planner or rerank fell back, evidence dropped) always
+            # carries a warning; caching one would pin the bad answer for the whole ttl
+            # while the background planner lands a better plan two seconds later
+            self._response_cache_put(cache_key, resp)
+        return resp
+
+    def _response_cache_key(self, req: RecommendRequest) -> str | None:
+        if self.settings.response_cache_ttl_s <= 0:
+            return None
+        body = json.dumps(req.model_dump(mode="json"), sort_keys=True)
+        # rerank left unset behaves differently from rerank=true under RERANK_DEFAULT=0,
+        # yet both dump identically: the set of provided fields belongs in the key
+        return body + "|" + ",".join(sorted(req.model_fields_set))
+
+    def _response_cache_get(self, key: str) -> RecommendResponse | None:
+        started = time.perf_counter()
+        entry = self._response_cache.get(key)
+        if entry is None:
+            return None
+        expires_at, resp = entry
+        if time.monotonic() > expires_at:
+            self._response_cache.pop(key, None)
+            return None
+        self._response_cache.move_to_end(key)
+        out = resp.model_copy(deep=True)
+        out.request_id = uuid.uuid4().hex[:12]  # a new request, an old answer
+        out.served_from_cache = True
+        # provenance (planner_used, model, plan_cache_hit) describes how the answer was
+        # built and stays; the counters describe work done by THIS request, which is none
+        out.llm_info.calls = 0
+        out.llm_info.failed_calls = 0
+        out.llm_info.input_tokens = 0
+        out.llm_info.output_tokens = 0
+        out.timings = {
+            "plan_ms": 0.0,
+            "retrieve_ms": 0.0,
+            "rerank_ms": 0.0,
+            "total_ms": round((time.perf_counter() - started) * 1000.0, 2),
+        }
+        return out
+
+    def _response_cache_put(self, key: str, resp: RecommendResponse) -> None:
+        self._response_cache[key] = (
+            time.monotonic() + self.settings.response_cache_ttl_s,
+            resp.model_copy(deep=True),
+        )
+        while len(self._response_cache) > RESPONSE_CACHE_SIZE:
+            self._response_cache.popitem(last=False)
 
     async def _recommend(self, req: RecommendRequest, usage: Usage) -> RecommendResponse:
         t0 = time.monotonic()

@@ -116,6 +116,7 @@ class RecommendResponse(BaseModel):
     index_info: IndexInfo
     llm_info: LLMInfo
     timings: dict[str, float]
+    served_from_cache: bool = False  # whole response came from the response cache
 
 
 class ErrorDetail(BaseModel):

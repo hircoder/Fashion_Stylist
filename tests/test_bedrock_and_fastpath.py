@@ -304,3 +304,218 @@ async def test_background_planner_failure_is_logged_and_negative_cached(
         assert any("planner failed in the background" in rec.message for rec in caplog.records)
     finally:
         svc.close()
+
+
+# ---------------------------------------------------------------------- round 2 caches
+
+
+class _CountingEmbedder:
+    """Wraps the hash embedder and counts encode_queries calls."""
+
+    def __init__(self, inner):
+        self._inner = inner
+        self.calls = 0
+        self.name = inner.name
+        self.dim = inner.dim
+
+    def encode_queries(self, texts):
+        self.calls += 1
+        return self._inner.encode_queries(texts)
+
+    def encode_docs(self, texts):
+        return self._inner.encode_docs(texts)
+
+
+async def test_warm_requests_skip_the_query_encoder(fixture_index, hash_embedder):
+    counting = _CountingEmbedder(hash_embedder)
+    svc = RecommendationService(
+        fixture_index, counting, Settings.from_env({"EMBEDDER": "hash"}), llm=None
+    )
+    try:
+        await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        first = counting.calls
+        assert first >= 1
+        await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        assert counting.calls == first  # the slot query vector came from the cache
+    finally:
+        svc.close()
+
+
+async def test_response_cache_serves_a_copy_with_a_fresh_request_id(fixture_index, hash_embedder):
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env({"EMBEDDER": "hash", "RESPONSE_CACHE_TTL_S": "60"}),
+        llm=None,
+    )
+    try:
+        r1 = await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        r2 = await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        assert r2.request_id != r1.request_id
+        assert r2.served_from_cache is True and r1.served_from_cache is False
+        assert r2.llm_info.calls == 0
+        assert [i.title for s in r2.slots for i in s.items] == [
+            i.title for s in r1.slots for i in s.items
+        ]
+        assert 0.0 <= r2.timings["total_ms"] < 50.0  # real serve time, not the old compute
+        # a different body must not collide
+        r3 = await svc.recommend(RecommendRequest(query="snow boots", k=3, use_llm=False))
+        assert len(r3.slots[0].items) == 3
+    finally:
+        svc.close()
+
+
+async def test_response_cache_key_sees_explicitly_set_fields(fixture_index, hash_embedder):
+    from stylist.llm import FakeLLM
+    from stylist.reranker import SlotRerankOutput
+
+    def handler(system, user, schema):
+        if schema is PlannerOutput:
+            return PlannerOutput(
+                intent="b", slots=[{"name": "boots", "search_query": "boots", "keywords": ["boot"]}]
+            )
+        return SlotRerankOutput(picks=[], no_good_match=False, note="")
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {"EMBEDDER": "hash", "RESPONSE_CACHE_TTL_S": "60", "RERANK_DEFAULT": "0"}
+        ),
+        llm=FakeLLM(handler=handler),
+    )
+    try:
+        r1 = await svc.recommend(RecommendRequest(query="boots", k=2))
+        assert r1.llm_info.rerank_used is False
+        r2 = await svc.recommend(RecommendRequest(query="boots", k=2, rerank=True))
+        assert r2.llm_info.rerank_used is True  # not served from r1's cache entry
+    finally:
+        svc.close()
+
+
+async def test_response_cache_expires(fixture_index, hash_embedder):
+    import asyncio
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env({"EMBEDDER": "hash", "RESPONSE_CACHE_TTL_S": "0.15"}),
+        llm=None,
+    )
+    try:
+        r1 = await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        await asyncio.sleep(0.2)
+        r2 = await svc.recommend(RecommendRequest(query="snow boots", k=2, use_llm=False))
+        assert r2.timings["total_ms"] > 0.0  # recomputed, not the frozen copy
+        assert r1.request_id != r2.request_id
+    finally:
+        svc.close()
+
+
+class _SlowCountingLLM:
+    """Planner that outlives any small wait budget, counting real calls."""
+
+    provider = "fake"
+    model = "fake"
+
+    def __init__(self, delay=0.3):
+        self.delay = delay
+        self.calls = 0
+
+    async def complete_json(self, *, system, user, schema, max_tokens=2000, timeout=30.0):
+        import asyncio
+
+        self.calls += 1
+        await asyncio.sleep(self.delay)
+        return PlannerOutput(
+            intent="boots",
+            slots=[{"name": "boots", "search_query": "snow boots", "keywords": ["boot"]}],
+        )
+
+
+async def test_background_plan_lands_in_semantic_cache_for_paraphrases(
+    fixture_index, hash_embedder
+):
+    import asyncio
+
+    llm = _SlowCountingLLM(delay=0.3)
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {
+                "EMBEDDER": "hash",
+                "PLANNER_BUDGET_S": "0.05",
+                "SEMANTIC_PLAN_CACHE": "1",
+                "SEMANTIC_PLAN_THRESHOLD": "0.5",
+            }
+        ),
+        llm=llm,
+    )
+    try:
+        r1 = await svc.recommend(RecommendRequest(query="warm snow boots", k=2, rerank=False))
+        assert r1.llm_info.planner_used == "heuristic"  # the wait was too short
+        await asyncio.sleep(0.5)  # the shared call finishes in the background
+        # a PARAPHRASE, not the same text: only the semantic cache can serve it
+        r2 = await svc.recommend(
+            RecommendRequest(query="warm snow boots for me", k=2, rerank=False)
+        )
+        assert r2.llm_info.planner_used == "llm"
+        assert llm.calls == 1  # no second bedrock call
+    finally:
+        svc.close()
+
+
+async def test_degraded_response_is_never_frozen_by_the_response_cache(
+    fixture_index, hash_embedder
+):
+    import asyncio
+
+    llm = _SlowCountingLLM(delay=0.3)
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env(
+            {"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.05", "RESPONSE_CACHE_TTL_S": "60"}
+        ),
+        llm=llm,
+    )
+    try:
+        r1 = await svc.recommend(RecommendRequest(query="snow boots", k=2, rerank=False))
+        assert r1.llm_info.planner_used == "heuristic" and r1.warnings
+        await asyncio.sleep(0.5)  # background plan lands in the exact cache
+        r2 = await svc.recommend(RecommendRequest(query="snow boots", k=2, rerank=False))
+        # the fallback answer must not have been pinned for the ttl
+        assert r2.served_from_cache is False
+        assert r2.llm_info.planner_used == "llm"
+        r3 = await svc.recommend(RecommendRequest(query="snow boots", k=2, rerank=False))
+        assert r3.served_from_cache is True  # the GOOD answer is the one that got cached
+        assert r3.llm_info.planner_used == "llm"
+    finally:
+        svc.close()
+
+
+async def test_planner_admission_is_bounded(fixture_index, hash_embedder):
+    import asyncio
+
+    from stylist.service import MAX_INFLIGHT_PLANS
+
+    llm = _SlowCountingLLM(delay=0.2)
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        Settings.from_env({"EMBEDDER": "hash", "PLANNER_BUDGET_S": "0.05"}),
+        llm=llm,
+    )
+    try:
+        for i in range(MAX_INFLIGHT_PLANS):
+            svc._plan_inflight[("q", str(i))] = asyncio.get_running_loop().create_future()
+        r = await svc.recommend(RecommendRequest(query="snow boots", k=2, rerank=False))
+        assert r.llm_info.planner_used == "heuristic"
+        assert any("planner queue full" in w for w in r.warnings)
+        assert llm.calls == 0  # nothing new was admitted
+    finally:
+        for fut in list(svc._plan_inflight.values()):
+            fut.cancel()
+        svc._plan_inflight.clear()
+        svc.close()

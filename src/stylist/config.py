@@ -93,6 +93,7 @@ class Settings:
     semantic_plan_cache: bool  # reuse the plan of the nearest cached query (cosine)
     semantic_plan_threshold: float
     rerank_default: bool  # what rerank does when the request does not say
+    response_cache_ttl_s: float  # 0 = off; identical requests within the ttl share a response
     anthropic_api_key: str | None
     anthropic_base_url: str | None
     openai_api_key: str | None
@@ -223,6 +224,7 @@ class Settings:
             semantic_plan_cache=_get_bool(env, "SEMANTIC_PLAN_CACHE", False),
             semantic_plan_threshold=_get_float(env, "SEMANTIC_PLAN_THRESHOLD", 0.92),
             rerank_default=_get_bool(env, "RERANK_DEFAULT", True),
+            response_cache_ttl_s=_get_float(env, "RESPONSE_CACHE_TTL_S", 0.0),
             anthropic_api_key=anthropic_key,
             anthropic_base_url=_get_str(env, "ANTHROPIC_BASE_URL"),
             openai_api_key=openai_key,
@@ -292,6 +294,7 @@ class Settings:
             "plan_cache_size": self.plan_cache_size,
             "planner_failure_ttl_s": self.planner_failure_ttl_s,
             "rate_limit_per_minute": self.rate_limit_per_minute,  # 0 = off
+            "response_cache_ttl_s": self.response_cache_ttl_s,  # 0 = off
             "max_inflight_requests": self.max_inflight_requests,  # 0 = no cap
         }.items():
             if not math.isfinite(value) or value < 0:

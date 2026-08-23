@@ -22,6 +22,8 @@ from __future__ import annotations
 import functools
 import math
 import re
+import threading
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -37,6 +39,7 @@ EXCLUDE_PENALTY = 1.0  # x keyword_boost: a title matching both a keyword and an
 # nets zero (ambiguous, let the reranker decide), one matching only the exclude word drops
 IN_WINDOW_BONUS = 0.25  # in units of RRF(rank 1), added to priced in-budget items when a
 # budget exists and unpriced items are also in play (half of the keyword boost)
+QVEC_CACHE_SIZE = 4096  # slot query texts are few and repeat constantly
 RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_number is 10; 20 = a
 # deliberately stronger pull toward the mean for thinly rated items)
 AUDIENCE_MATCH_BONUS = 0.15  # x unit: a row whose audience equals the requested one edges
@@ -309,7 +312,36 @@ class Retriever:
         self.rating_prior = prior if math.isfinite(prior) else 4.0
         self._unit = 1.0 / (settings.rrf_k + 1)  # RRF contribution of a rank-1 hit
         self._group_keys: dict[int, str] = {}  # row position -> group key, filled on demand
+        self._qvec_cache: OrderedDict[str, np.ndarray] = OrderedDict()  # text -> query vector
+        self._qvec_lock = threading.Lock()  # retrieval threads and the event loop both use it
         self._brand_masks: dict[str, np.ndarray] = {}  # brand -> rows that carry it
+
+    def encode_cached(self, texts: list[str]) -> np.ndarray:
+        """Query vectors with an LRU over the raw text. A cached plan re-runs the same
+        slot queries on every request; encoding them again was the biggest slice of a
+        warm request's work."""
+        out: list[np.ndarray | None] = [None] * len(texts)
+        misses: list[int] = []
+        with self._qvec_lock:
+            for i, t in enumerate(texts):
+                vec = self._qvec_cache.get(t)
+                if vec is not None:
+                    self._qvec_cache.move_to_end(t)
+                    out[i] = vec
+                else:
+                    misses.append(i)
+        if misses:
+            # a plan can repeat the same slot text; encode each distinct string once
+            distinct = list(dict.fromkeys(texts[i] for i in misses))
+            fresh = self.embedder.encode_queries(distinct)
+            by_text = {t: np.asarray(fresh[j], dtype=np.float32) for j, t in enumerate(distinct)}
+            with self._qvec_lock:
+                for i in misses:
+                    out[i] = by_text[texts[i]]
+                    self._qvec_cache[texts[i]] = by_text[texts[i]]
+                while len(self._qvec_cache) > QVEC_CACHE_SIZE:
+                    self._qvec_cache.popitem(last=False)
+        return np.stack(out)  # type: ignore[arg-type]
 
     def _brand_mask(self, brand: str) -> np.ndarray:
         """Rows whose title, store or brand field contains `brand` as whole words."""
@@ -475,9 +507,7 @@ class Retriever:
         use_dense = "dense" in self.s.channels
         use_bm25 = "bm25" in self.s.channels
         queries = [s.search_query for s in plan.slots]
-        dense_all = (
-            self.index.dense_scores(self.embedder.encode_queries(queries)) if use_dense else None
-        )
+        dense_all = self.index.dense_scores(self.encode_cached(queries)) if use_dense else None
         brand_mask = self._brand_mask(plan.brand) if plan.brand else None
         out: list[SlotCandidates] = []
         for i, (slot, window) in enumerate(zip(plan.slots, windows, strict=True)):
