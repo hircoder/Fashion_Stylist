@@ -1,0 +1,16 @@
+{
+  "what": "single-query cache ladder from a japan client, and direct-origin vs cloudfront split",
+  "through_cloudfront": {
+    "cold_unique_ms": 210,
+    "plan_cache_after_bg_ms": 112,
+    "response_cache_hit_ms": 34,
+    "paraphrase_semantic_cache_ms": 116
+  },
+  "direct_origin": {
+    "response_cache_hit_ms": 22,
+    "retrieval_only_ms": 66,
+    "note": "rows 2-3 of the direct test hit the second worker cold (169-203ms): the per-worker cache split made visible"
+  },
+  "cloudfront_cost_ms": "about 10-15 on a warm hit (34 vs 22); it buys edge tls, http/3, /assets caching and the origin-facing prefix-list posture",
+  "every_row_under_the_0.5s_target": true
+}

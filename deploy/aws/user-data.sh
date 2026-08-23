@@ -29,7 +29,10 @@ Environment=LOG_LEVEL=INFO
 Environment=LLM_PROVIDER=bedrock
 Environment=BEDROCK_REGION=__BEDROCK_REGION__
 Environment=LLM_MODEL=__LLM_MODEL__
-Environment=PLANNER_BUDGET_S=0.35
+# measured on the box (planner_cdf.py): apac nova micro p50 999 ms, 0/12 plans
+# inside 350 ms. waiting longer buys nothing, so cold misses wait 100 ms and the
+# plan lands in the caches for the requests after (warmup covers the ui examples)
+Environment=PLANNER_BUDGET_S=0.10
 Environment=RERANK_DEFAULT=0
 Environment=SEMANTIC_PLAN_CACHE=1
 Environment=TRUST_PROXY_HEADERS=1

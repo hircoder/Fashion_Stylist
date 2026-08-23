@@ -1,0 +1,4 @@
+c=1   {"n": 24, "rps": 7.4, "wall_p50_ms": 43.0, "wall_p95_ms": 281.0, "wall_p99_ms": 302.0, "server_p50_ms": 1.0, "server_p95_ms": 211.0, "errors": {}}
+c=4   {"n": 24, "rps": 23.3, "wall_p50_ms": 47.0, "wall_p95_ms": 480.0, "wall_p99_ms": 536.0, "server_p50_ms": 1.0, "server_p95_ms": 434.0, "errors": {}}
+c=8   {"n": 24, "rps": 40.3, "wall_p50_ms": 47.0, "wall_p95_ms": 470.0, "wall_p99_ms": 477.0, "server_p50_ms": 1.0, "server_p95_ms": 428.0, "errors": {}}
+{"mode": "repeat", "levels": {"c1": {"n": 24, "rps": 7.4, "wall_p50_ms": 43.0, "wall_p95_ms": 281.0, "wall_p99_ms": 302.0, "server_p50_ms": 1.0, "server_p95_ms": 211.0, "errors": {}}, "c4": {"n": 24, "rps": 23.3, "wall_p50_ms": 47.0, "wall_p95_ms": 480.0, "wall_p99_ms": 536.0, "server_p50_ms": 1.0, "server_p95_ms": 434.0, "errors": {}}, "c8": {"n": 24, "rps": 40.3, "wall_p50_ms": 47.0, "wall_p95_ms": 470.0, "wall_p99_ms": 477.0, "server_p50_ms": 1.0, "server_p95_ms": 428.0, "errors": {}}}}

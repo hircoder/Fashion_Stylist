@@ -1,0 +1,41 @@
+{
+  "what": "1 vs 2 uvicorn workers, mixed workload (half repeats, half unique), loopback on the box, rate limit off",
+  "one_worker": {
+    "c1": {
+      "p50": 179,
+      "p95": 239
+    },
+    "c4": {
+      "p50": 204,
+      "p95": 663
+    },
+    "c8": {
+      "p50": 296,
+      "p95": 822
+    },
+    "c16": {
+      "p50": 701,
+      "p95": 1406
+    }
+  },
+  "two_workers": {
+    "c1": {
+      "p50": 177,
+      "p95": 314
+    },
+    "c4": {
+      "p50": 210,
+      "p95": 363
+    },
+    "c8": {
+      "p50": 377,
+      "p95": 759
+    },
+    "c16": {
+      "p50": 735,
+      "p95": 1338
+    }
+  },
+  "note": "first 1-worker attempt measured the rate limiter, not the service (429s from the per-process 240/min bucket); rerun with the limiter off",
+  "decision": "keep 2 workers: p50s within noise, 2 workers hold the better p95 at c4/c16 and keep a second failure domain. cost: each worker warms its own caches, so a cold query can flip between llm and heuristic answers for ~1s until both land"
+}

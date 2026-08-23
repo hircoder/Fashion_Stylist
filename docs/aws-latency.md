@@ -61,7 +61,8 @@ and negative-caches, wich is exactly how the next finding surfaced.
   the full 5-slot outfit decomposition, plan fills in ~1.5 to 2.5 s in the background.
   The default.
 * `us.amazon.nova-lite-v1:0`: same quality on the probe queries, slower fill (p95 of a
-  mixed run 2.7 s). Not worth it here.
+  mixed run 2.7 s). Not worth it here. (Round two overturned this with a real quality
+  probe; see below.)
 * `us.anthropic.claude-haiku-4-5-20251001-v1:0`: invocable with the operator's user
   credentials but NOT with the instance role: Bedrock answers ResourceNotFoundException
   "model use case details have not been submitted". One console form away; a finding,
@@ -82,3 +83,80 @@ Shared plan cache (Redis/ElastiCache) so workers and replicas stop warming separ
 the Haiku use-case form; the cross-encoder rerank stage on the instance (it has 4 idle
 vCPUs at this load); a us-east client for honest non-Pacific numbers; CloudWatch alarms
 on the fallback rate now that it is on the request log line.
+
+
+## Round two: Tokyo, measured budgets, and two cache bugs
+
+The second pass started from a review-panel consensus that the ordering in round one
+was backwards. About 200 ms of the steady number was trans-Pacific RTT, and no code
+change touches that. So the origin moved to ap-northeast-1 first, on an identical
+c7i.xlarge built by the same scripts (now region generic: the public DNS comes from
+describe-instances instead of string surgery, state files carry the region, the SSM
+policy is in 02_iam.sh instead of my shell history). The apac Nova profiles exist in
+Tokyo and invoke fine from the instance role, which settled a doc-vs-reality argument
+one reviewer raised. Artifacts boot from a Tokyo bucket now, no cross-region pull.
+
+Before touching any knob we measured the thing the knob controls. `planner_cdf.py`
+times real planner calls from the box: Nova Micro p50 999 ms, Nova Lite p50 1154 ms,
+and neither lands a single plan inside 350 ms out of 12. The old 0.35 s bounded wait
+was pure cost. It is 0.10 s now. Cold queries answer with the regex plan about 250 ms
+sooner and the LLM plan still arrives a second later, into the caches, for every
+request after.
+
+Two cache bugs found by the panel, both real, both fixed with tests:
+
+1. Background plan completion only fed the exact-string cache. A paraphrase missed it
+   and paid for a fresh Bedrock call, forever. The completion callback now stores
+   into the semantic cache too, and the live ladder proves it: a paraphrase of a
+   query planned 5 s earlier serves the LLM plan in 116 ms with zero new calls.
+2. The new response cache could freeze a degraded answer. First request waits 100 ms,
+   gets the regex fallback, the fallback gets cached for the ttl while the good plan
+   lands 1 s later, unseen. Now only warning-free responses are cached (every
+   fallback path writes a warning), and a hit says so: `served_from_cache: true`,
+   usage counters zeroed, the timing field holds the real serve time instead of a
+   flattering 0.0.
+
+Also new: a per-service cap of 8 concurrent background planner calls, so a flood of
+unique cold queries cannot build an unbounded Bedrock queue behind clients who
+already got their answer. And the slot-query embedding LRU, which is why a warm
+5-slot request now spends under 1 ms of server time.
+
+### The numbers, from a client in Japan
+
+| path | round one (us-east-1) | round two (Tokyo) |
+|---|---|---|
+| steady keep-alive p50 | 344-372 ms | 57 ms |
+| warm repeat (response cache) | n/a | 13-17 ms wall, ~0.3 ms server |
+| cold unique query | ~640 ms | 210 ms |
+| plan-cache hit after background fill | n/a | 112 ms |
+| paraphrase via semantic cache | 215 ms | 116 ms |
+| direct origin warm hit | n/a | 22 ms |
+
+Repeat-mode ramp through CloudFront, fresh TLS connection per request: p50 43-47 ms
+at c=1 through c=8, 40 rps at c=8, zero errors. CloudFront costs 10-15 ms on a warm
+hit versus the bare origin and pays for it with edge TLS, HTTP/3 (enabled, credited
+with nothing) and the /assets cache. Every row sits under the 0.5 s target, cold
+included.
+
+Worker count stayed at 2. The panel was unanimous that dropping to 1 for cache
+warmth trades a failure domain for noise, and the loopback ramp agreed: p50s within
+run noise, 2 workers held the better p95 at c=4 and c=16. The first attempt at that
+comparison accidently benchmarked the per-process rate limiter (a wall of 429s at
+c=8), which is its own small lesson about load-testing through your own guardrails.
+
+### Quality, measured against the live endpoint
+
+The 28 evaluation queries ran against production through CloudFront, scored by the
+same rules as the local harness, after a clean restart per model. Nova Micro planned
+0.705 match@4 micro; Nova Lite 0.772, query success 0.50 versus 0.39, and 28 of 28
+plans landed. The planner is Nova Lite now. It costs the user nothing, because
+planning is background work by design, and the round-one claim that Lite was not
+worth it did not survive contact with an actual quality probe. The remaining gap to
+the Sonnet-planned local eval (0.885 on this index) is planner model quality, and
+the honest fix is the Haiku use-case form or a bigger Nova, not pipeline work.
+
+Left open, deliberately: the per-worker cache split (each worker warms seperately, so a
+cold query can flip between LLM and regex answers for about a second), the shared
+cache that would fix it, and CloudWatch alarms on the fallback rate. The instance
+runs about $4/day; `99_teardown.sh` still removes everything it made, in both
+regions.

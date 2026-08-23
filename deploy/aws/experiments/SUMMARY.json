@@ -102,5 +102,55 @@
   "p50_ms": 371.6,
   "p95_ms": 646.3,
   "ran_at": "2026-08-23T22:36:39Z"
+ },
+ {
+  "label": "exp14_tokyo_steady",
+  "n": 12,
+  "errors": 0,
+  "p50_ms": 57.3,
+  "p95_ms": 318.9,
+  "ran_at": "2026-08-23T23:40:00Z",
+  "note": "first probe after the tokyo origin swap; warm hits 13-17ms wall from japan"
+ },
+ {
+  "label": "exp15_tokyo_repeat_ramp",
+  "n": 72,
+  "errors": 0,
+  "p50_ms": 45.0,
+  "p95_ms": 480.0,
+  "ran_at": "2026-08-23T23:44:00Z",
+  "note": "demo profile, fresh tls per request, 40 rps at c=8"
+ },
+ {
+  "label": "exp16_planner_cdf",
+  "n": 24,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-23T23:20:00Z",
+  "note": "nova micro p50 999ms, lite 1154ms, 0% inside 0.35s: budget cut to 0.10"
+ },
+ {
+  "label": "exp17_worker_ramp",
+  "n": 256,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-23T23:30:00Z",
+  "note": "1 vs 2 workers on the box: kept 2 (better c4/c16 p95, second failure domain)"
+ },
+ {
+  "label": "exp18_tokyo_quality",
+  "n": 112,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-23T23:55:00Z",
+  "note": "28 live queries: lite 0.772 match@4 vs micro 0.705, planner switched to lite"
+ },
+ {
+  "label": "exp19_cold_ladder",
+  "n": 10,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-23T23:50:00Z",
+  "note": "cold 210 / plan-cache 112 / response-cache 34 / paraphrase 116 ms from japan"
  }
 ]

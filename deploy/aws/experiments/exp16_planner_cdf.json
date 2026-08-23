@@ -1,0 +1,33 @@
+{
+  "what": "planner completion time measured on the tokyo box (planner_cdf.py, 12 real queries)",
+  "why": "pick PLANNER_BUDGET_S from data, not intuition; council round 2 demanded the cdf first",
+  "nova_micro_apac": {
+    "n": 12,
+    "p50_ms": 998.7,
+    "min_ms": 703.0,
+    "max_ms": 1976.3,
+    "mean_slots": 3.58,
+    "within": {
+      "0.25s": 0.0,
+      "0.35s": 0.0,
+      "0.5s": 0.0,
+      "1.0s": 0.5,
+      "2.0s": 1.0
+    }
+  },
+  "nova_lite_apac": {
+    "n": 12,
+    "p50_ms": 1154.1,
+    "min_ms": 760.4,
+    "max_ms": 1976.0,
+    "mean_slots": 3.33,
+    "within": {
+      "0.25s": 0.0,
+      "0.35s": 0.0,
+      "0.5s": 0.0,
+      "1.0s": 0.333,
+      "2.0s": 1.0
+    }
+  },
+  "decision": "no plan lands inside any sub-second wait, so the bounded wait drops 0.35 -> 0.10; the plan arrives ~1s later in the background and the caches serve it from the next request on"
+}

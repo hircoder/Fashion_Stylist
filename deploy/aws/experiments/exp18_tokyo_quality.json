@@ -1,0 +1,35 @@
+{
+  "what": "the 28 local evaluation queries against the LIVE cloudfront endpoint, same rules as scripts/evaluate.py, k=4, clean restart before each model, two passes",
+  "pass1_is": "cold service right after warmup: mostly heuristic plans (planner runs in the background)",
+  "pass2_is": "10s later: background plans landed in the caches",
+  "nova_micro": {
+    "cold": {
+      "micro": 0.692,
+      "macro": 0.658,
+      "success": 0.0,
+      "llm_rate": 0.179
+    },
+    "planned": {
+      "micro": 0.705,
+      "macro": 0.733,
+      "success": 0.393,
+      "llm_rate": 0.964
+    }
+  },
+  "nova_lite": {
+    "cold": {
+      "micro": 0.684,
+      "macro": 0.645,
+      "success": 0.0,
+      "llm_rate": 0.071
+    },
+    "planned": {
+      "micro": 0.772,
+      "macro": 0.761,
+      "success": 0.5,
+      "llm_rate": 1.0
+    }
+  },
+  "context": "the local eval with sonnet-written plans scored 0.885 micro on this same popular-100k index; the gap to 0.772 is planner model quality, not the pipeline. labeled comparison, different planner models.",
+  "decision": "planner becomes nova lite: +6.7pts micro, success 0.39 -> 0.50, zero added user latency because planning is background-only. lite costs $0.24/M input vs $0.14 for micro, both noise at demo volume"
+}
