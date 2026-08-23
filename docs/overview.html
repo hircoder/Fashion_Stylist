@@ -44,10 +44,14 @@
   .stage { position: relative; border: 1px solid #ddd; padding: 18px 18px 14px; background: #fff; }
   .wires, .packets { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .wires { z-index: 1; } .packets { z-index: 3; }
-  .wire { stroke: #c8c8c8; stroke-width: 1.2; fill: none; transition: stroke .3s; }
-  .wire.active { stroke: #111; stroke-width: 1.5; stroke-dasharray: 4 6; }
-  .wire.active.bold { stroke-width: 2.4; stroke-dasharray: none; }
-  .pkt-box { fill: #111; } .pkt-label { fill: #fff; font-size: 9px; font-family: ui-monospace, Menlo, monospace; }
+  .wire { stroke: #b9b9b9; stroke-width: 1.2; fill: none; transition: stroke .3s; marker-end: url(#arr-grey); }
+  .wire.active { stroke: #111; stroke-width: 1.6; stroke-dasharray: 5 5; marker-end: url(#arr-black); }
+  .wire.active.bold { stroke-width: 2.4; }
+  .elabel { font-size: 9.5px; fill: #777; font-family: ui-monospace, Menlo, monospace; }
+  .elabel.active { fill: #111; font-weight: 700; }
+  .elabel-bg { fill: #fff; }
+  .pkt-box { fill: #111; } .pkt-label { fill: #fff; font-size: 10px; font-family: ui-monospace, Menlo, monospace; }
+  .tech { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: #555; margin-top: 6px; line-height: 1.5; }
   .tiers { position: relative; z-index: 2; display: grid; gap: 34px 0; }
   .tier { display: grid; gap: 14px; }
   .t1 { grid-template-columns: 1fr 1fr 1fr; }
@@ -59,7 +63,7 @@
   .node.bar { grid-column: 1 / -1; text-align: center; }
   .node.sm { font-size: 11.5px; padding: 7px 9px; } .node.sm b { font-size: 12px; }
   .lbl { position: absolute; left: 6px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #888; writing-mode: vertical-rl; transform: rotate(180deg); }
-  .caption { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; margin-top: 14px; min-height: 84px; }
+  .caption { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; margin-top: 14px; min-height: 150px; }
   .caption .step { font-size: 12px; letter-spacing: .08em; color: #666; text-transform: uppercase; margin-bottom: 4px; }
   .caption .txt { font-size: 15px; }
   .ctl button { font: inherit; font-size: 13px; background: #fff; border: 1px solid #111; padding: 5px 10px; cursor: pointer; margin-left: 6px; }
@@ -182,7 +186,12 @@
     <div class="no">5 / 11 &middot; architecture, watch one request flow</div>
     <h2>How the system is designed and how the data moves</h2>
     <div class="stage" id="stage">
-      <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <marker id="arr-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b9b9b9"/></marker>
+          <marker id="arr-black" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/></marker>
+        </defs>
+      </svg>
       <svg class="packets" id="packets" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="tiers">
         <div class="tier t1"><div></div><div class="node" id="n-client"><b>client</b>React page, curl, any HTTP client</div><div></div></div>
@@ -209,10 +218,10 @@
       </div>
     </div>
     <div class="caption">
-      <div><div class="step" id="cap-step">step 0 / 7</div><div class="txt" id="cap-txt"></div></div>
+      <div><div class="step" id="cap-step">step 0 / 7</div><div class="txt" id="cap-txt"></div><div class="tech" id="cap-tech"></div></div>
       <div class="ctl"><button id="b-prev" type="button">prev</button><button id="b-play" type="button">pause</button><button id="b-next" type="button">next</button></div>
     </div>
-    <p class="small">Static version of the same thing: <code>docs/architecture.pdf</code>. The numbers in the captions are from real runs on a laptop (M4) with claude-sonnet-4-6.</p>
+    <p class="small">Every edge is labelled with what travels on it and the arrow gives the direction; the black dashed edges are the ones active in the current step, the moving boxes are the payloads. Arrow keys left/right step through. Static version: <code>docs/architecture.pdf</code>. Numbers are from real runs on a laptop (M4) with claude-sonnet-4-6.</p>
   </div>
 </section>
 
@@ -452,15 +461,26 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
   var wires = document.getElementById('wires'), packets = document.getElementById('packets'), stage = document.getElementById('stage');
   var VBW = 1200, VBH = 640, NS = 'http://www.w3.org/2000/svg';
   var edges = [
-    { id: 'ask', a: 'n-client', b: 'n-api', t: 'v', ox: -12 },
-    { id: 'result', a: 'n-api', b: 'n-client', t: 'v', ox: 12, bold: true },
-    { id: 'd-plan', a: 'n-api', b: 'n-plan', t: 'd' }, { id: 'd-retr', a: 'n-api', b: 'n-retr', t: 'd' },
-    { id: 'd-rerank', a: 'n-api', b: 'n-rerank', t: 'd' }, { id: 'd-select', a: 'n-api', b: 'n-select', t: 'd' },
-    { id: 'h1', a: 'n-plan', b: 'n-retr', t: 'h' }, { id: 'h2', a: 'n-retr', b: 'n-rerank', t: 'h' }, { id: 'h3', a: 'n-rerank', b: 'n-select', t: 'h' },
-    { id: 'plan-llm', a: 'n-plan', b: 'n-llm', t: 'v' }, { id: 'rerank-llm', a: 'n-rerank', b: 'n-llm', t: 'v' },
-    { id: 'retr-emb', a: 'n-retr', b: 'n-emb', t: 'v' }, { id: 'retr-bm25', a: 'n-retr', b: 'n-bm25', t: 'v' }, { id: 'retr-cat', a: 'n-retr', b: 'n-cat', t: 'v' },
-    { id: 'o1', a: 'n-raw', b: 'n-ingest', t: 'h' }, { id: 'o2', a: 'n-ingest', b: 'n-parq', t: 'h' }, { id: 'o3', a: 'n-parq', b: 'n-build', t: 'h' }, { id: 'o4', a: 'n-build', b: 'n-idx', t: 'h' },
-    { id: 'idx-emb', a: 'n-idx', b: 'n-emb', t: 'v' }, { id: 'idx-bm25', a: 'n-idx', b: 'n-bm25', t: 'v' }, { id: 'idx-cat', a: 'n-idx', b: 'n-cat', t: 'v' }
+    { id: 'ask', a: 'n-client', b: 'n-api', t: 'v', ox: -16, label: 'POST json' },
+    { id: 'result', a: 'n-api', b: 'n-client', t: 'v', ox: 16, bold: true, label: '200 json' },
+    { id: 'd-plan', a: 'n-api', b: 'n-plan', t: 'd', label: 'query' },
+    { id: 'plan-llm', a: 'n-plan', b: 'n-llm', t: 'v', ox: -12, label: 'prompt + schema' },
+    { id: 'llm-plan', a: 'n-llm', b: 'n-plan', t: 'v', ox: 12, label: 'plan json' },
+    { id: 'h1', a: 'n-plan', b: 'n-retr', t: 'h', label: '5 slot queries' },
+    { id: 'retr-emb', a: 'n-retr', b: 'n-emb', t: 'v', ox: -12, label: '5 x 384 vectors' },
+    { id: 'emb-retr', a: 'n-emb', b: 'n-retr', t: 'v', ox: 12, label: '5 x 100K scores' },
+    { id: 'retr-bm25', a: 'n-retr', b: 'n-bm25', t: 'v', ox: -12, label: 'tokens' },
+    { id: 'bm25-retr', a: 'n-bm25', b: 'n-retr', t: 'v', ox: 12, label: '100K scores' },
+    { id: 'retr-cat', a: 'n-retr', b: 'n-cat', t: 'v', ox: -12, label: 'row ids' },
+    { id: 'cat-retr', a: 'n-cat', b: 'n-retr', t: 'v', ox: 12, label: 'rows' },
+    { id: 'h2', a: 'n-retr', b: 'n-rerank', t: 'h', label: 'candidate pools' },
+    { id: 'rerank-llm', a: 'n-rerank', b: 'n-llm', t: 'v', ox: -12, label: '5 prompts' },
+    { id: 'llm-rerank', a: 'n-llm', b: 'n-rerank', t: 'v', ox: 12, label: 'picks + reasons' },
+    { id: 'h3', a: 'n-rerank', b: 'n-select', t: 'h', label: 'ranked slots' },
+    { id: 'select-api', a: 'n-select', b: 'n-api', t: 'u', label: 'response' },
+    { id: 'o1', a: 'n-raw', b: 'n-ingest', t: 'h', label: 'json lines' }, { id: 'o2', a: 'n-ingest', b: 'n-parq', t: 'h', label: 'typed rows' },
+    { id: 'o3', a: 'n-parq', b: 'n-build', t: 'h', label: 'top 100K' }, { id: 'o4', a: 'n-build', b: 'n-idx', t: 'h', label: 'artifacts' },
+    { id: 'idx-emb', a: 'n-idx', b: 'n-emb', t: 'v', ox: -10, label: 'load' }, { id: 'idx-bm25', a: 'n-idx', b: 'n-bm25', t: 'v', label: 'load' }, { id: 'idx-cat', a: 'n-idx', b: 'n-cat', t: 'v', ox: 10, label: 'load' }
   ];
   var edgeById = {}; edges.forEach(function (e) { edgeById[e.id] = e; });
   function anchor(id) {
@@ -469,69 +489,113 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
              top: (r.top - sb.top) / sb.height * VBH, bot: (r.top - sb.top + r.height) / sb.height * VBH,
              left: (r.left - sb.left) / sb.width * VBW, right: (r.left - sb.left + r.width) / sb.width * VBW };
   }
+  // every path is drawn FROM a TO b, so the marker at the end shows the direction of the data
   function pathFor(e) {
-    var A = anchor(e.a), B = anchor(e.b);
-    if (e.t === 'h') { var L = A.cx < B.cx ? A : B, R = A.cx < B.cx ? B : A; return 'M ' + L.right + ' ' + L.cy + ' L ' + R.left + ' ' + R.cy; }
-    if (e.t === 'd') { return 'M ' + B.cx + ' ' + A.bot + ' L ' + B.cx + ' ' + B.top; }
-    var ox = e.ox || 0, U = A.cy < B.cy ? A : B, D = A.cy < B.cy ? B : A;
-    var x1 = U.cx + ox, y1 = U.bot, x2 = D.cx + ox, y2 = D.top, m = (y1 + y2) / 2;
+    var A = anchor(e.a), B = anchor(e.b), ox = e.ox || 0;
+    if (e.t === 'h') { return 'M ' + A.right + ' ' + A.cy + ' L ' + (B.left - 2) + ' ' + B.cy; }
+    if (e.t === 'd') { return 'M ' + B.cx + ' ' + A.bot + ' L ' + B.cx + ' ' + (B.top - 2); }
+    if (e.t === 'u') { return 'M ' + A.cx + ' ' + A.top + ' L ' + A.cx + ' ' + (B.bot + 2); }
+    var down = A.cy < B.cy;
+    var x1 = A.cx + ox, y1 = down ? A.bot : A.top, x2 = B.cx + ox, y2 = down ? (B.top - 2) : (B.bot + 2), m = (y1 + y2) / 2;
     return 'M ' + x1 + ' ' + y1 + ' C ' + x1 + ' ' + m + ', ' + x2 + ' ' + m + ', ' + x2 + ' ' + y2;
   }
   function renderWires() {
-    Array.prototype.slice.call(wires.querySelectorAll('path')).forEach(function (n) { n.remove(); });
+    Array.prototype.slice.call(wires.querySelectorAll('path, text, rect.elabel-bg')).forEach(function (n) { n.remove(); });
     edges.forEach(function (e) {
       var p = document.createElementNS(NS, 'path'); p.setAttribute('class', 'wire' + (e.bold ? ' bold' : '')); p.setAttribute('id', 'w-' + e.id); p.setAttribute('d', pathFor(e)); wires.appendChild(p);
     });
+    edges.forEach(function (e) {
+      if (!e.label) return;
+      var p = document.getElementById('w-' + e.id), len = p.getTotalLength(), pt = p.getPointAtLength(len * (e.t === 'h' ? 0.5 : 0.5));
+      var dx = (e.t === 'h') ? 0 : ((e.ox || 0) < 0 ? -8 : 8), dy = (e.t === 'h') ? -6 : 0;
+      var anchorTxt = (e.t === 'h') ? 'middle' : ((e.ox || 0) < 0 ? 'end' : 'start');
+      if (e.t === 'd' || e.t === 'u') { dx = 8; anchorTxt = 'start'; }
+      var w = e.label.length * 5.6 + 6;
+      var bg = document.createElementNS(NS, 'rect'); bg.setAttribute('class', 'elabel-bg');
+      var tx = pt.x + dx - (anchorTxt === 'middle' ? w / 2 : anchorTxt === 'end' ? w : 0);
+      bg.setAttribute('x', tx); bg.setAttribute('y', pt.y + dy - 8); bg.setAttribute('width', w); bg.setAttribute('height', 12); bg.setAttribute('opacity', '0.9');
+      wires.appendChild(bg);
+      var t = document.createElementNS(NS, 'text'); t.setAttribute('class', 'elabel'); t.setAttribute('id', 'l-' + e.id);
+      t.setAttribute('x', pt.x + dx); t.setAttribute('y', pt.y + dy + 1); t.setAttribute('text-anchor', anchorTxt); t.textContent = e.label;
+      wires.appendChild(t);
+    });
   }
+  var PKT_MS = 1900;
   function spawnPacket(edgeId, opts) {
     var path = document.getElementById('w-' + edgeId); if (!path) return;
-    var len = path.getTotalLength(), dir = opts.dir || 1, label = (opts.label || '').toString().slice(0, 6);
+    var len = path.getTotalLength(), label = (opts.label || '').toString().slice(0, 12);
     var g = document.createElementNS(NS, 'g'); g.setAttribute('opacity', '0');
-    var w = label ? 8 + label.length * 6 : 10;
-    g.innerHTML = '<rect class="pkt-box" x="' + (-w / 2) + '" y="-7" width="' + w + '" height="14" rx="2"/>' + (label ? '<text class="pkt-label" x="0" y="3.5" text-anchor="middle">' + label + '</text>' : '');
+    var w = label ? 10 + label.length * 6.2 : 12;
+    g.innerHTML = '<rect class="pkt-box" x="' + (-w / 2) + '" y="-8" width="' + w + '" height="16" rx="2"/>' + (label ? '<text class="pkt-label" x="0" y="4" text-anchor="middle">' + label + '</text>' : '');
     packets.appendChild(g);
-    var dur = opts.duration || 1100, t0 = null;
+    var dur = opts.duration || PKT_MS, t0 = null;
     function frame(t) {
       if (t0 === null) t0 = t;
-      var pr = Math.min(1, (t - t0) / dur), pt = path.getPointAtLength(dir > 0 ? len * pr : len * (1 - pr));
+      var pr = Math.min(1, (t - t0) / dur), pt = path.getPointAtLength(len * pr);
       g.setAttribute('transform', 'translate(' + pt.x + ' ' + pt.y + ')');
-      g.setAttribute('opacity', pr < 0.1 ? pr * 10 : pr > 0.9 ? (1 - pr) * 10 : 1);
+      g.setAttribute('opacity', pr < 0.08 ? pr * 12 : pr > 0.92 ? (1 - pr) * 12 : 1);
       if (pr < 1) requestAnimationFrame(frame); else g.remove();
     }
     requestAnimationFrame(frame);
   }
   var phases = [
-    { step: 'step 0 / 7, before any request', text: 'ingest streams all 826,108 rows into a typed parquet in 30 s. build-index picks the 100K most rated rows, embeds them with bge-small in 2.7 min, builds bm25 over the same text, and writes row ids plus a sha256 of every file. The three boxes above are what the retriever reads.',
+    { step: 'step 0 / 7, before any request (offline)',
+      text: 'stylist ingest streams 826,108 gzip json lines into a typed parquet (zstd, 150 MB, about 30 s): price parsed to a float or null, audience from details.Department then title words, doc text = title | features | department, material, style, colour, brand | store. stylist build-index picks the 100,000 most rated rows (selection done in Arrow before anything is materialised), embeds them with bge-small-en-v1.5 in batches of 128 (L2 normalised, stored float16, 2.7 min on a laptop gpu), builds a bm25s index over the same text, writes row_ids.npy, a serving parquet of exactly those rows, and meta.json with model name and revision, dimension, counts and a sha256 of every file. At startup the loader verifies all of it before serving.',
+      tech: 'catalog.py ingest() -> data/processed/catalog.parquet  |  index.py build_index() -> data/index/{embeddings.npy f16 (100000,384), bm25/, row_ids.npy, catalog.parquet, meta.json}  |  SearchIndex.load() checks counts, row order, checksums, model, dim',
       nodes: ['n-raw','n-ingest','n-parq','n-build','n-idx','n-emb','n-bm25','n-cat'], wires: ['o1','o2','o3','o4','idx-emb','idx-bm25','idx-cat'],
-      pkts: [{ e: 'o1', l: 'rows' }, { e: 'o2', l: 'rows', d: 300 }, { e: 'o3', l: '100K', d: 600 }, { e: 'o4', l: 'emb', d: 900 }, { e: 'idx-emb', l: 'npy', d: 1300 }, { e: 'idx-bm25', l: 'bm25', d: 1400 }, { e: 'idx-cat', l: 'rows', d: 1500 }] },
-    { step: 'step 1 / 7, the request lands', text: '{"query": "I need an outfit to go to the beach this summer", "k": 4}. pydantic validates it (unknown fields rejected, prices finite), a request id is issued, the 40 s deadline starts.',
+      pkts: [{ e: 'o1', l: 'rows' }, { e: 'o2', l: 'rows', d: 600 }, { e: 'o3', l: '100K', d: 1200 }, { e: 'o4', l: 'emb' , d: 1800 }, { e: 'idx-emb', l: 'npy', d: 2600 }, { e: 'idx-bm25', l: 'bm25', d: 2800 }, { e: 'idx-cat', l: 'rows', d: 3000 }] },
+    { step: 'step 1 / 7, the request lands',
+      text: 'POST /recommend with {"query": "I need an outfit to go to the beach this summer", "k": 4}. pydantic validates the body (unknown fields rejected, query 1 to 500 chars, k 1 to 10, prices finite, min <= max), the per-ip rate limit and the in-flight cap are checked, a request id is issued and the 40 s deadline starts. Optional fields: max_price / min_price (per item), audience, include_unpriced (null = auto), use_llm, rerank.',
+      tech: 'schemas.py RecommendRequest(extra="forbid")  |  api.py recommend()  |  service.py recommend(): deadline = monotonic() + REQUEST_DEADLINE_S  |  errors: 422 validation, 429 rate limit, 503 not ready, 504 deadline',
       nodes: ['n-client','n-api'], wires: ['ask'], pkts: [{ e: 'ask', l: 'query' }] },
-    { step: 'step 2 / 7, plan', text: 'The planner sends the sentence to the LLM and gets a structured plan back: 5 slots (swimsuit, cover-up, sandals, sun hat, sunglasses), each with a listing-style query, keywords, exclude words, a budget share. 3 to 7 s, cached per query. If the call fails or runs late, a regex planner produces a one slot plan instead.',
-      nodes: ['n-api','n-plan','n-llm'], wires: ['d-plan','plan-llm'], pkts: [{ e: 'd-plan', l: 'query' }, { e: 'plan-llm', l: 'prompt', d: 500 }, { e: 'plan-llm', l: 'plan', dir: -1, d: 1700 }] },
-    { step: 'step 3 / 7, retrieve', text: 'All 5 slot queries are embedded in one batch and scored against the 100,000 x 384 matrix in one multiply; bm25 scores every row too. Audience and price masks are applied to the full score vectors before top-N, then reciprocal rank fusion. 50 to 300 ms.',
-      nodes: ['n-plan','n-retr','n-emb','n-bm25'], wires: ['h1','retr-emb','retr-bm25'], pkts: [{ e: 'h1', l: '5 q' }, { e: 'retr-emb', l: 'Q', d: 500 }, { e: 'retr-bm25', l: 'tok', d: 600 }, { e: 'retr-emb', l: 'scores', dir: -1, d: 1300 }, { e: 'retr-bm25', l: 'scores', dir: -1, d: 1400 }] },
-    { step: 'step 4 / 7, hydrate and group', text: 'The top rows come out of catalog.parquet (title, price, rating, image). Size and colour variants collapse to one per group, planner keywords boost, exclude words penalise, a small rating prior breaks ties. When a budget was inferred, an unpriced pool is ranked alongside and flagged.',
-      nodes: ['n-retr','n-cat'], wires: ['retr-cat'], pkts: [{ e: 'retr-cat', l: 'ids' }, { e: 'retr-cat', l: 'rows', dir: -1, d: 800 }] },
-    { step: 'step 5 / 7, rerank', text: 'One LLM call per slot, all five at once, with the top 10 candidates as compact json labelled as untrusted catalog data. Each returns ordered picks with a 15 word reason and the fields it relied on. Ids are validated against the slot; a slot whose call fails keeps retrieval order. 3 to 7 s.',
-      nodes: ['n-retr','n-rerank','n-llm'], wires: ['h2','rerank-llm'], pkts: [{ e: 'h2', l: 'pools' }, { e: 'rerank-llm', l: 's1', d: 500 }, { e: 'rerank-llm', l: 's2', d: 620 }, { e: 'rerank-llm', l: 's3', d: 740 }, { e: 'rerank-llm', l: 's4', d: 860 }, { e: 'rerank-llm', l: 's5', d: 980 }, { e: 'rerank-llm', l: 'picks', dir: -1, d: 2000 }, { e: 'rerank-llm', l: 'picks', dir: -1, d: 2150 }, { e: 'rerank-llm', l: 'picks', dir: -1, d: 2300 }] },
-    { step: 'step 6 / 7, select', text: 'Top 4 per slot. A product group can fill at most one slot; a slot that lost items to an earlier one is refilled from its own ranking. Every fallback that happened is written into warnings, every stage into timings.',
+    { step: 'step 2 / 7, plan (LLM, structured output)',
+      text: 'The planner sends the sentence, wrapped as data, plus the PlannerOutput json schema to the LLM (effort low, max 1500 output tokens). The answer is a structured plan: intent, audience, occasion, season, budget and its scope (per_item or total), style words and 1 to 5 slots, each with a listing-style search query, 2 to 6 title keywords, up to 4 exclude words and a budget share. normalize_plan enforces what a schema cannot: slot cap, deduped lowercase keywords, finite budgets, allocations floored at 10% and scaled to never exceed the total. Plans are cached per (normalized query, mode, provider, model, prompt version); identical concurrent requests share one call. 3 to 7 s. If the call fails, times out, or there is no key, the regex planner makes a one slot plan.',
+      tech: 'planner.py LLMPlanner.plan() -> PlannerOutput -> normalize_plan() -> QueryPlan  |  llm/anthropic_client.py messages.parse(output_format=PlannerOutput) or llm/openai_client.py chat.completions.parse(response_format=...)  |  cache: OrderedDict LRU, PLAN_CACHE_SIZE=256, failure ttl 30 s',
+      nodes: ['n-api','n-plan','n-llm'], wires: ['d-plan','plan-llm','llm-plan'], pkts: [{ e: 'd-plan', l: 'query' }, { e: 'plan-llm', l: 'prompt', d: 900 }, { e: 'llm-plan', l: 'plan', d: 3200 }] },
+    { step: 'step 3 / 7, retrieve (one matmul, bm25, masks before top-N)',
+      text: 'merge_constraints turns plan + request into one SlotWindow per slot (request fields win over inferred ones). The 5 search queries are embedded in one batch with the bge query prefix, then one matrix multiply Q (5 x 384) against E (384 x 100,000) gives a dense score for every row of every slot; bm25s scores every row per query. Boolean masks, audience in {requested, unisex, unknown} and price inside the window when a bound exists, are applied to both full score vectors before top-100, so a constraint can never empty a slot while an eligible row exists. Reciprocal rank fusion (k=60) merges the two rankings; then +0.5/61 for a keyword in the title, -0.5/61 for an exclude word, +0.1/61 x the Bayesian rating. 50 to 300 ms.',
+      tech: 'planner.py merge_constraints() -> [SlotWindow]  |  retrieval.py Retriever.retrieve(): embedder.encode_queries() -> index.dense_scores(Q) -> index.bm25_scores(q) -> eligibility_masks() -> rrf_fuse(dense, bm25, mask, top_n=100, k=60) -> _rank()',
+      nodes: ['n-plan','n-retr','n-emb','n-bm25'], wires: ['h1','retr-emb','emb-retr','retr-bm25','bm25-retr'], pkts: [{ e: 'h1', l: '5 queries' }, { e: 'retr-emb', l: 'Q 5x384', d: 1200 }, { e: 'retr-bm25', l: 'tokens', d: 1400 }, { e: 'emb-retr', l: 'scores', d: 3000 }, { e: 'bm25-retr', l: 'scores', d: 3200 }] },
+    { step: 'step 4 / 7, hydrate and group',
+      text: 'The fused top rows are hydrated from catalog.parquet (title, price, rating, rating count, store, audience, image, material, colour, style, features). A group key derived from the title (trailing brackets incl. nested ones, size tokens, colour and size comma segments, bare trailing sizes stripped) collapses variants so one row per product survives; the window widens x4 until k distinct groups exist. When a budget came from the sentence, an unpriced pool is ranked in the same order with a +0.25/61 bonus for priced in-budget rows, flagged price_known=false. The pool depth is max(10, k x slots) so later slots can still be filled after cross-slot deduplication.',
+      tech: 'retrieval.py _rank_distinct() -> diversify_by_group() -> _hydrate()  |  catalog.py group_key()  |  SlotCandidates{slot, window, candidates[], n_eligible, warnings}',
+      nodes: ['n-retr','n-cat'], wires: ['retr-cat','cat-retr'], pkts: [{ e: 'retr-cat', l: 'row ids' }, { e: 'cat-retr', l: 'rows', d: 1800 }] },
+    { step: 'step 5 / 7, rerank (one LLM call per slot, in parallel)',
+      text: 'For every slot one call runs concurrently under asyncio.wait with the rerank budget (at most 20 s) and a global cap of 8 LLM calls in flight. Each prompt carries the request, a plan summary, the slot, and its top 10 candidates as compact json (row_id, title <= 140 chars, price or null, price_known, rating, ratings, audience, store, material / colour / style, matched_keywords, off_type_hint) labelled as untrusted catalog data. The schema SlotRerankOutput has picks [{row_id, reason <= 15 words, evidence fields}], no_good_match and a 20 word note. Picks are validated: offered ids only, unique, at most k; no_good_match empties the slot; a slot whose call fails or runs late keeps retrieval order, the others keep their result; urls and emails are stripped from model prose. 3 to 7 s.',
+      tech: 'reranker.py LLMReranker.rerank() -> _rerank_slot() x slots -> apply_slot_rerank(out, sc, k) -> RankedSlot{ordered, reasons}  |  prompts.py RERANK_SYSTEM  |  llm/__init__.py ThrottledLLM(Semaphore(LLM_CONCURRENCY))',
+      nodes: ['n-retr','n-rerank','n-llm'], wires: ['h2','rerank-llm','llm-rerank'], pkts: [{ e: 'h2', l: 'pools' }, { e: 'rerank-llm', l: 's1', d: 1200 }, { e: 'rerank-llm', l: 's2', d: 1400 }, { e: 'rerank-llm', l: 's3', d: 1600 }, { e: 'rerank-llm', l: 's4', d: 1800 }, { e: 'rerank-llm', l: 's5', d: 2000 }, { e: 'llm-rerank', l: 'picks', d: 4200 }, { e: 'llm-rerank', l: 'picks', d: 4450 }, { e: 'llm-rerank', l: 'picks', d: 4700 }] },
+    { step: 'step 6 / 7, select',
+      text: 'Round robin across slots by rank: every slot takes its best available product before any slot takes its second, and a product group can fill at most one slot, so an early slot cannot drain a later one. Top k per slot. Items without an LLM reason get a deterministic one (matched keywords, rating, price vs budget). Warnings are written for every fallback: a slot below k, unpriced items returned under a budget, priced picks exceeding a stated total, a planner or rerank fallback.',
+      tech: 'service.py _select(ranked, k, warnings)  |  reranker.py deterministic_reason(candidate, window)',
       nodes: ['n-rerank','n-select'], wires: ['h3'], pkts: [{ e: 'h3', l: 'ranked' }] },
-    { step: 'step 7 / 7, respond', text: 'Back through the API to the client: the plan, the slots with their items, reasons and evidence, price_known on every item, warnings, timings. In the sample run: plan 6.9 s, retrieve 0.2 s, rerank 4.4 s, 11.5 s total.',
-      nodes: ['n-select','n-api','n-client'], wires: ['d-select','result'], pkts: [{ e: 'd-select', l: 'json', dir: -1 }, { e: 'result', l: 'json', d: 900 }] }
+    { step: 'step 7 / 7, respond',
+      text: 'RecommendResponse goes back through the API to the client: request_id, the plan as used, slots [{name, search_query, keywords, exclude_keywords, budget_max, n_eligible, items [{rank, parent_asin, title, price, price_known, average_rating, rating_number, store, audience, image_url, url, score, matched_keywords, reason, evidence}]}], the stylist note, warnings, index_info (rows, sampling, model, built_at), llm_info (provider, model, planner_used, rerank_used) and timings per stage. Sample run: plan 6.9 s, retrieve 0.2 s, rerank 4.4 s, total 11.5 s; with a cached plan about 6 s.',
+      tech: 'schemas.py RecommendResponse / Item / SlotResult  |  api.py: 200 json, error bodies {error: {code, message}} for 422 / 429 / 503 / 504, OpenAPI at /docs',
+      nodes: ['n-select','n-api','n-client'], wires: ['select-api','result'], pkts: [{ e: 'select-api', l: 'slots' }, { e: 'result', l: 'json', d: 2000 }] }
   ];
-  var capStep = document.getElementById('cap-step'), capTxt = document.getElementById('cap-txt');
+  var capStep = document.getElementById('cap-step'), capTxt = document.getElementById('cap-txt'), capTech = document.getElementById('cap-tech');
   var phaseIdx = 0, timer = null, playing = true, inited = false, visible = false;
+  var STEP_MS = 12000;
   function applyPhase(i) {
     phaseIdx = (i + phases.length) % phases.length;
     var ph = phases[phaseIdx];
     document.querySelectorAll('#stage .node').forEach(function (n) { n.classList.remove('on'); });
-    Array.prototype.slice.call(wires.querySelectorAll('path')).forEach(function (p) { p.classList.remove('active'); });
+    Array.prototype.slice.call(wires.querySelectorAll('path, text')).forEach(function (p) { p.classList.remove('active'); });
+    Array.prototype.slice.call(packets.querySelectorAll('g')).forEach(function (g) { g.remove(); });
     ph.nodes.forEach(function (id) { var n = document.getElementById(id); if (n) n.classList.add('on'); });
-    ph.wires.forEach(function (w) { var p = document.getElementById('w-' + w); if (p) p.classList.add('active'); });
-    capStep.textContent = ph.step; capTxt.textContent = ph.text;
-    if (!reduce) ph.pkts.forEach(function (pk) { setTimeout(function () { spawnPacket(pk.e, { label: pk.l, dir: pk.dir || 1, duration: 1100 }); }, pk.d || 0); });
+    ph.wires.forEach(function (w) { var p = document.getElementById('w-' + w); if (p) p.classList.add('active'); var l = document.getElementById('l-' + w); if (l) l.classList.add('active'); });
+    capStep.textContent = ph.step; capTxt.textContent = ph.text; capTech.textContent = ph.tech || '';
+    if (reduce) {
+      // reduced motion: show each payload parked at the middle of its edge instead of moving it
+      ph.pkts.forEach(function (pk) { var path = document.getElementById('w-' + pk.e); if (!path) return; var pt = path.getPointAtLength(path.getTotalLength() * 0.35);
+        var g = document.createElementNS(NS, 'g'); var w = 10 + (pk.l || '').length * 6.2;
+        g.innerHTML = '<rect class="pkt-box" x="' + (-w / 2) + '" y="-8" width="' + w + '" height="16" rx="2"/><text class="pkt-label" x="0" y="4" text-anchor="middle">' + pk.l + '</text>';
+        g.setAttribute('transform', 'translate(' + pt.x + ' ' + pt.y + ')'); packets.appendChild(g); });
+    } else {
+      ph.pkts.forEach(function (pk) { setTimeout(function () { spawnPacket(pk.e, { label: pk.l }); }, pk.d || 0); });
+    }
   }
-  function schedule() { clearTimeout(timer); if (playing && visible) timer = setTimeout(function () { applyPhase(phaseIdx + 1); schedule(); }, 5200); }
+  function schedule() { clearTimeout(timer); if (playing && visible) timer = setTimeout(function () { applyPhase(phaseIdx + 1); schedule(); }, STEP_MS); }
   function startStage() { if (!inited) { renderWires(); inited = true; setTimeout(renderWires, 300); } applyPhase(phaseIdx); schedule(); }
   function stopStage() { clearTimeout(timer); }
   document.getElementById('b-prev').addEventListener('click', function () { applyPhase(phaseIdx - 1); schedule(); });
