@@ -173,13 +173,31 @@ def rrf_fuse(
     return sorted(scores.values(), key=lambda c: (-c.score, c.idx))
 
 
+# plural keywords whose singular is an adjective or another thing entirely
+_NOT_A_TYPE_SINGULAR = {"short", "tight", "flat", "brief", "overall", "top", "slip", "cover"}
+
+
+def _keyword_rx(kw: str) -> re.Pattern:
+    """Whole-word match of a type keyword, tolerant of plural / singular on its last word
+    ("running shoes" matches "Running Shoe", "boot" matches "Boots"); spaces and hyphens
+    between words are interchangeable."""
+    words = kw.lower().split()
+    last = words[-1]
+    forms = {last}
+    if last.endswith("es") and len(last) > 4:
+        forms.add(last[:-2])
+    if last.endswith("s") and not last.endswith("ss") and len(last) > 3:
+        stem = last[:-1]
+        if stem not in _NOT_A_TYPE_SINGULAR:
+            forms.add(stem)
+    alt = "|".join(re.escape(f) for f in sorted(forms, key=len, reverse=True))
+    head = "".join(re.escape(w) + r"[\s\-]*" for w in words[:-1])
+    return re.compile(rf"\b{head}(?:{alt})(?:s|es)?\b")
+
+
 def keyword_matches(title: str, keywords: list[str]) -> list[str]:
     low = (title or "").lower()
-    out = []
-    for kw in keywords:
-        if kw and re.search(r"\b" + re.escape(kw) + r"(?:s|es)?\b", low):
-            out.append(kw)
-    return out
+    return [kw for kw in keywords if kw and _keyword_rx(kw).search(low)]
 
 
 def bayes_rating(avg: float | None, count: int, m: int, prior: float) -> float:
@@ -253,7 +271,8 @@ class Retriever:
         key = brand.lower().strip()
         mask = self._brand_masks.get(key)
         if mask is None:
-            rx = re.compile(r"\b" + re.escape(key).replace(r"\ ", r"[\s\-]*") + r"\b", re.I)
+            pat = re.escape(key).replace(r"\ ", r"[\s\-]*").replace("'", "['\u2019]?")
+            rx = re.compile(r"\b" + pat + r"\b", re.I)
             cat = self.index.catalog
             cols = [cat["title"]] + [cat[c] for c in ("store", "brand") if c in cat.columns]
             mask = np.zeros(self.index.n_rows, dtype=bool)
@@ -333,17 +352,29 @@ class Retriever:
         seen: set[str],
         audience: str | None = None,
         bonus: np.ndarray | None = None,
+        type_gate: bool = False,
     ) -> list[Candidate]:
         """Rank and collapse variants; widen the per-channel window (x4 each time) while
-        the masked pool still has rows and we have fewer than `needed` distinct groups."""
+        the masked pool still has rows and we have fewer than `needed` distinct groups.
+
+        type_gate: when at least `needed` distinct candidates carry one of the slot's type
+        keywords in their title, only those are returned (insoles must not fill a running
+        shoes slot just because "arch support" scores well). With fewer matches the
+        matches come first and the rest follow."""
         n_masked = int(mask.sum())
         top_n = self.s.top_n_per_channel
         while True:
             fused = self._rank(dense, bm25, mask, slot, top_n, audience, bonus)
             distinct = diversify_by_group(fused, set(seen))
-            if len(distinct) >= needed or top_n >= n_masked:
-                seen.update(c.group_key or f"__{c.idx}" for c in distinct)
-                return distinct
+            typed = [c for c in distinct if c.matched_keywords] if type_gate else distinct
+            if len(typed) >= needed:
+                seen.update(c.group_key or f"__{c.idx}" for c in typed)
+                return typed
+            if top_n >= n_masked:
+                rest = [c for c in distinct if not c.matched_keywords] if type_gate else []
+                out = typed + rest
+                seen.update(c.group_key or f"__{c.idx}" for c in out)
+                return out
             top_n = min(top_n * 4, n_masked)
 
     def retrieve(
@@ -366,12 +397,17 @@ class Retriever:
         for i, (slot, window) in enumerate(zip(plan.slots, windows, strict=True)):
             warnings: list[str] = []
             eligible, pool = eligibility_masks(self.index, window)
+            # LLM plans carry curated type synonyms, so a title without any of them is
+            # almost never the product asked for; heuristic keywords are just query words
+            gate = plan.source == "llm" and bool(slot.keywords)
             bonus = None
+            brand_filtered = False
             if brand_mask is not None:
                 n_brand = int((eligible & brand_mask).sum())
                 if n_brand >= k:  # enough of the brand: the brand becomes a hard filter
                     eligible &= brand_mask
                     pool &= brand_mask
+                    brand_filtered = True
                 else:  # too few: they come first, the rest fills up, and the client is told
                     bonus = brand_mask
                     warnings.append(
@@ -383,15 +419,30 @@ class Retriever:
             seen: set[str] = set()
             aud = window.audience
             ranked = self._rank_distinct(
-                dense, bm25, eligible, slot, n_candidates, seen, aud, bonus
+                dense, bm25, eligible, slot, n_candidates, seen, aud, bonus, gate
             )
+            if brand_filtered and gate and sum(1 for c in ranked if c.matched_keywords) < k:
+                # the brand is in the catalog but not this product type: widen to every
+                # brand, keep the named one first, and say so
+                warnings.append(
+                    f"slot '{slot.name}': no '{plan.brand}' item of this type in the catalog, "
+                    f"showing other brands"
+                )
+                eligible, pool = eligibility_masks(self.index, window)
+                bonus = brand_mask
+                seen = set()
+                ranked = self._rank_distinct(
+                    dense, bm25, eligible, slot, n_candidates, seen, aud, bonus, gate
+                )
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():
                 # unpriced pool, same depth, flagged. Merged into ONE score order: a known
                 # in-budget price earns a small bonus, it does not trump relevance (a priced
                 # wooden ring must not outrank an unpriced blazer in a blazer slot)
-                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen, aud, bonus)
+                extra = self._rank_distinct(
+                    dense, bm25, pool, slot, n_candidates, seen, aud, bonus, gate
+                )
                 for c in ranked:
                     c.score += IN_WINDOW_BONUS * self._unit
                 for c in extra[:n_candidates]:

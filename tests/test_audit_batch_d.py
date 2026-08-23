@@ -133,3 +133,86 @@ def test_fallback_fill_without_keywords_uses_retrieval_order():
     out = SlotRerankOutput(picks=[])
     ranked, _ = apply_slot_rerank(out, _sc(cands, keywords=()), k=2)
     assert [c.row_id for c in ranked.ordered] == [1, 2]
+
+
+# ----------------------------------------------------------------------------- type gate
+
+
+def test_keyword_matches_accept_singular_titles_for_plural_keywords():
+    from stylist.retrieval import keyword_matches
+
+    assert keyword_matches("Men's Running Shoe Black", ["running shoes"]) == ["running shoes"]
+    assert keyword_matches("Leather Boot", ["boots"]) == ["boots"]
+    assert keyword_matches("Short Sleeve Shirt", ["shorts"]) == []  # 'short' is not a type
+    assert keyword_matches("Cargo Shorts", ["shorts"]) == ["shorts"]
+    assert keyword_matches("Wool Dress Socks", ["sock"]) == ["sock"]
+
+
+def _plan(keywords, source="llm"):
+    return QueryPlan(
+        intent="t",
+        slots=[Slot(name="x", search_query="arch support flat feet", keywords=keywords)],
+        source=source,
+    )
+
+
+def test_type_gate_keeps_only_keyword_matches_when_enough_exist(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    plan = _plan(["boot", "boots"])
+    [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
+    assert len(res.candidates) >= 4
+    assert all(c.matched_keywords for c in res.candidates)
+
+
+def test_type_gate_is_skipped_for_heuristic_plans(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    plan = _plan(["zzzz"], source="heuristic")  # a word no title has
+    [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
+    assert len(res.candidates) == 6  # nothing dropped
+
+
+def test_type_gate_falls_back_to_everything_when_too_few_match(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    plan = _plan(["zzzz"])  # llm plan with a keyword no title carries
+    [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
+    assert len(res.candidates) == 6
+
+
+def test_brand_filter_relaxes_when_the_brand_has_no_item_of_that_type(fixture_index, hash_embedder):
+    cat = fixture_index.catalog
+    r = _retriever(fixture_index, hash_embedder)
+    # six rows of the brand, none of them a boot
+    rows = [i for i in cat.index if "boot" not in str(cat.loc[i, "title"]).lower()][:6]
+    saved = cat.loc[rows, "store"].copy()
+    try:
+        cat.loc[rows, "store"] = "Zebrabrand"
+        getattr(fixture_index, "_column_cache", {}).clear()
+        plan = QueryPlan(
+            intent="t",
+            brand="zebrabrand",
+            slots=[Slot(name="boots", search_query="boots", keywords=["boot", "boots"])],
+            source="llm",
+        )
+        [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
+        assert any("boot" in c.title.lower() for c in res.candidates)
+        assert any("zebrabrand" in w and "other brands" in w for w in res.warnings)
+    finally:
+        cat.loc[rows, "store"] = saved
+        getattr(fixture_index, "_column_cache", {}).clear()
+        r._brand_masks.clear()
+
+
+def test_brand_mask_tolerates_apostrophe_spellings(fixture_index, hash_embedder):
+    cat = fixture_index.catalog
+    r = _retriever(fixture_index, hash_embedder)
+    rows = list(cat.index[:3])
+    saved = cat.loc[rows, "title"].copy()
+    try:
+        cat.loc[rows[0], "title"] = "Levi's 501 Jeans"
+        cat.loc[rows[1], "title"] = "Levi’s 505 Jeans"
+        cat.loc[rows[2], "title"] = "Levis 511 Jeans"
+        mask = r._brand_mask("levi's")
+        assert all(mask[i] for i in rows)
+    finally:
+        cat.loc[rows, "title"] = saved
+        r._brand_masks.clear()
