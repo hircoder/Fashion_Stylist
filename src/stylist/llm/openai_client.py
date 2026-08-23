@@ -107,6 +107,10 @@ class OpenAILLM:
         except Exception as exc:  # anything else the sdk throws: still an llm failure
             raise LLMTransportError(f"{type(exc).__name__}: {exc}") from exc
 
+        usage = getattr(resp, "usage", None)  # billed whatever the outcome below
+        record_usage(
+            getattr(usage, "prompt_tokens", None), getattr(usage, "completion_tokens", None)
+        )
         if not getattr(resp, "choices", None):
             raise LLMValidationError("empty choices in response")
         choice = resp.choices[0]
@@ -117,8 +121,4 @@ class OpenAILLM:
         parsed = getattr(choice.message, "parsed", None)
         if parsed is None:
             raise LLMValidationError("no parsed output in response")
-        usage = getattr(resp, "usage", None)
-        record_usage(
-            getattr(usage, "prompt_tokens", None), getattr(usage, "completion_tokens", None)
-        )
         return parsed

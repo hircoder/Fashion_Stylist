@@ -402,10 +402,8 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
                 # keep what the planner did split; share what is left among the rest
                 given = sum(a for a in allocs if a is not None)
                 left = max(budget_max - given, 0.0)
-                each = (
-                    round(left / len(missing), 2) if left > 0 else round(budget_max / len(slots), 2)
-                )
-                for i in missing:
+                each = round(left / len(missing), 2)  # 0 when nothing is left: the floor
+                for i in missing:  # in _fit_allocation then lifts it and scales the rest
                     allocs[i] = each
                 warnings.append(
                     "total budget split evenly across slots (planner gave no split)"

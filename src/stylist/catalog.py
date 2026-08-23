@@ -526,17 +526,23 @@ def ingest(
         if chunk:
             writer.write_table(_to_table(chunk))
         ok = stats.rows > 0
-    finally:
+    except BaseException:
         try:
             writer.close()
-        except Exception:  # a failing close must still clean up, and must not hide the cause
-            ok = False
+        except Exception as close_exc:  # the original failure is the one worth seeing
+            log.warning("parquet writer close also failed: %s", close_exc)
+        tmp_path.unlink(missing_ok=True)
+        raise
+    else:
+        try:
+            writer.close()
+        except Exception:
+            tmp_path.unlink(missing_ok=True)
             raise
-        finally:
-            if ok:
-                os.replace(tmp_path, out_path)
-            else:
-                tmp_path.unlink(missing_ok=True)
+        if ok:
+            os.replace(tmp_path, out_path)
+        else:
+            tmp_path.unlink(missing_ok=True)
     if stats.rows == 0:
         raise ValueError(f"no rows read from {raw_path} ({stats.bad_lines} bad lines)")
     n = max(stats.rows, 1)

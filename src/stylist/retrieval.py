@@ -423,6 +423,46 @@ class Retriever:
                 return out
             top_n = min(top_n * 4, n_masked)
 
+    def _rank_brand_first(
+        self,
+        dense: np.ndarray | None,
+        bm25: np.ndarray | None,
+        mask: np.ndarray,
+        brand_mask: np.ndarray | None,
+        slot: Slot,
+        n_candidates: int,
+        seen: set[str],
+        aud: str | None,
+        gate: bool,
+        k: int,
+        brand: str | None,
+        warnings: list[str],
+    ) -> list[Candidate]:
+        """Rank one masked pool. Without a brand: one gated ranking. With a brand: the
+        brand's rows are ranked on their own first (a bonus applied after the top-N cut
+        would never reach rows outside it); with k or more rows of the right type the
+        brand is a hard filter, otherwise product type stays the first-order constraint:
+        the brand's typed rows, then at most two of its untyped rows ("Go Run 5" from a
+        shoe brand is a shoe even without the word; the reranker judges them), then
+        typed rows of other brands, and the client is told."""
+        if brand_mask is None:
+            return self._rank_distinct(dense, bm25, mask, slot, n_candidates, seen, aud, gate, k)
+        own = self._rank_distinct(
+            dense, bm25, mask & brand_mask, slot, n_candidates, seen, aud, gate, k
+        )
+        typed_own = [c for c in own if c.type_match] if gate else own
+        if len(typed_own) >= k:
+            return typed_own
+        warnings.append(
+            f"slot '{slot.name}': only {len(typed_own)} '{brand}' items of this type match "
+            f"the constraints, other brands follow"
+        )
+        rest = self._rank_distinct(
+            dense, bm25, mask & ~brand_mask, slot, n_candidates, seen, aud, gate, k
+        )
+        untyped_own = [c for c in own if not c.type_match][:2]
+        return typed_own + untyped_own + rest
+
     def retrieve(
         self,
         plan: QueryPlan,
@@ -450,42 +490,39 @@ class Retriever:
             bm25 = self.index.bm25_scores(slot.search_query) if use_bm25 else None
             seen: set[str] = set()
             aud = window.audience
-            if brand_mask is None:
-                ranked = self._rank_distinct(
-                    dense, bm25, eligible, slot, n_candidates, seen, aud, gate, k
-                )
-            else:
-                # the named brand is ranked on its own first (a bonus applied after the
-                # top-N cut would never reach rows outside it); with k or more rows of the
-                # right type the brand is a hard filter, otherwise other brands follow
-                own = self._rank_distinct(
-                    dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate, 0
-                )
-                typed_own = [c for c in own if c.type_match] if gate else own
-                if len(typed_own) >= k:
-                    ranked = typed_own
-                else:
-                    warnings.append(
-                        f"slot '{slot.name}': only {len(typed_own)} '{plan.brand}' items of this "
-                        f"type match the constraints, other brands follow"
-                    )
-                    rest = self._rank_distinct(
-                        dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate, k
-                    )
-                    # product type stays the first-order constraint: the brand's own typed
-                    # rows, then at most two untyped brand rows ("Go Run 5" from a shoe
-                    # brand is a shoe even without the word; the reranker judges them),
-                    # then typed rows of other brands
-                    untyped_own = [c for c in own if not c.type_match][:2]
-                    ranked = typed_own + untyped_own + rest
+            ranked = self._rank_brand_first(
+                dense,
+                bm25,
+                eligible,
+                brand_mask,
+                slot,
+                n_candidates,
+                seen,
+                aud,
+                gate,
+                k,
+                plan.brand,
+                warnings,
+            )
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():
-                # unpriced pool, same depth, flagged. Merged into ONE score order: a known
-                # in-budget price earns a small bonus, it does not trump relevance (a priced
-                # wooden ring must not outrank an unpriced blazer in a blazer slot)
-                extra = self._rank_distinct(
-                    dense, bm25, pool, slot, n_candidates, seen, aud, gate, k
+                # unpriced pool, same depth, flagged, same brand rule. Merged into ONE score
+                # order: a known in-budget price earns a small bonus, it does not trump
+                # relevance (a priced wooden ring must not outrank an unpriced blazer)
+                extra = self._rank_brand_first(
+                    dense,
+                    bm25,
+                    pool,
+                    brand_mask,
+                    slot,
+                    n_candidates,
+                    seen,
+                    aud,
+                    gate,
+                    k,
+                    plan.brand,
+                    [],
                 )
                 for c in ranked:
                     c.score += IN_WINDOW_BONUS * self._unit

@@ -124,25 +124,24 @@ class RecommendationService:
 
     async def _plan(
         self, req: RecommendRequest, deadline: float, warnings: list[str]
-    ) -> tuple[QueryPlan, str]:
+    ) -> tuple[QueryPlan, str, bool]:
+        """(plan, planner used, cache hit)."""
         use_llm = req.use_llm and self.llm_planner is not None
         mode = "llm" if use_llm else "heuristic"
         key = self._cache_key(req.query, mode)
         cached = self._cache_get(key)
         if cached is not None:
-            self._last_cache_hit = True
-            return cached.model_copy(deep=True), mode
-        self._last_cache_hit = False
+            return cached.model_copy(deep=True), mode, True
         if use_llm:
             if time.monotonic() < self._plan_failed_until.get(key, 0.0):
                 warnings.append("planner fell back to regex rules (recent planner failure)")
             else:
                 plan = await self._plan_with_llm(req.query, key, deadline, warnings)
                 if plan is not None:
-                    return plan.model_copy(deep=True), "llm"
+                    return plan.model_copy(deep=True), "llm", False
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
-        return plan.model_copy(deep=True), "heuristic"
+        return plan.model_copy(deep=True), "heuristic", False
 
     def _cache_shared_result(self, key: tuple, fut: asyncio.Future) -> None:
         if fut.cancelled() or fut.exception() is not None:
@@ -259,8 +258,7 @@ class RecommendationService:
         warnings: list[str] = []
         timings: dict[str, float] = {}
 
-        plan, planner_used = await self._plan(req, deadline, warnings)
-        plan_cache_hit = bool(getattr(self, "_last_cache_hit", False))
+        plan, planner_used, plan_cache_hit = await self._plan(req, deadline, warnings)
         warnings.extend(plan.warnings)
         timings["plan_ms"] = round((time.monotonic() - t0) * 1000, 1)
 

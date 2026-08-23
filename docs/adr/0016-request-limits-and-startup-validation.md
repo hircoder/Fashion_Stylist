@@ -36,7 +36,12 @@ silent wrong answer, not an error.
   (60 a minute) and can be switched off.
 * A locally built index must carry the pinned revision; `make index` records it.
 * The lock file next to the index directory stays forever (removing it would let a late
-  worker lock a different inode).
+  worker lock a different inode). On Windows (no fcntl) the lock is a no-op and a warning.
+* Known residual: the private-host check resolves the name once before the download and
+  urllib resolves it again to connect, so a DNS answer that changes between the two (DNS
+  rebinding) is not caught. INDEX_URL is operator configuration, not user input, and the
+  recommended hosts are object stores; pinning the connection to the validated address
+  is the fix if the url ever becomes less trusted.
 
 ## Alternatives considered
 Leaving limits to the edge only (fine for Railway, not for `make serve` on a laptop),

@@ -92,6 +92,8 @@ class AnthropicLLM:
         except Exception as exc:  # anything else the sdk throws: still an llm failure
             raise LLMTransportError(f"{type(exc).__name__}: {exc}") from exc
 
+        usage = getattr(resp, "usage", None)  # billed whatever the outcome below
+        record_usage(getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None))
         stop = getattr(resp, "stop_reason", None)
         if stop == "refusal":
             raise LLMRefusalError("model refused the request")
@@ -100,6 +102,4 @@ class AnthropicLLM:
         parsed = getattr(resp, "parsed_output", None)
         if parsed is None:
             raise LLMValidationError("no parsed output in response")
-        usage = getattr(resp, "usage", None)
-        record_usage(getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None))
         return parsed

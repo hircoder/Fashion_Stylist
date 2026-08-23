@@ -122,7 +122,7 @@ def test_brand_order_is_typed_own_then_two_untyped_own_then_typed_others(
         )
         [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=10, k=4)
         own = [c for c in res.candidates if c.store == "Zebrabrand"]
-        assert len(own) <= 2
+        assert len(own) == 2  # exactly two untyped brand rows survive, ahead of other brands
         others = [c for c in res.candidates if c.store != "Zebrabrand"]
         assert others and all(c.type_match for c in others)
         first_other = next(i for i, c in enumerate(res.candidates) if c.store != "Zebrabrand")
@@ -348,7 +348,7 @@ def test_security_headers_are_set(fixture_index, hash_embedder):
         assert "referrer-policy" in r.headers
         r = c.get("/")
         assert "content-security-policy" in r.headers
-        assert "m.media-amazon.com" in r.headers["content-security-policy"]
+        assert "*.media-amazon.com" in r.headers["content-security-policy"]
 
 
 def test_body_limit_replays_a_chunked_body_once_and_then_ends(fixture_index, hash_embedder):
@@ -588,3 +588,42 @@ def test_strict_download_refuses_a_changed_file(tmp_path, monkeypatch):
     with pytest.raises(cli.DownloadError, match="strict"):
         cli.cmd_download(args, Settings.from_env({"EMBEDDER": "hash"}))
     assert not out.exists()
+
+
+async def test_outer_usage_scope_sees_calls_of_a_failing_request(fixture_index, hash_embedder):
+    from stylist.llm import FakeLLM, usage_scope
+    from stylist.planner import PlannerOutput
+    from stylist.schemas import RecommendRequest
+    from stylist.service import RecommendationService
+
+    llm = FakeLLM(
+        handler=lambda s, u, schema: PlannerOutput(
+            intent="x", slots=[{"name": "boots", "search_query": "boots"}]
+        ),
+        usage=(50, 5),
+    )
+    svc = RecommendationService(
+        fixture_index, hash_embedder, Settings.from_env({"EMBEDDER": "hash"}), llm=llm
+    )
+    try:
+        with usage_scope() as outer:
+            await svc.recommend(RecommendRequest(query="boots", k=2, rerank=False))
+        assert outer.calls == 1 and outer.input_tokens == 50  # nested scopes add up
+    finally:
+        svc.close()
+
+
+def test_partial_budget_split_never_invents_budget():
+    from stylist.planner import PlannerOutput, normalize_plan
+
+    out = PlannerOutput(
+        budget_max=100.0,
+        budget_scope="total",
+        slots=[
+            {"name": "a", "search_query": "a", "budget_max": 100.0},
+            {"name": "b", "search_query": "b"},
+        ],
+    )
+    plan = normalize_plan(out, "q")
+    assert sum(s.budget_max for s in plan.slots) <= 100.0 + 1e-6
+    assert plan.slots[1].budget_max >= 10.0  # the floor lifts it, the other slot is scaled down

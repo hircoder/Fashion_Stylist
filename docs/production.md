@@ -137,7 +137,9 @@ INDEX_SHA256=...`.
 * Budgets: one 40 s deadline, 15 s plan, 20 s rerank, 8 LLM calls in flight per process,
   retrieval pool bounded with deadline-aware queueing, typed LLM errors.
 * Data: checksum-verified index, fail-closed loader, safe tarball extraction (scheme
-  allowlist, member caps, fixed permissions), keys never in repr, errors or logs.
+  allowlist, public hosts only, member caps, fixed permissions), keys never in repr,
+  errors or logs. Residual: the host check is a resolve-then-connect pair, so DNS
+  rebinding between the two is not caught; INDEX_URL is operator configuration.
 
 Fallback ladder, every step reported in `warnings`: planner error or timeout -> regex
 planner (with a 30 s negative cache against stampedes); one rerank call fails or is late

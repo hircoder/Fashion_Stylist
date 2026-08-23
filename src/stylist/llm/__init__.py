@@ -67,15 +67,19 @@ class Usage:
         self.output_tokens += int(output_tokens or 0)
 
 
-_usage_var: contextvars.ContextVar[Usage | None] = contextvars.ContextVar("llm_usage", default=None)
+_usage_var: contextvars.ContextVar[tuple[Usage, ...]] = contextvars.ContextVar(
+    "llm_usage", default=()
+)
 
 
 @contextlib.contextmanager
 def usage_scope() -> Iterator[Usage]:
     """Collect the usage of every LLM call made inside the block (and in tasks spawned from
-    it: context variables propagate into asyncio tasks)."""
+    it: context variables propagate into asyncio tasks). Scopes nest: an outer scope (an
+    evaluation harness around `recommend`) sees the calls of the inner one, even when the
+    inner request fails after spending them."""
     usage = Usage()
-    token = _usage_var.set(usage)
+    token = _usage_var.set((*_usage_var.get(), usage))
     try:
         yield usage
     finally:
@@ -83,20 +87,17 @@ def usage_scope() -> Iterator[Usage]:
 
 
 def record_usage(input_tokens: int | None, output_tokens: int | None) -> None:
-    usage = _usage_var.get()
-    if usage is not None:
+    for usage in _usage_var.get():
         usage.add(input_tokens, output_tokens)
 
 
 def record_attempt() -> None:
-    usage = _usage_var.get()
-    if usage is not None:
+    for usage in _usage_var.get():
         usage.calls += 1
 
 
 def record_failure() -> None:
-    usage = _usage_var.get()
-    if usage is not None:
+    for usage in _usage_var.get():
         usage.failed_calls += 1
 
 
@@ -144,13 +145,17 @@ class FakeLLM:
         self.calls.append(
             {"system": system, "user": user, "schema": schema, "max_tokens": max_tokens}
         )
-        if self._handler is not None:
-            item = self._handler(system, user, schema)
-        elif self._responses:
-            item = self._responses.pop(0)
-        else:
-            raise LLMTransportError("FakeLLM has no scripted response left")
         record_attempt()
+        try:
+            if self._handler is not None:
+                item = self._handler(system, user, schema)
+            elif self._responses:
+                item = self._responses.pop(0)
+            else:
+                raise LLMTransportError("FakeLLM has no scripted response left")
+        except LLMError:
+            record_failure()
+            raise
         if isinstance(item, Exception):
             record_failure()
             raise item

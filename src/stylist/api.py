@@ -152,10 +152,12 @@ def _client_ip(request: Request, trust_proxy: bool) -> str:
     return request.client.host if request.client else "unknown"
 
 
+# image hosts mirror schemas.safe_image_url: what the api hands out, the page may load
 _CSP = (
-    "default-src 'self'; img-src 'self' data: https://m.media-amazon.com "
-    "https://images-na.ssl-images-amazon.com; style-src 'self' 'unsafe-inline'; "
-    "script-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+    "default-src 'self'; img-src 'self' data: https://*.media-amazon.com "
+    "https://*.ssl-images-amazon.com https://*.images-amazon.com; "
+    "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; "
+    "frame-ancestors 'none'"
 )
 
 
