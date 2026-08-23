@@ -335,69 +335,160 @@
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
       <button class="on" data-pane="p1">beach outfit, CLI</button>
-      <button data-pane="p2">boots under $80, JSON</button>
+      <button data-pane="p2">boots, max $80, JSON</button>
       <button data-pane="p3">the hard one</button>
       <button data-pane="p4">the page</button>
     </div>
     <div class="pane on" id="p1"><pre>query: I need an outfit to go to the beach this summer
-plan (llm): Complete beach outfit for summer
+plan (llm): Outfit for a beach day this summer
 
-[swimsuit]  search: women&#x27;s swimsuit beach summer one piece or bikini
+[swimsuit]  search: women&#x27;s swimsuit one piece or bikini summer beach
   1. SheIn Women&#x27;s One Piece Swimsuit Sleeveless Asymmetrical Bikini Cut Out Monokini Orange La
      price n/a | 4.6 stars (26) | https://www.amazon.com/dp/B08R5YVDB9
-     Highest rating 4.6, women&#x27;s one piece, beach summer style
+     High rating 4.6, women&#x27;s one-piece monokini, beach summer style
   2. Dokotoo Womens Ladies Summer Beach Stripes Color Block One Piece Bathing Suit Swimsuit Mon
      price n/a | 4.3 stars (36) | https://www.amazon.com/dp/B01N5IB4AO
-     Strong 4.3 rating, beach summer stripes, women&#x27;s one piece
+     Good rating 4.3, beach stripes color block one-piece, summer vibe
 
-[cover-up]  search: women&#x27;s beach cover up summer dress lightweight
-  1. CASILY Womens Summer Beach Swimsuit Bikini Crochet Cover Up Dress White
-     price n/a | 4.4 stars (158) | https://www.amazon.com/dp/B07NSL9P68
-     Highest rating 4.4, crochet beach cover-up, women&#x27;s summer beach style
-  2. Imagine Women&#x27;s Summer Dress Strapless Floral Print Bohemian Casual Beach Dress Cover Ups 
+[cover-up]  search: women&#x27;s beach cover up dress summer lightweight
+  1. Imagine Women&#x27;s Summer Dress Strapless Floral Print Bohemian Casual Beach Dress Cover Ups 
      price n/a | 4.1 stars (3,453) | https://www.amazon.com/dp/B07R1XGJZ2
-     High rating 4.1, massive reviews, floral boho beach dress cover-up
+     High rating 4.1, 3453 ratings, floral boho beach style, women
+  2. Yonala Women&#x27;s Summer Beach Wear Bikini Swimsuit Cover Up Swimwear Beach Dress,White, One 
+     price n/a | 4.1 stars (24) | https://www.amazon.com/dp/B0796L86KM
+     Rating 4.1, classic white beach cover-up, women&#x27;s summer
 
-[sandals]  search: women&#x27;s flat sandals beach summer open toe
-  1. Women&#x27;s Gladiator Flat Sandal Summer Casual Wear PU Leather Open Toe Buckle Sandals
-     price n/a | 4.2 stars (195) | https://www.amazon.com/dp/B0931ZN49J
-     High rating, casual gladiator style, open toe, summer beach ready
-  2. Women Summer Sandals,Todaies Women Summer Bohemia Sweet Beaded Sandals Clip Toe Sandals Be
-     price n/a | 4.0 stars (23) | https://www.amazon.com/dp/B07BHKB627
-     Bohemia beaded style, beach shoes, decent rating, summer vibe
+[sandals]  search: women&#x27;s beach sandals summer flat
+  1. Mu Dan Women&#x27;s Thong Flat Gladiator Summer Sandals
+     price n/a | 4.0 stars (79) | https://www.amazon.com/dp/B01ESNNRZE
+     Flat gladiator sandal, women&#x27;s, beach-ready, highest rating count
+  2. Amlaiworld Women Walking Sandals Summer Bohemia Sweet Beaded Sandals Comfortable Flat Beac
+     price n/a | 4.0 stars (35) | https://www.amazon.com/dp/B07QKFHWWB
+     Flat beach water sandal, bohemian summer style, solid rating
 
-note: Here&#x27;s a stylish one-piece and a fun striped option perfect for your summer beach day! A chic crochet white cover-up and a flowy floral option to keep you beach-ready this summer! These sandals are perfect for a casual, breezy summer beach day! These stylish straw hats offer great sun protection for a fun beach day! These stylish shades offer great UV and polarized protection for a sunny beach day!
-timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rerank_ms&#x27;: 4415.0, &#x27;total_ms&#x27;: 11541.5}  (planner=llm, rerank=True, index rows=100000)</pre></div>
+[sun hat]  search: women&#x27;s sun hat beach summer wide brim
+  1. Sun Hat for Women Wide Brim Hat Sun Visor for Women UV Protection Summer Beach Fishing Hat
+     price n/a | 4.5 stars (22) | https://www.amazon.com/dp/B08FGPGK82
+     High rating, UV protection, wide brim, perfect beach summer style
+  2. Women&#x27;s Large Wide Brim Floppy Straw Hat Summer Beach Sun Hat w/ Bow Ribbon
+     price n/a | 3.4 stars (84) | https://www.amazon.com/dp/B019WB49KY
+     Classic straw floppy hat, great beach summer look, variety in style
+
+[sunglasses]  search: women&#x27;s sunglasses beach summer UV protection
+  1. UV-BANS Polarized Aviator Sunglasses for Women Uv Protection, Round Sunglasses, Oversized 
+     price n/a | 4.3 stars (60) | https://www.amazon.com/dp/B07CSQ5FVJ
+     Polarized, women&#x27;s, multiple beach-ready styles, higher rating
+  2. LianSan Fashion Sunglasses for women oversized Uv400 Protection Women&#x27;s Sunglasses 13038 (
+     price n/a | 3.9 stars (27) | https://www.amazon.com/dp/B00K3JSCB2
+     Oversized UV400, women&#x27;s, fun purple color for beach
+
+note: Here are two lovely cover-ups to keep you stylish and sun-protected at the beach! Stay shaded in style with a UV-protective wide brim or a classic straw floppy hat! These stylish one-pieces are perfect for a fun summer beach day! These stylish shades will keep your eyes protected and beach-ready all summer! These cute flat sandals are perfect for strolling the beach this summer!
+
+timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rerank_ms&#x27;: 4623.6, &#x27;total_ms&#x27;: 11557.3}  (planner=llm, rerank=True, index rows=100000)</pre></div>
     <div class="pane" id="p2"><pre>{
-  &quot;query&quot;: &quot;warm waterproof boots for hiking in the snow, under $80&quot;,
-  &quot;plan&quot;: {
-    &quot;intent&quot;: &quot;Find warm waterproof hiking boots suitable for snow under $80&quot;,
-    &quot;budget_max&quot;: 80.0, &quot;budget_scope&quot;: &quot;per_item&quot;, &quot;source&quot;: &quot;llm&quot;,
-    &quot;slots&quot;: [{
-      &quot;name&quot;: &quot;snow hiking boots&quot;,
-      &quot;search_query&quot;: &quot;waterproof insulated snow hiking boots winter&quot;,
-      &quot;keywords&quot;: [&quot;hiking boots&quot;, &quot;snow boots&quot;, &quot;winter boots&quot;, &quot;trail boots&quot;],
-      &quot;exclude_keywords&quot;: [&quot;sandal&quot;, &quot;slip-on&quot;, &quot;rain boot&quot;],
-      &quot;budget_max&quot;: 80.0
-    }]
-  },
-  &quot;slots&quot;: [{
-    &quot;name&quot;: &quot;snow hiking boots&quot;, &quot;n_eligible&quot;: 10,
-    &quot;items&quot;: [{
-      &quot;rank&quot;: 1,
-      &quot;title&quot;: &quot;Eagsouni Men&#x27;s Women&#x27;s Snow Boots Fur Lined Winter Hiking Boots Anti-Slip ...&quot;,
-      &quot;price&quot;: null, &quot;price_known&quot;: false,
-      &quot;average_rating&quot;: 4.1, &quot;rating_number&quot;: 162,
-      &quot;url&quot;: &quot;https://www.amazon.com/dp/B07Y7F25ZZ&quot;,
-      &quot;matched_keywords&quot;: [&quot;hiking boots&quot;, &quot;snow boots&quot;],
-      &quot;reason&quot;: &quot;High rating 4.1, 162 ratings, unisex, fur-lined, anti-slip snow hiking boots&quot;,
-      &quot;evidence&quot;: [&quot;title&quot;, &quot;rating&quot;, &quot;audience&quot;, &quot;keywords&quot;]
-    }, &quot;... 1 more&quot;]
-  }],
-  &quot;warnings&quot;: [],
-  &quot;llm_info&quot;: {&quot;provider&quot;: &quot;anthropic&quot;, &quot;model&quot;: &quot;claude-sonnet-4-6&quot;,
-               &quot;planner_used&quot;: &quot;llm&quot;, &quot;rerank_used&quot;: true},
-  &quot;timings&quot;: {&quot;plan_ms&quot;: 3772.9, &quot;retrieve_ms&quot;: 116.5, &quot;rerank_ms&quot;: 4338.8, &quot;total_ms&quot;: 8228.4}
+ &quot;request_id&quot;: &quot;40e5b9943aa4&quot;,
+ &quot;query&quot;: &quot;warm waterproof boots for hiking in the snow&quot;,
+ &quot;plan&quot;: {
+  &quot;intent&quot;: &quot;Find warm waterproof boots suitable for hiking in snowy conditions&quot;,
+  &quot;audience&quot;: null,
+  &quot;season&quot;: &quot;winter&quot;,
+  &quot;budget_max&quot;: null,
+  &quot;budget_scope&quot;: &quot;unknown&quot;,
+  &quot;brand&quot;: null,
+  &quot;source&quot;: &quot;llm&quot;,
+  &quot;slots&quot;: [
+   {
+    &quot;name&quot;: &quot;hiking boots&quot;,
+    &quot;search_query&quot;: &quot;waterproof insulated snow hiking boots&quot;,
+    &quot;keywords&quot;: [
+     &quot;hiking boots&quot;,
+     &quot;snow boots&quot;,
+     &quot;winter boots&quot;,
+     &quot;trekking boots&quot;
+    ],
+    &quot;exclude_keywords&quot;: [
+     &quot;rain boot&quot;,
+     &quot;wellington&quot;,
+     &quot;casual&quot;
+    ],
+    &quot;budget_max&quot;: null
+   }
+  ]
+ },
+ &quot;slots&quot;: [
+  {
+   &quot;name&quot;: &quot;hiking boots&quot;,
+   &quot;search_query&quot;: &quot;waterproof insulated snow hiking boots&quot;,
+   &quot;keywords&quot;: [
+    &quot;hiking boots&quot;,
+    &quot;snow boots&quot;,
+    &quot;winter boots&quot;,
+    &quot;trekking boots&quot;
+   ],
+   &quot;budget_max&quot;: 80.0,
+   &quot;n_eligible&quot;: 10,
+   &quot;eligible_rows&quot;: 13181,
+   &quot;items&quot;: [
+    {
+     &quot;rank&quot;: 1,
+     &quot;title&quot;: &quot;Karrimor Hot Rock Mens Walking Boots Waterproof Lace Up&quot;,
+     &quot;price&quot;: 73.99,
+     &quot;price_known&quot;: true,
+     &quot;average_rating&quot;: 4.3,
+     &quot;rating_number&quot;: 42,
+     &quot;audience&quot;: &quot;men&quot;,
+     &quot;url&quot;: &quot;https://www.amazon.com/dp/B01MG8KYVS&quot;,
+     &quot;matched_keywords&quot;: [],
+     &quot;reason&quot;: &quot;Waterproof hiking boot, within budget, good rating&quot;,
+     &quot;evidence&quot;: [
+      &quot;title&quot;,
+      &quot;price&quot;,
+      &quot;rating&quot;,
+      &quot;features&quot;
+     ]
+    },
+    {
+     &quot;rank&quot;: 2,
+     &quot;title&quot;: &quot;Nevados Men&#x27;s Klondike Mid Waterproof Hiking Boot | Lightweight for Trail, Walki&quot;,
+     &quot;price&quot;: 75.0,
+     &quot;price_known&quot;: true,
+     &quot;average_rating&quot;: 4.2,
+     &quot;rating_number&quot;: 418,
+     &quot;audience&quot;: &quot;men&quot;,
+     &quot;url&quot;: &quot;https://www.amazon.com/dp/B003VWBN46&quot;,
+     &quot;matched_keywords&quot;: [
+      &quot;hiking boots&quot;
+     ],
+     &quot;reason&quot;: &quot;Waterproof hiking boot, memory foam, within budget&quot;,
+     &quot;evidence&quot;: [
+      &quot;title&quot;,
+      &quot;price&quot;,
+      &quot;rating&quot;,
+      &quot;features&quot;
+     ]
+    }
+   ]
+  }
+ ],
+ &quot;warnings&quot;: [],
+ &quot;llm_info&quot;: {
+  &quot;provider&quot;: &quot;anthropic&quot;,
+  &quot;model&quot;: &quot;claude-sonnet-4-6&quot;,
+  &quot;planner_used&quot;: &quot;llm&quot;,
+  &quot;rerank_used&quot;: true,
+  &quot;rerank_model&quot;: null,
+  &quot;plan_cache_hit&quot;: false,
+  &quot;calls&quot;: 2,
+  &quot;failed_calls&quot;: 0,
+  &quot;input_tokens&quot;: 4087,
+  &quot;output_tokens&quot;: 236
+ },
+ &quot;timings&quot;: {
+  &quot;plan_ms&quot;: 3577.3,
+  &quot;retrieve_ms&quot;: 89.1,
+  &quot;rerank_ms&quot;: 3497.3,
+  &quot;total_ms&quot;: 7163.9
+ }
 }</pre></div>
     <div class="pane" id="p3">
       <p>"what should my husband wear to an outdoor wedding in june, budget 200 total". Five slots, audience men, the planner split the total into shirt $38, pants $45, blazer $52, shoes $45, tie $20.</p>
