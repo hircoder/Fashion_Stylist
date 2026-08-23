@@ -4,11 +4,11 @@ One call per slot, all slots in parallel: output tokens dominate rerank latency,
 five-slot outfit costs about the same wall-clock as a single slot, and one slot failing
 never takes the others down.
 
-The model sees the slot's candidates in a compact JSON form: in-window items first, then
-(when allowed) items with an unknown price, with price null. Whatever it returns is
+The model sees the slot's candidates in a compact JSON form, in retrieval score order,
+each with its price (null when unknown) and a price_known flag. Whatever it returns is
 checked against that set: unknown or duplicate ids are dropped, order is kept, and the
-rest of the slot keeps fused order (in-window before unpriced). An unpriced pick stays
-flagged, the response never claims it fits the budget.
+rest of the slot keeps retrieval order. An unpriced pick stays flagged, the response
+never claims it fits the budget.
 """
 
 from __future__ import annotations
@@ -160,10 +160,9 @@ def apply_slot_rerank(out: SlotRerankOutput, sc: SlotCandidates) -> tuple[Ranked
             continue
         chosen.append(c)
         reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
-    rest = [c for c in sc.candidates if c.in_window and c.row_id not in reasons]
-    backfill = [c for c in sc.candidates if not c.in_window and c.row_id not in reasons]
+    rest = [c for c in sc.candidates if c.row_id not in reasons]  # retrieval order
     ranked = RankedSlot(
-        sc.slot, sc.window, chosen + rest + backfill, sc.n_eligible, reasons, list(sc.warnings)
+        sc.slot, sc.window, chosen + rest, sc.n_eligible, reasons, list(sc.warnings)
     )
     return ranked, warnings
 

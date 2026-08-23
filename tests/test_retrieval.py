@@ -133,7 +133,8 @@ def test_retriever_backfills_unpriced_when_allowed(fixture_index, hash_embedder)
     backfilled = [c for c in relaxed.candidates if not c.in_window]
     assert backfilled and all(c.price is None for c in backfilled)
     assert len(backfilled) > 4 - relaxed.n_eligible  # a real pool, not just k - eligible
-    assert relaxed.candidates[: relaxed.n_eligible] == strict.candidates[: relaxed.n_eligible]
+    in_window = [c.row_id for c in relaxed.candidates if c.in_window]
+    assert in_window == [c.row_id for c in strict.candidates]  # same priced items, same order
     assert any("price" in w for w in relaxed.warnings)
 
 
@@ -190,3 +191,13 @@ def test_hydrate_turns_nan_rating_into_zero(fixture_index, hash_embedder):
         assert c.average_rating == 0.0
     finally:
         fixture_index.catalog.loc[0, "average_rating"] = 4.0
+
+
+def test_pool_items_are_merged_by_score_with_a_small_in_window_bonus(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    plan = _plan(Slot(name="x", search_query="swimsuit", keywords=["swimsuit"]))
+    [res] = r.retrieve(plan, [SlotWindow(None, 5.0, None, True)], n_candidates=10, k=4)
+    scores = [c.score for c in res.candidates]
+    assert scores == sorted(scores, reverse=True)  # one order, not two partitions
+    assert any(not c.in_window for c in res.candidates)
+    assert any(c.in_window for c in res.candidates)

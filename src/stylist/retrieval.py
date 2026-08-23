@@ -10,7 +10,8 @@ Pipeline per request:
      Bayesian-average rating prior
   4. one representative per `group_key` (size/colour variants collapse), highest score wins
   5. when a price window is set and unpriced items are allowed, a second ranked pool of
-     unpriced items, flagged `in_window=False`, listed after the in-window ones
+     unpriced items (flagged `in_window=False`) is merged into the same score order,
+     with a small bonus for the priced in-budget ones
 
 Scores are only meaningful within one slot; do not compare them across slots.
 """
@@ -29,6 +30,8 @@ from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
 from stylist.planner import QueryPlan, Slot, SlotWindow
 
+IN_WINDOW_BONUS = 0.25  # in units of RRF(rank 1), added to priced in-budget items when a
+# budget exists and unpriced items are also in play (half of the keyword boost)
 RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_number is 10; 20 = a
 # deliberately stronger pull toward the mean for thinly rated items)
 
@@ -67,7 +70,7 @@ class Candidate:
 class SlotCandidates:
     slot: Slot
     window: SlotWindow
-    candidates: list[Candidate]  # in-window first (score desc), then the unpriced pool
+    candidates: list[Candidate]  # score desc; in-window and (flagged) unpriced pool merged
     n_eligible: int
     warnings: list[str] = field(default_factory=list)
 
@@ -298,11 +301,16 @@ class Retriever:
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():
-                # unpriced pool: same depth as the eligible list, flagged, ranked after it
+                # unpriced pool, same depth, flagged. Merged into ONE score order: a known
+                # in-budget price earns a small bonus, it does not trump relevance (a priced
+                # wooden ring must not outrank an unpriced blazer in a blazer slot)
                 extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen)
+                for c in ranked:
+                    c.score += IN_WINDOW_BONUS * self._unit
                 for c in extra[:n_candidates]:
                     c.in_window = False
                     ranked.append(c)
+                ranked.sort(key=lambda c: (-c.score, c.idx))
                 if n_eligible < k:
                     warnings.append(
                         f"slot '{slot.name}': only {n_eligible} items with a known price in the "

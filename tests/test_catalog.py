@@ -245,3 +245,11 @@ def test_group_key_strips_nested_parenthetical_suffix():
     b = "Wanlorraiy Women's Rhinestone Flat Sandals Ankle Strap Flat Shoes(10 B(M) US,Black)"
     assert group_key(a) == group_key(b)
     assert group_key(a).endswith("flat shoes")
+
+
+def test_group_key_strips_trailing_shoe_sizes_but_keeps_model_numbers():
+    a = "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Shoes 8"
+    b = "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Shoes 10.5"
+    assert group_key(a) == group_key(b) == group_key(a[:-2])
+    assert group_key("Nike Air Zoom Pegasus 38") != group_key("Nike Air Zoom Pegasus 39")
+    assert group_key("Levi's 501 Original Fit Jeans").endswith("jeans")

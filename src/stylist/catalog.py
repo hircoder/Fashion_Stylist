@@ -266,7 +266,20 @@ def group_key(title: str) -> str:
         parts.pop()
     t = ", ".join(parts)
     t = _RX_SIZE_TAIL.sub("", t)
+    t = _strip_trailing_small_number(t)
     t = _RX_WS.sub(" ", t).strip(" ,-")
+    return t
+
+
+_RX_TRAILING_NUMBER = re.compile(r"^(.*\S)\s+(\d{1,2}(?:\.5)?)$")
+
+
+def _strip_trailing_small_number(t: str) -> str:
+    """'... Wedding Shoes 8' -> '... Wedding Shoes': a bare trailing number up to 20 is a
+    shoe/clothing size far more often than a model number ('Pegasus 38' is kept)."""
+    m = _RX_TRAILING_NUMBER.match(t)
+    if m and float(m.group(2)) <= 20:
+        return m.group(1)
     return t
 
 
