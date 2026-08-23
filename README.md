@@ -41,8 +41,11 @@ put a key in `.env` (copy `.env.example`):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...      # or OPENAI_API_KEY=sk-...
-LLM_MODEL=claude-sonnet-5         # optional, see .env.example for the defaults
+LLM_MODEL=claude-sonnet-5         # optional. defaults: claude-opus-5 / gpt-5-mini, sonnet is cheaper
 ```
+
+(the sample outputs further down were produced with `claude-sonnet-4-6`, the response
+always tells you which model ran in `llm_info`.)
 
 ## The real catalog
 

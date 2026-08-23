@@ -93,12 +93,14 @@ never fails, and the response says which planner ran.
 
 ## The reranker
 
-One call per request, all slots at once, up to 15 candidates per slot as compact json
-(row id, title, price, rating, audience, store, material/colour/style when present,
-matched keywords). The model returns ordered picks with a one sentence reason and the
+One call per slot, the slots of a request in parallel (output tokens dominate the latency,
+so five slots cost about what one costs), with the top 10 candidates of the slot as compact
+json (row id, title, price or null, rating, audience, store, material/colour/style when
+present, matched keywords, and an off_type_hint when a title matched one of the slot's
+exclude words). The model returns ordered picks with a one sentence reason and the
 evidence fields it used. Everything it returns is checked: ids must belong to that slot,
-duplicates dropped, the rest of the slot keeps retrieval order, and rows that were only
-backfilled from the unpriced pool can never be promoted above in-window rows.
+duplicates dropped, the rest of the slot keeps retrieval order. An unpriced pick stays
+flagged `price_known: false`; the response never claims it fits the budget.
 
 Catalog text goes into the prompt as data inside a json blob, labelled untrusted, with an
 instruction to never follow anything inside it. That's not a guarantee against prompt
@@ -110,14 +112,21 @@ see ("for my 6 year old", "under 40 dollars total") and it writes the reasons, w
 UI shows. The price is 3-12 seconds of latency depending on the model, so it is one flag
 away from off (`rerank=false`).
 
-## Prices: strict by default
+## Prices: strict when explicit, flagged when inferred
 
 94% of items have no price. If someone asks for "under $40" and we return an unpriced
-item, we can't claim it fits. So a price bound only admits items with a known price inside
-the window. That shrinks the pool a lot (a 100K index has ~11K priced items), which is why
-`include_unpriced=true` exists: it tops a short slot up with unpriced items, each one
-flagged `price_known: false`, plus a warning in the response. The default is the honest
-one, the relaxed mode is opt-in.
+item, we can't claim it fits. So an explicit `max_price` on the request only admits items
+with a known price inside the window. That shrinks the pool a lot (a 100K index has ~11K
+priced items), and the first version applied the same rule to budgets the planner read out
+of the sentence. Result: "husband, outdoor wedding, budget 200 total" gave a priced wooden
+ring in the blazer slot while real blazers without a price were filtered out. So now a
+budget that came from the text keeps the unpriced items in the ranking, flagged
+`price_known: false`, with a small score bonus for the priced in-budget ones and a warning
+in the response. `include_unpriced` (true/false) overrides the automatic choice either way.
+Per-slot allocations of a total budget get a 10% floor so the planner can't starve a slot.
+
+One more thing i do not do: cache planner failures. A persistently failing LLM gets
+retried on every request; the deadline bounds the damage and the fallback is instant.
 
 ## Deadlines and failure
 

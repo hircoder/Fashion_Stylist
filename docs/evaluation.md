@@ -121,8 +121,8 @@ sneakers", "birkenstock arizona sandals", ...) the brand name appeared in the to
    three indexes. The keyword boost only does something when keywords are selective
    (planner keywords are type synonyms; the regex planner's keywords are just the query's
    content words, which nearly every candidate matches).
-6. **No empty slots and no price violations** in 376 slot results, which is what the
-   mask-before-top-N design and the strict explicit bound were for.
+6. **No empty slots and no price violations** in the 798 slot results across the tables
+   above, which is what the mask-before-top-N design and the strict explicit bound were for.
 
 ## Known gaps
 
