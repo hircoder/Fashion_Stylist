@@ -196,7 +196,10 @@ def test_brand_filter_relaxes_when_the_brand_has_no_item_of_that_type(fixture_in
         [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
         assert any("boot" in c.title.lower() for c in res.candidates)
         assert any("zebrabrand" in w and "other brands follow" in w for w in res.warnings)
-        assert res.candidates[0].store != "Zebrabrand" or "boot" in res.candidates[0].title.lower()
+        # the brand's own rows come first (the reranker judges them), boots follow
+        first_other = next(i for i, c in enumerate(res.candidates) if c.store != "Zebrabrand")
+        assert all(c.store == "Zebrabrand" for c in res.candidates[:first_other])
+        assert all(c.matched_keywords for c in res.candidates[first_other:])
     finally:
         cat.loc[rows, "store"] = saved
         getattr(fixture_index, "_column_cache", {}).clear()
