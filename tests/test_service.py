@@ -5,7 +5,7 @@ import pytest
 from stylist.config import Settings
 from stylist.llm import FakeLLM, LLMTransportError
 from stylist.planner import PlannerOutput
-from stylist.reranker import RerankOutput
+from stylist.reranker import SlotRerankOutput
 from stylist.schemas import RecommendRequest
 from stylist.service import RecommendationService
 
@@ -22,7 +22,7 @@ def _plan_out(*slot_specs, **kw):
 
 
 def _rerank_out(text="ok"):
-    return RerankOutput(slots=[], note=text)
+    return SlotRerankOutput(picks=[], note=text)
 
 
 def _stylist_llm(plan_out, rerank_out=None):
@@ -59,9 +59,9 @@ async def test_llm_path_uses_plan_slots_and_rerank_note(fixture_index, hash_embe
     svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
     res = await svc.recommend(RecommendRequest(query="what to wear in the snow", k=2))
     assert [s.name for s in res.slots] == ["boots", "hat"]
-    assert res.note == "Stay warm!"
+    assert "Stay warm!" in res.note
     assert res.llm_info.planner_used == "llm" and res.llm_info.rerank_used is True
-    assert len(llm.calls) == 2
+    assert len(llm.calls) == 3  # one planner call + one rerank call per slot
     assert res.plan.source == "llm"
 
 
