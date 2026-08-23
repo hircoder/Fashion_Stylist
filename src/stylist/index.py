@@ -54,7 +54,6 @@ SERVING_COLUMNS = [
     "age_range",
     "image_url",
     "audience",
-    "group_key",
 ]
 CHECKSUMMED = ("embeddings.npy", "row_ids.npy", "catalog.parquet")
 BM25_DIR = "bm25"

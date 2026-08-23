@@ -176,7 +176,7 @@ class Settings:
             rrf_k=_get_int(env, "RRF_K", 60),
             keyword_boost=_get_float(env, "KEYWORD_BOOST", 0.5),
             quality_weight=_get_float(env, "QUALITY_WEIGHT", 0.1),
-            rerank_candidates=_get_int(env, "RERANK_CANDIDATES", 15),
+            rerank_candidates=_get_int(env, "RERANK_CANDIDATES", 10),
             retrieval_concurrency=_get_int(env, "RETRIEVAL_CONCURRENCY", 4),
             plan_cache_size=_get_int(env, "PLAN_CACHE_SIZE", 256),
             index_url=_get_str(env, "INDEX_URL"),

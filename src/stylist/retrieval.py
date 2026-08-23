@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from stylist.catalog import group_key
 from stylist.config import Settings
 from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
@@ -178,7 +179,6 @@ _HYDRATE_COLS = [
     "store",
     "audience",
     "image_url",
-    "group_key",
     "material",
     "color",
     "style",
@@ -222,7 +222,7 @@ class Retriever:
         c.store = _none_if_nan(row["store"])
         c.audience = str(row["audience"])
         c.image_url = _none_if_nan(row["image_url"])
-        c.group_key = str(row["group_key"])
+        c.group_key = group_key(c.title)
         c.material = _none_if_nan(row["material"])
         c.color = _none_if_nan(row["color"])
         c.style = _none_if_nan(row["style"])

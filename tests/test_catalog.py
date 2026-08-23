@@ -122,7 +122,6 @@ def test_normalize_record_flattens_and_derives_fields():
     assert row["audience"] == "women"
     assert row["material"] == "Polyester"
     assert row["image_url"] == "l.jpg"
-    assert row["group_key"] == "doubcq women's palazzo pants"
     assert "Drawstring closure" in row["doc_text"]
     assert row["description"] == "Flowy and light"
 
@@ -239,3 +238,10 @@ def test_normalize_record_guards_non_finite_rating():
     raw = {"title": "x", "average_rating": float("nan"), "rating_number": 3, "parent_asin": "A"}
     row = normalize_record(raw, row_id=1)
     assert row["average_rating"] == 0.0
+
+
+def test_group_key_strips_nested_parenthetical_suffix():
+    a = "Wanlorraiy Women's Rhinestone Flat Sandals Ankle Strap Flat Shoes(8 B(M) US,Silver)"
+    b = "Wanlorraiy Women's Rhinestone Flat Sandals Ankle Strap Flat Shoes(10 B(M) US,Black)"
+    assert group_key(a) == group_key(b)
+    assert group_key(a).endswith("flat shoes")

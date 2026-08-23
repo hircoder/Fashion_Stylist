@@ -5,8 +5,8 @@ heuristic (the dataset has no usable category taxonomy, `categories` is empty fo
 every row), the grouping key used to collapse size/colour variants at query time,
 and the text that gets embedded / indexed.
 
-Nothing is dropped at ingest. Grouping is non destructive: all rows are kept and
-`group_key` is only used later for result diversification.
+Nothing is dropped at ingest. Variant grouping (`group_key`) is computed from the title
+at query time and only used for result diversification, so every row is kept.
 """
 
 from __future__ import annotations
@@ -60,7 +60,6 @@ CATALOG_COLUMNS = [
     "age_range",
     "image_url",
     "audience",
-    "group_key",
     "doc_text",
 ]
 
@@ -74,7 +73,6 @@ _RX_UNISEX = re.compile(r"\bunisex\b", re.I)
 _RX_PRICE_NUM = re.compile(r"^\$?\s*(\d[\d,]*(?:[.,]\d+)?)\s*$")
 _RX_PRICE_RANGE = re.compile(r"\d.*[-–].*\d")
 
-_RX_PAREN_TAIL = re.compile(r"\s*[\(\[][^\(\)\[\]]*[\)\]]\s*$")
 # trailing size noise: "US Size 8", "size 9-12", "XL", "2XL", "one size". Plain trailing
 # numbers are NOT stripped (they are model numbers as often as sizes, e.g. "Pegasus 38").
 _RX_SIZE_TAIL = re.compile(
@@ -235,11 +233,30 @@ def derive_audience(title: str, department: str | None) -> str:
     return "unknown"
 
 
+def _strip_trailing_group(t: str) -> str:
+    """Remove one trailing (...) or [...] group, nested brackets allowed: 'x (8 B(M) US)' -> 'x'."""
+    t = t.rstrip()
+    if not t or t[-1] not in ")]":
+        return t
+    close = t[-1]
+    open_ = "(" if close == ")" else "["
+    depth = 0
+    for i in range(len(t) - 1, -1, -1):
+        if t[i] == close:
+            depth += 1
+        elif t[i] == open_:
+            depth -= 1
+            if depth == 0:
+                return t[:i].rstrip()
+    return t  # unbalanced, leave it alone
+
+
 def group_key(title: str) -> str:
-    """Lowercased title with trailing variant noise (parentheses, sizes) removed."""
+    """Lowercased title with trailing variant noise (parentheses, sizes) removed.
+    Computed at query time from the title, so it can change without rebuilding indexes."""
     t = (title or "").lower().strip()
     while True:
-        stripped = _RX_PAREN_TAIL.sub("", t)
+        stripped = _strip_trailing_group(t)
         if stripped == t:
             break
         t = stripped
@@ -337,7 +354,6 @@ def normalize_record(raw: dict, row_id: int) -> dict:
         row[col] = val.strip()[:80] if isinstance(val, str) and val.strip() else None
     row["image_url"] = _first_image_url(raw.get("images"))
     row["audience"] = derive_audience(title, row["department"])
-    row["group_key"] = group_key(title)
     row["doc_text"] = build_doc_text(raw)
     return row
 
@@ -403,7 +419,6 @@ _SCHEMA = pa.schema(
         ("age_range", pa.string()),
         ("image_url", pa.string()),
         ("audience", pa.string()),
-        ("group_key", pa.string()),
         ("doc_text", pa.string()),
     ]
 )
