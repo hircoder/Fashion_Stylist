@@ -12,8 +12,23 @@ pulls candidates per product type out of an index of the catalog, and the LLM pi
 explains the final items. Exposed as a FastAPI endpoint (`POST /recommend`), a CLI, and a
 small React page. Runs without any API key too, just with less magic (and less slots).
 
-Table of contents is the headings below, i didnt bother with a real one. If you only have five minutes: quick start, then
-the sample output, then design decisions.
+Table of contents is the headings below, i didnt bother with a real one. If you only have
+five minutes: quick start, then the sample output, then design decisions. If you are
+assessing this: evaluation, then performance and cost, then the deck at `/overview`
+(`docs/overview.html`), wich walks all of it with an animated request flow.
+
+## Why this exists
+
+Catalog search stops at "t-shirt". People dont shop like that, they shop like "what
+should my husband wear to an outdoor wedding in june", and a keyword box returns nothing
+useful for it. The gap between how people ask and how catalogs index is where this
+service sits: it reads the sentence, works out the 1 to 5 product types behind it, finds
+real items per type inside the stated constraints, and says why each pick fits. The
+business case is simple enough: a query that today ends in an empty result page or a
+site-search bounce becomes 3 to 5 shoppable slots, and every answer carries its own
+audit trail (plan, warnings, timings, token counts) so a merchandising team can see what
+the model did and a finance team can see what it cost. Nothing here needs a GPU, a
+vector database or anyone's API except the one LLM key, and even that is optional.
 
 ## Quick start (2 minutes, no dataset download, no API key)
 
@@ -297,6 +312,30 @@ The UI is the same call with product cards:
 
 ![ui](docs/ui-beach.jpg)
 
+## What i explored before writing code
+
+The data decided most of the design, so day one was scripts, not code. The short
+version (`docs/exploration.md` has the long one):
+
+* Profiling all 826,108 rows: `categories` is an empty list on every single row,
+  `bought_together` always null, price a float on 6.1%, description on 7%. Every row has
+  a title (median 89 chars, stuffed with brand, gender, type, colour, size), a rating
+  and an image. Conclusion: the title carries the system.
+* Embedding shootout on 8 probe queries (bge-small vs bge-base vs minilm): bge-small won
+  on speed at basicaly the same quality for this kind of text, 761 docs/s on the laptop.
+* Price strings: floats, "$12.99", ranges, junk. `parse_price` keeps floats and clean
+  strings, everything else becomes null with a status, nothing gets guessed.
+* Audience: `details.Department` covers about half the rows, title words most of the
+  rest; ~13% stay unknown and are treated as wildcards so they never get filtered out.
+* Prompt experiments, in the order they happened: listing-style search queries instead of
+  shortened sentences (type match 0.73 to 0.88 on the same retrieval), keywords limited
+  to type synonyms, one rerank call per slot instead of one big call (20 s down to 3-7 s),
+  "type before price" after a priced wooden ring beat an unpriced blazer, exclude words
+  with a penalty equal to the boost, budget splits floored at 10% after the blazer got
+  $10 of $200, reasons capped at 15 words. Dead ends included a hand built taxonomy
+  (too much upkeep for the gain) and baking the variant key into the index (a one line
+  regex fix wouldve cost a 20 minute rebuild).
+
 ## Design decisions and trade-offs
 
 **What the data actually contains.** I profiled all 826,108 rows before writing code and
@@ -413,6 +452,33 @@ beats the 100K subsets on the same plans (0.935 vs 0.885): the default index is 
 losing product type, it looses specific brands (no Levi's jeans, three Columbia fleeces)
 and the long tail, the trade it makes for a 3 minute build and 1 GB of memory.
 
+## Performance and cost, measured
+
+Retrieval only (`use_llm=false`), one process, M4 laptop pinned to cpu, 60 requests per
+setting (`scripts/benchmark.py`, raw numbers in `docs/bench_cpu.json`):
+
+| concurrency | p50 | p95 | req/s |
+|---|---|---|---|
+| 1 | 22 ms | 32 ms | 42 |
+| 2 | 33 ms | 41 ms | 58 |
+| 4 | 65 ms | 82 ms | 62 |
+| 8 | 126 ms | 145 ms | 62 |
+
+It flattens around 60 req/s per process (embedding call and matmul hold the GIL, more
+capacity = more replicas). RSS after load is 1.0 GB for the 100K index, 3.3 GB for the
+full one, and the index loads in 0.1 s including a sha256 of every file.
+
+Full pipeline with `claude-sonnet-4-6`, the 20 eval queries cold
+(`docs/live_run_sonnet.json`): plan p50 5.2 s, retrieve 0.13 s, rerank 5.9 s, total
+11.5 s (p95 13.5 s), 3.9 LLM calls per request on average. A burst of 8 concurrent
+requests finished in 18.5 s with zero errors. Cost per request, from the token counts
+the response itself reports: mean $0.036 at Sonnet-class prices ($3/$15 per million),
+$0.012 on a Haiku-class model, roughly $36 a day at 10K requests with a 90% plan-cache
+hit rate and prompt caching. The provider's tokens-per-minute quota is the capacity
+ceiling, not the CPU. `docs/production.md` works all of this through, including the path
+to a sub-second p50 (semantic plan cache, a distilled 1-3B planner, a cross-encoder
+rerank, the big model demoted to an async refinement) with the expected cost of each rung.
+
 ## Deployment
 
 `Dockerfile` builds a cpu-only image (python 3.12 slim, uv, the embedding model
@@ -454,6 +520,22 @@ Railway build itself.
 
 `/health` always answers (what is loaded, which model), `/ready` is 503 until the index is
 in memory.
+
+For a real deployment the shape i'd run: 2 vCPU / 4 GB per replica (8 GB for the full
+index), one uvicorn worker per replica, three replicas behind the platform's proxy,
+autoscaling on in-flight requests, the index tarball in object storage pinned by
+`INDEX_URL` + `INDEX_SHA256`, Redis for a shared plan cache once there is more then one
+replica, and the LLM key in the platform's secret store. What degrades when things break,
+in order: LLM planner fails or times out -> regex planner (with a 30 s negative cache so
+an outage isnt retried per request); one rerank call fails -> that slot keeps retrieval
+order, the others keep their picks; the reranker rejects everything -> type matches in
+retrieval order, or an honest empty slot; index missing at boot -> `/health` explains,
+`/ready` and `/recommend` say 503 (or the process exits, `STARTUP_FAIL_FAST=1`); no key
+at all -> the whole thing runs as plain search. Every one of those steps shows up in the
+response `warnings`, none of them is silent. Before real traffic i'd add the observability
+stack from `docs/production.md` (json logs, OpenTelemetry traces per stage, Prometheus
+histograms, alerts on p95 / fallback rate / 429s), a provider circuit breaker and an
+off-domain request filter, thats all listed there with tools and pass conditions.
 
 ## Tests
 
@@ -532,6 +614,12 @@ tests/            pytest suite + the 486 row fixture
   two items.
 * Latency is dominated by the two LLM stages (6-15 s per request with Sonnet class
   models). Streaming the slots to the UI as they finish would hide most of it, didnt get to it.
+* No outfit coherence scoring between slots yet: a floral shirt and a striped blazer can
+  both win their slot. A colour/style pass over the top 3 per slot is sketched in
+  `docs/production.md`, week 4-5 of the plan there.
+* The load, soak, chaos and prompt-injection-corpus tests are specified (tools and pass
+  conditions in `docs/production.md`) but not run; the fast suite plus the docker smoke
+  test is what CI covers today.
 
 ## Data
 
