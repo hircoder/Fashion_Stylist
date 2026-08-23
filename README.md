@@ -399,6 +399,18 @@ docs/             architecture diagram, design notes, evaluation
 tests/            pytest suite + the 486 row fixture
 ```
 
+## More documentation
+
+* `docs/prd.md`: the requirements, how each one is met, the success metrics.
+* `docs/adr/`: fourteen decision records (embeddings, hybrid retrieval, masks before
+  top-N, exact search, the default index, planner, reranker, price policy, variant
+  grouping, providers, deadlines, index artifacts, serving stack, evaluation approach).
+* `docs/design-notes.md`: the longer narrative behind the decisions.
+* `docs/exploration.md`: the notebook, the scripts, and the prompt experiments in order.
+* `docs/evaluation.md`: every number with its caveats.
+* `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
+  data flow.
+
 ## Limitations and what i would do next
 
 * The eval has no human relevance labels. Keyword rules catch the wrong product type,
