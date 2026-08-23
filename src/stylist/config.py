@@ -14,10 +14,14 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-PROVIDERS = ("anthropic", "openai", "none")
+PROVIDERS = ("anthropic", "openai", "bedrock", "none")
 # the anthropic default is the model every number in docs/ was measured with; set
 # LLM_MODEL to move (claude-sonnet-5, claude-opus-5, ...) and re-run the evaluation
-DEFAULT_MODELS = {"anthropic": "claude-sonnet-4-6", "openai": "gpt-5-mini"}
+DEFAULT_MODELS = {
+    "anthropic": "claude-sonnet-4-6",
+    "openai": "gpt-5-mini",
+    "bedrock": "us.amazon.nova-micro-v1:0",  # the fast planner; see docs/aws-latency.md
+}
 # commit of BAAI/bge-small-en-v1.5 the indexes are built with; a build and a runtime must agree
 DEFAULT_EMBEDDING_REVISION = "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
 
@@ -84,6 +88,11 @@ class Settings:
     llm_provider: str
     llm_model: str | None
     llm_rerank_model: str | None  # a cheaper model for the per-slot rerank calls, else llm_model
+    bedrock_region: str | None  # region for LLM_PROVIDER=bedrock (default: the boto3 chain)
+    bedrock_latency_optimized: bool  # pass performanceConfig latency=optimized on converse
+    semantic_plan_cache: bool  # reuse the plan of the nearest cached query (cosine)
+    semantic_plan_threshold: float
+    rerank_default: bool  # what rerank does when the request does not say
     anthropic_api_key: str | None
     anthropic_base_url: str | None
     openai_api_key: str | None
@@ -208,6 +217,11 @@ class Settings:
             llm_provider=provider,
             llm_model=model,
             llm_rerank_model=_get_str(env, "LLM_RERANK_MODEL") if model else None,
+            bedrock_region=_get_str(env, "BEDROCK_REGION"),
+            bedrock_latency_optimized=_get_bool(env, "BEDROCK_LATENCY_OPTIMIZED", False),
+            semantic_plan_cache=_get_bool(env, "SEMANTIC_PLAN_CACHE", False),
+            semantic_plan_threshold=_get_float(env, "SEMANTIC_PLAN_THRESHOLD", 0.92),
+            rerank_default=_get_bool(env, "RERANK_DEFAULT", True),
             anthropic_api_key=anthropic_key,
             anthropic_base_url=_get_str(env, "ANTHROPIC_BASE_URL"),
             openai_api_key=openai_key,
@@ -279,6 +293,11 @@ class Settings:
         }.items():
             if not math.isfinite(value) or value < 0:
                 raise ConfigError(f"{name.upper()} must be finite and >= 0, got {value}")
+        if not (0.5 <= self.semantic_plan_threshold <= 1.0):
+            raise ConfigError(
+                "SEMANTIC_PLAN_THRESHOLD must be between 0.5 and 1.0, "
+                f"got {self.semantic_plan_threshold}"
+            )
         if self.log_level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             raise ConfigError(
                 f"LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR or CRITICAL, got {self.log_level}"

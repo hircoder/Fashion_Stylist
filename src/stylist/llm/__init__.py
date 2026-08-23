@@ -217,4 +217,13 @@ def make_llm_client(settings: Settings, model: str | None = None) -> LLMClient |
             base_url=settings.openai_base_url,
             effort=settings.llm_effort,
         )
+    if settings.llm_provider == "bedrock":
+        from stylist.llm.bedrock_client import BedrockLLM
+
+        return BedrockLLM(
+            model=model,
+            region=settings.bedrock_region,
+            effort=settings.llm_effort,
+            latency_optimized=settings.bedrock_latency_optimized,
+        )
     raise ValueError(f"unknown provider {settings.llm_provider}")

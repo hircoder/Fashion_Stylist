@@ -20,12 +20,15 @@ import uuid
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 
+import numpy as np
+
+from stylist.catalog import derive_audience
 from stylist.config import Settings
 from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
 from stylist.llm import LLMClient, LLMError, ThrottledLLM, Usage, usage_scope
 from stylist.llm.prompts import PROMPT_VERSION
-from stylist.planner import HeuristicPlanner, LLMPlanner, QueryPlan, merge_constraints
+from stylist.planner import HeuristicPlanner, LLMPlanner, QueryPlan, merge_constraints, parse_budget
 from stylist.reranker import (
     LLMReranker,
     RankedSlot,
@@ -49,6 +52,7 @@ log = logging.getLogger(__name__)
 
 MIN_RERANK_SECONDS = 2.0  # do not start a rerank call with less than this left
 MIN_PLAN_SECONDS = 0.5
+SEMANTIC_PLAN_TTL_S = 3600.0  # an hour; catalog and prompts move slowly, plans should too
 
 
 class RequestTimeout(Exception):
@@ -72,6 +76,7 @@ class RecommendationService:
         self.llm = ThrottledLLM(llm, sem) if llm else None
         self.rerank_llm = ThrottledLLM(rerank_llm, sem) if rerank_llm else self.llm
         self.retriever = Retriever(index, embedder, settings)
+        self._embedder = embedder
         self.heuristic = HeuristicPlanner()
         self.llm_planner = LLMPlanner(self.llm) if self.llm else None
         self.reranker = (
@@ -85,6 +90,11 @@ class RecommendationService:
             plan_cache if plan_cache is not None else OrderedDict()
         )
         self._plan_inflight: dict[tuple, asyncio.Future] = {}
+        # semantic plan cache: near-duplicate queries reuse the nearest llm plan
+        self._sem_capacity = 2048
+        self._sem_vecs: np.ndarray | None = None
+        self._sem_plans: list[tuple[QueryPlan, str, float] | None] = []
+        self._sem_next = 0
         self._plan_failed_until: dict[tuple, float] = {}
         self._retrieval_sem = asyncio.Semaphore(max(1, settings.retrieval_concurrency))
         # a dedicated, bounded pool: retrieval is cpu bound numpy and must not spill into
@@ -116,6 +126,54 @@ class RecommendationService:
         while len(self._plan_cache) > self.settings.plan_cache_size:
             self._plan_cache.popitem(last=False)
 
+    @staticmethod
+    def _query_constraints(query: str) -> tuple:
+        """The two constraint families cheap to read off the text and dangerous to get
+        wrong across a semantic cache hit: the budget and the audience words."""
+        budget = parse_budget(query)
+        aud = derive_audience(query, None)
+        return (budget, aud)
+
+    def _semantic_lookup(self, query: str) -> tuple[QueryPlan | None, np.ndarray | None]:
+        """(plan, query vector). The vector comes back either way so a later store does
+        not embed twice. Only llm plans live in this cache, entries expire after an hour,
+        and a cosine hit still has to agree with the query on budget and audience: 0.95
+        of similarity happily bridges "men's" to "women's" or "$100" to "$1000", the
+        deterministic guard does not."""
+        if not self.settings.semantic_plan_cache:
+            return None, None
+        vec = self._embedder.encode_queries([query])[0].astype(np.float32)
+        if self._sem_vecs is None or not len(self._sem_plans):
+            return None, vec
+        n = len(self._sem_plans)
+        sims = self._sem_vecs[:n] @ vec
+        best = int(np.argmax(sims))
+        if float(sims[best]) < self.settings.semantic_plan_threshold:
+            return None, vec
+        entry = self._sem_plans[best]
+        if entry is None:
+            return None, vec
+        plan, origin_query, stored_at = entry
+        if time.monotonic() - stored_at > SEMANTIC_PLAN_TTL_S:
+            return None, vec
+        if self._query_constraints(query) != self._query_constraints(origin_query):
+            return None, vec
+        return plan.model_copy(deep=True), vec
+
+    def _semantic_store(self, vec: np.ndarray | None, query: str, plan: QueryPlan) -> None:
+        if vec is None or not self.settings.semantic_plan_cache or plan.source != "llm":
+            return
+        if self._sem_vecs is None:
+            self._sem_vecs = np.zeros((self._sem_capacity, vec.shape[0]), dtype=np.float32)
+        entry = (plan.model_copy(deep=True), query, time.monotonic())
+        if len(self._sem_plans) < self._sem_capacity:
+            self._sem_vecs[len(self._sem_plans)] = vec
+            self._sem_plans.append(entry)
+        else:  # ring buffer: the oldest entry goes
+            self._sem_vecs[self._sem_next] = vec
+            self._sem_plans[self._sem_next] = entry
+            self._sem_next = (self._sem_next + 1) % self._sem_capacity
+
     def close(self) -> None:
         """Release the retrieval thread pool (the API calls this on shutdown, the CLI at exit)."""
         if not self._closed:
@@ -133,12 +191,19 @@ class RecommendationService:
         if cached is not None:
             return cached.model_copy(deep=True), mode, True
         self._last_plan_shared = False
+        qvec: np.ndarray | None = None
         if use_llm:
+            near, qvec = self._semantic_lookup(req.query)
+            if near is not None:
+                # a near-duplicate query was planned before: reuse it, skip the LLM
+                self._cache_put(key, near)
+                return near.model_copy(deep=True), "llm", True
             if time.monotonic() < self._plan_failed_until.get(key, 0.0):
                 warnings.append("planner fell back to regex rules (recent planner failure)")
             else:
                 plan = await self._plan_with_llm(req.query, key, deadline, warnings)
                 if plan is not None:
+                    self._semantic_store(qvec, req.query, plan)
                     return plan.model_copy(deep=True), "llm", self._last_plan_shared
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
@@ -279,7 +344,12 @@ class RecommendationService:
         )
         warnings.extend(merge_warnings)
 
-        do_rerank = req.use_llm and req.rerank and self.reranker is not None
+        # an unset rerank field falls to the deployment default (the fast profile turns it
+        # off and clients can still opt back in per request)
+        rerank_wanted = (
+            req.rerank if "rerank" in req.model_fields_set else self.settings.rerank_default
+        )
+        do_rerank = req.use_llm and rerank_wanted and self.reranker is not None
         # a pool deep enough that cross-slot de-duplication can still fill every slot even
         # when all slots overlap (the reranker only sees the top rerank_candidates of it)
         n_candidates = max(self.settings.rerank_candidates, req.k * max(3, len(plan.slots)))
