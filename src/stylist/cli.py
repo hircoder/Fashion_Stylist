@@ -79,6 +79,12 @@ def cmd_download(args, settings: Settings) -> int:
     print(f"downloading {RAW_URL} -> {out}")
     got = _download(RAW_URL, out)
     if got != RAW_SHA256:
+        if args.strict:
+            out.unlink(missing_ok=True)
+            raise DownloadError(
+                f"sha256 {got[:16]}... differs from the expected {RAW_SHA256[:16]}... "
+                f"(--strict: the upstream file changed, refusing to build on it unseen)"
+            )
         print(
             f"note: sha256 {got[:16]}... differs from the file this code was built against "
             f"({RAW_SHA256[:16]}...); the upstream file may have been refreshed",
@@ -214,6 +220,9 @@ def build_parser() -> argparse.ArgumentParser:
     d = sub.add_parser("download-data", help="download the raw Amazon Fashion metadata (224 MB)")
     d.add_argument("--out")
     d.add_argument("--force", action="store_true")
+    d.add_argument(
+        "--strict", action="store_true", help="fail when the sha256 differs from the known one"
+    )
     d.set_defaults(func=cmd_download)
 
     i = sub.add_parser("ingest", help="raw jsonl.gz -> clean catalog parquet")

@@ -35,7 +35,7 @@ SentenceTransformer('BAAI/bge-small-en-v1.5', revision='${EMBEDDING_REVISION}', 
 # optional: bake a demo index (see the note at the top)
 ARG BAKE_INDEX_LIMIT=40000
 RUN if [ "${BAKE_INDEX_LIMIT}" -gt 0 ]; then \
-      /app/.venv/bin/stylist download-data \
+      /app/.venv/bin/stylist download-data --strict \
       && /app/.venv/bin/stylist ingest \
       && /app/.venv/bin/stylist build-index --limit "${BAKE_INDEX_LIMIT}" --sampling popular \
       && rm -rf /app/data/raw /app/data/processed; \

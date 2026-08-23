@@ -128,6 +128,24 @@ class ErrorBody(BaseModel):
 
 
 _RX_ASIN = re.compile(r"^[A-Z0-9]{10}$")
+_IMAGE_HOSTS = (".media-amazon.com", ".ssl-images-amazon.com", ".images-amazon.com")
+
+
+def safe_image_url(url: str | None) -> str | None:
+    """Catalog image urls are untrusted text: only https links on Amazon's image hosts are
+    handed to a browser (the page's content security policy allows exactly those)."""
+    if not url or not isinstance(url, str):
+        return None
+    try:
+        from urllib.parse import urlsplit
+
+        parts = urlsplit(url.strip())
+    except ValueError:
+        return None
+    host = (parts.hostname or "").lower()
+    if parts.scheme != "https" or not host or not host.endswith(_IMAGE_HOSTS):
+        return None
+    return parts.geturl()
 
 
 def product_url(parent_asin: str) -> str | None:

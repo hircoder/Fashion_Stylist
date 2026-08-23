@@ -42,6 +42,7 @@ from stylist.schemas import (
     RecommendResponse,
     SlotResult,
     product_url,
+    safe_image_url,
 )
 
 log = logging.getLogger(__name__)
@@ -347,7 +348,7 @@ class RecommendationService:
                         rating_number=c.rating_number,
                         store=c.store,
                         audience=c.audience,
-                        image_url=c.image_url,
+                        image_url=safe_image_url(c.image_url),
                         url=product_url(c.parent_asin),
                         score=round(c.score, 6),
                         matched_keywords=c.matched_keywords,

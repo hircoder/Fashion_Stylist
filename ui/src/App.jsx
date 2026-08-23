@@ -98,6 +98,7 @@ function PlanSummary({ plan, llmInfo }) {
   if (plan.audience) bits.push(`audience: ${plan.audience}`);
   if (plan.occasion) bits.push(`occasion: ${plan.occasion}`);
   if (plan.season) bits.push(`season: ${plan.season}`);
+  if (plan.brand) bits.push(`brand: ${plan.brand}`);
   if (plan.budget_max != null)
     bits.push(`budget: ${plan.budget_min != null ? `$${plan.budget_min} - ` : "up to "}$${plan.budget_max} (${plan.budget_scope})`);
   return (
@@ -108,7 +109,9 @@ function PlanSummary({ plan, llmInfo }) {
       {bits.length ? <div className="muted">{bits.join(" · ")}</div> : null}
       <div className="muted small">
         planner: {llmInfo.planner_used}
+        {llmInfo.plan_cache_hit ? " (cached)" : ""}
         {llmInfo.rerank_used ? " · reranked by llm" : " · retrieval order"}
+        {llmInfo.calls ? ` · ${llmInfo.calls} llm call${llmInfo.calls > 1 ? "s" : ""}, ${(llmInfo.input_tokens + llmInfo.output_tokens).toLocaleString()} tokens` : ""}
       </div>
     </div>
   );
@@ -120,9 +123,13 @@ export default function App() {
   const [healthError, setHealthError] = useState(false);
   const [query, setQuery] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [audience, setAudience] = useState("");
   const [k, setK] = useState(4);
   const [priceMode, setPriceMode] = useState("auto"); // auto | strict | relaxed
   const [useLlm, setUseLlm] = useState(true);
+  const [rerank, setRerank] = useState(true);
+  const [abort, setAbort] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
@@ -147,16 +154,23 @@ export default function App() {
     setQuery(text);
     setLoading(true);
     setError(null);
+    if (abort) abort.abort(); // a new request supersedes the one in flight
+    const controller = new AbortController();
+    setAbort(controller);
     try {
-      const body = { query: text, k: Number(k) || 4, use_llm: useLlm };
+      const body = { query: text, k: Number(k) || 4, use_llm: useLlm, rerank };
       if (maxPrice !== "" && !Number.isNaN(Number(maxPrice))) body.max_price = Number(maxPrice);
+      if (minPrice !== "" && !Number.isNaN(Number(minPrice))) body.min_price = Number(minPrice);
+      if (audience) body.audience = audience;
       if (priceMode !== "auto") body.include_unpriced = priceMode === "relaxed";
-      setResult(await recommend(body));
+      const data = await recommend(body, controller.signal);
+      if (!controller.signal.aborted) setResult(data);
     } catch (e) {
+      if (e.name === "AbortError") return; // superseded or cancelled: keep what is on screen
       setError(e.message);
       setResult(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }
 
@@ -211,8 +225,31 @@ export default function App() {
                 />
               </label>
               <label>
+                min $ per item
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="any"
+                />
+              </label>
+              <label>
                 items per slot
                 <input type="number" min="1" max="10" value={k} onChange={(e) => setK(e.target.value)} />
+              </label>
+              <label>
+                for
+                <select value={audience} onChange={(e) => setAudience(e.target.value)}>
+                  <option value="">anyone (let the planner decide)</option>
+                  <option value="women">women</option>
+                  <option value="men">men</option>
+                  <option value="girls">girls</option>
+                  <option value="boys">boys</option>
+                  <option value="baby">baby</option>
+                  <option value="unisex">unisex</option>
+                </select>
               </label>
               <label>
                 unpriced items
@@ -225,6 +262,10 @@ export default function App() {
               <label className="check">
                 <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} />
                 use llm
+              </label>
+              <label className="check">
+                <input type="checkbox" checked={rerank} onChange={(e) => setRerank(e.target.checked)} disabled={!useLlm} />
+                llm rerank
               </label>
             </div>
           </form>

@@ -530,3 +530,61 @@ def test_swap_parks_the_old_index_under_a_unique_name(tmp_path, fixture_catalog,
     assert len(parked) == 2 and parked[0] != parked[1]
     assert SearchIndex.load(index_dir).n_rows == 14
     assert sorted(p.name for p in tmp_path.iterdir()) == [".idx.lock", "idx"]
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        (
+            "https://m.media-amazon.com/images/I/abc.jpg",
+            "https://m.media-amazon.com/images/I/abc.jpg",
+        ),
+        ("http://m.media-amazon.com/images/I/abc.jpg", None),
+        ("https://evil.example/x.jpg", None),
+        ("javascript:alert(1)", None),
+        (None, None),
+    ],
+)
+def test_only_catalog_image_hosts_reach_the_browser(url, expected):
+    from stylist.schemas import safe_image_url
+
+    assert safe_image_url(url) == expected
+
+
+def test_signed_urls_are_redacted_in_logs():
+    from stylist.artifacts import _redact_url
+
+    assert (
+        _redact_url("https://cdn.example/i.tgz?X-Amz-Signature=abc")
+        == "https://cdn.example/i.tgz?..."
+    )
+    assert _redact_url("https://cdn.example/i.tgz") == "https://cdn.example/i.tgz"
+
+
+def test_strict_download_refuses_a_changed_file(tmp_path, monkeypatch):
+    from stylist import cli
+
+    class FakeResp:
+        headers = {"Content-Length": "3"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def __init__(self):
+            self.done = False
+
+        def read(self, n):
+            if self.done:
+                return b""
+            self.done = True
+            return b"abc"
+
+    monkeypatch.setattr(cli.urllib.request, "urlopen", lambda url, timeout=60: FakeResp())
+    out = tmp_path / "raw.jsonl.gz"
+    args = cli.build_parser().parse_args(["download-data", "--out", str(out), "--strict"])
+    with pytest.raises(cli.DownloadError, match="strict"):
+        cli.cmd_download(args, Settings.from_env({"EMBEDDER": "hash"}))
+    assert not out.exists()

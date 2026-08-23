@@ -72,6 +72,12 @@ def _file_lock(path: Path):
                 fcntl.flock(fh, fcntl.LOCK_UN)
 
 
+def _redact_url(url: str) -> str:
+    """Signed urls carry credentials in the query string: never log it."""
+    parts = urllib.parse.urlsplit(url)
+    return parts._replace(query="", fragment="").geturl() + ("?..." if parts.query else "")
+
+
 def _host_is_local(host: str) -> bool:
     """Loopback, private, link-local (cloud metadata lives there) or reserved addresses,
     by literal or by resolving the name."""
@@ -296,7 +302,7 @@ def install_index(
         tmp_tar = parent / f".{index_dir.name}.{pid}.download"
         tmp_dir = parent / f".{index_dir.name}.{pid}.extract"
         try:
-            log.info("downloading index from %s", url)
+            log.info("downloading index from %s", _redact_url(url))
             _download(url, tmp_tar, max_bytes, allow_file, allow_private)
             got = sha256_file(tmp_tar)
             if got.lower() != sha256.lower():
