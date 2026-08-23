@@ -12,8 +12,8 @@
     "prompt_version": "2"
   },
   "queries": 28,
-  "run_at": "2026-08-23T14:14:05Z",
-  "git_sha": "6d28732",
+  "run_at": "2026-08-23T14:34:34Z",
+  "git_sha": "fe7cd5d",
   "schema_version": 2,
   "results": [
     {
@@ -39,7 +39,7 @@
         0,
         0
       ],
-      "p50_ms": 7.4,
+      "p50_ms": 7.5,
       "p95_ms": 9.9,
       "per_query_match": {
         "beach_outfit": 0.5,
@@ -86,7 +86,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.6,
+          "ms": 8.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -121,7 +121,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.4,
+          "ms": 7.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -156,7 +156,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.4,
+          "ms": 8.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -191,7 +191,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 10.7,
+          "ms": 10.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -226,7 +226,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.2,
+          "ms": 7.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -261,7 +261,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.1,
+          "ms": 7.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -296,7 +296,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.0,
+          "ms": 7.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -331,7 +331,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.1,
+          "ms": 7.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -366,7 +366,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.6,
+          "ms": 7.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -401,7 +401,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.4,
+          "ms": 7.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -436,7 +436,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.0,
+          "ms": 7.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -506,7 +506,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.5,
+          "ms": 6.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -541,7 +541,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.5,
+          "ms": 6.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -576,7 +576,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.7,
+          "ms": 6.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -611,7 +611,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.4,
+          "ms": 8.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -646,7 +646,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.6,
+          "ms": 6.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -681,7 +681,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.9,
+          "ms": 8.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -751,7 +751,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.7,
+          "ms": 6.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -786,7 +786,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.1,
+          "ms": 8.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -821,7 +821,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.3,
+          "ms": 6.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -856,7 +856,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9.9,
+          "ms": 10.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -891,7 +891,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.0,
+          "ms": 5.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -961,7 +961,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 10.2,
+          "ms": 9.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1031,7 +1031,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.7,
+          "ms": 7.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1077,8 +1077,8 @@
         0,
         0
       ],
-      "p50_ms": 29.1,
-      "p95_ms": 38.8,
+      "p50_ms": 26.8,
+      "p95_ms": 36.3,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -1124,7 +1124,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 98.2,
+          "ms": 95.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1159,7 +1159,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.1,
+          "ms": 32.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1194,7 +1194,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.7,
+          "ms": 23.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1229,7 +1229,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.8,
+          "ms": 26.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1264,7 +1264,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.7,
+          "ms": 32.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1299,7 +1299,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.5,
+          "ms": 25.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1334,7 +1334,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.4,
+          "ms": 27.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1369,7 +1369,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.5,
+          "ms": 25.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1404,7 +1404,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.3,
+          "ms": 23.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1439,7 +1439,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.9,
+          "ms": 31.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1474,7 +1474,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.7,
+          "ms": 29.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1509,7 +1509,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.8,
+          "ms": 25.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1544,7 +1544,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.0,
+          "ms": 29.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1579,7 +1579,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 19.2,
+          "ms": 27.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1614,7 +1614,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.9,
+          "ms": 36.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1649,7 +1649,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.8,
+          "ms": 21.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1684,7 +1684,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.8,
+          "ms": 32.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1719,7 +1719,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 22.1,
+          "ms": 31.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1754,7 +1754,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 22.8,
+          "ms": 25.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1789,7 +1789,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.7,
+          "ms": 23.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1824,7 +1824,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 21.9,
+          "ms": 38.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1859,7 +1859,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.0,
+          "ms": 28.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1894,7 +1894,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.2,
+          "ms": 23.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1929,7 +1929,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.6,
+          "ms": 31.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1964,7 +1964,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.0,
+          "ms": 19.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1999,7 +1999,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.2,
+          "ms": 24.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2034,7 +2034,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 18.9,
+          "ms": 23.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2069,7 +2069,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 41.2,
+          "ms": 20.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2115,8 +2115,8 @@
         0,
         0
       ],
-      "p50_ms": 35.7,
-      "p95_ms": 44.9,
+      "p50_ms": 29.7,
+      "p95_ms": 40.9,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -2162,7 +2162,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.2,
+          "ms": 29.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2197,7 +2197,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.6,
+          "ms": 28.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2232,7 +2232,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.0,
+          "ms": 31.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2267,7 +2267,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.5,
+          "ms": 30.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2302,7 +2302,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.6,
+          "ms": 38.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2337,7 +2337,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.3,
+          "ms": 28.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2372,7 +2372,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.4,
+          "ms": 30.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2407,7 +2407,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.3,
+          "ms": 41.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2442,7 +2442,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.0,
+          "ms": 29.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2477,7 +2477,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 43.1,
+          "ms": 38.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2512,7 +2512,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.4,
+          "ms": 48.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2547,7 +2547,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.9,
+          "ms": 29.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2582,7 +2582,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 43.3,
+          "ms": 40.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2617,7 +2617,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 44.9,
+          "ms": 23.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2652,7 +2652,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.6,
+          "ms": 29.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2687,7 +2687,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.2,
+          "ms": 26.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2722,7 +2722,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.8,
+          "ms": 29.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2757,7 +2757,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 41.5,
+          "ms": 29.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2792,7 +2792,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.4,
+          "ms": 30.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2827,7 +2827,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 47.3,
+          "ms": 29.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2862,7 +2862,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 48.8,
+          "ms": 27.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2897,7 +2897,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.2,
+          "ms": 33.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2932,7 +2932,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.1,
+          "ms": 26.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2967,7 +2967,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.5,
+          "ms": 33.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3002,7 +3002,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.2,
+          "ms": 26.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3037,7 +3037,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.5,
+          "ms": 36.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3072,7 +3072,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.3,
+          "ms": 27.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3107,7 +3107,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.9,
+          "ms": 25.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3153,8 +3153,8 @@
         0,
         0
       ],
-      "p50_ms": 32.7,
-      "p95_ms": 45.0,
+      "p50_ms": 31.1,
+      "p95_ms": 40.1,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -3200,7 +3200,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.6,
+          "ms": 32.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3235,7 +3235,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.5,
+          "ms": 31.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3270,7 +3270,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 48.2,
+          "ms": 35.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3305,7 +3305,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 46.4,
+          "ms": 26.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3340,7 +3340,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 41.9,
+          "ms": 46.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3375,7 +3375,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.4,
+          "ms": 30.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3410,7 +3410,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.6,
+          "ms": 32.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3445,7 +3445,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.0,
+          "ms": 28.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3480,7 +3480,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.9,
+          "ms": 32.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3515,7 +3515,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.8,
+          "ms": 30.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3550,7 +3550,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.4,
+          "ms": 31.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3585,7 +3585,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.6,
+          "ms": 33.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3620,7 +3620,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.2,
+          "ms": 31.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3655,7 +3655,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.5,
+          "ms": 33.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3690,7 +3690,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.3,
+          "ms": 28.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3725,7 +3725,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.5,
+          "ms": 26.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3760,7 +3760,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.1,
+          "ms": 36.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3795,7 +3795,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 45.0,
+          "ms": 26.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3830,7 +3830,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.9,
+          "ms": 40.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3865,7 +3865,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.3,
+          "ms": 28.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3900,7 +3900,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.6,
+          "ms": 40.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3935,7 +3935,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.8,
+          "ms": 27.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3970,7 +3970,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.6,
+          "ms": 30.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4005,7 +4005,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.9,
+          "ms": 39.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4020,1044 +4020,6 @@
               "Champion Big and Tall Mens Pullover Hoodie Sweatshirt Vintage Wash Cor",
               "Champion Sherpa Hoodie For Men Big and Tall Fleece Zip Sherpa Lined Sw",
               "Champion Mens Heritage Fleece Pullover Hoodie"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_fotl",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 1,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 25.8,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
-              "Fruit of the Loom Men's Classics Midweight Thermal Bottom, All Black (",
-              "Fruit of the Loom Men's Jersey Knit Sleep Pant (Large, Navy Foulard)",
-              "Fruit of the Loom Men's Microfleece Pajama Pant (Medium, Black/RED Pla"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_columbia",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 2,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 43.9,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Columbia Outdry Ex Gold Womens Down Jacket Small Black",
-              "Columbia Benton Springs Full-Zip Fleece Jacket - Women's Black, S",
-              "Bifast Women's Waterproof Lightweight Rain Jacket Anorak with Hood",
-              "Plus Size Women Rain Coats Lightweight Waterproof Outdoor Rain Jacket "
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_levis",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 0,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 23.4,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Men's Skinny Fit Jeans (33)",
-              "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi",
-              "Levi's Mens 550 Relaxed Fit Fonzie 40 34",
-              "YIMANIE Men's Slim Fit Jeans Stretch Straight Leg Fashion Jeans Pants "
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_calvin",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 2,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 35.3,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Calvin Klein Men's Underwear Intense Power FX Micro Boxer Brief Black ",
-              "Calvin Klein Men's Underwear Cotton Classics 6 Pack Knit Boxers, White",
-              "Calvin Klein Mens 4 Pack Socks",
-              "Calvin Klein Men's Straight Jeans, Claree Grey,(36x30)"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        }
-      ]
-    },
-    {
-      "config": "hybrid_noquality",
-      "queries": 28,
-      "failures": [],
-      "keyword_match_at_k": 0.679,
-      "macro_match": 0.679,
-      "macro_match_ci95": [
-        0.536,
-        0.812
-      ],
-      "mapped_precision": 0.0,
-      "slot_recall": 0.0,
-      "unmapped_slots": 28,
-      "query_success": 0.0,
-      "price_violations": 0,
-      "inferred_over_budget": 0,
-      "empty_slots": 0,
-      "total_slots": 28,
-      "llm_calls": 0,
-      "tokens": [
-        0,
-        0
-      ],
-      "p50_ms": 30.7,
-      "p95_ms": 42.5,
-      "per_query_match": {
-        "beach_outfit": 0.75,
-        "snow_boots": 1.0,
-        "wedding_guest": 1.0,
-        "office_chinos": 0.75,
-        "fall_sweater": 1.0,
-        "flat_feet_running": 0.0,
-        "ears_warm": 1.0,
-        "europe_sandals": 1.0,
-        "husband_wedding": 0.25,
-        "daughter_unicorn": 0.25,
-        "wfh_winter": 1.0,
-        "interview_startup": 1.0,
-        "rainy_commute": 1.0,
-        "budget_sneakers": 0.5,
-        "yoga": 1.0,
-        "baby_summer": 1.0,
-        "ski_trip": 0.75,
-        "black_tie": 0.75,
-        "hiking_summer": 0.5,
-        "grandma_gift": 0.0,
-        "brand_nike": 1.0,
-        "brand_adidas": 0.25,
-        "brand_northface": 1.0,
-        "brand_champion": 1.0,
-        "brand_fotl": 0.25,
-        "brand_columbia": 0.5,
-        "brand_levis": 0.0,
-        "brand_calvin": 0.5
-      },
-      "rows": [
-        {
-          "id": "beach_outfit",
-          "slots": 1,
-          "expected_slots": 5,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 3,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 29.7,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "MSBASIC Womens Dresses Summer Spaghetti Strap Dress Casual Beach Outfi",
-              "Hount Womens Summer Short Sleeve Beach Dress Casual Beach Sundress (Pu",
-              "Summer Womens Cover up Beach Wear Swimwear Bikini Lace Floral Long Bea",
-              "BBYES Women Summer Short Beach Dresses Casual T Shirt Dresses Beach Co"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "snow_boots",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 36.2,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
-              "Womens Snow Boots Winter Shoes with Warm Plush Fleece Lined Ankle Boot",
-              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
-              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated "
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "wedding_guest",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 36.3,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G",
-              "Gardenwed Wedding Dress Bridesmaid Dress Elegant Cocktail Dress for Wo",
-              "OURS Pink Dress for Women Party Off Shoulder Summer Loose Dresses for ",
-              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "office_chinos",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 3,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 34.2,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
-              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
-              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-",
-              "Basic Slim Fit Office Pants Stretchy Full Length Black Size L"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "fall_sweater",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 28.4,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
-              "TabbyLove Women's Fall Sweaters Long Sleeve V Neck Knit Pullover Sweat",
-              "ANYTITI Women Turtle Neck Pullover Long Sleeve Sweater Cozy Sweaters P",
-              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "flat_feet_running",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 0,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 30.2,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Diabetic Archies Flip Flops for Women, Comfortable Plantar Fasciitis S",
-              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
-              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo",
-              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "ears_warm",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 40.4,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Girls Winter Warm Earmuffs Headband Adorable Cat Ears Earwarmer for Co",
-              "TINKSKY Ear Warmer Winter Headbands Fleece Thermal Ski Ear Muff Stretc",
-              "JOYEBUY Lovely Cat Ears Super Soft Earmuffs Winter Outdoor Earmuffs Ea",
-              "CHUANGLI Lovely Winter Warm Earmuffs Glitter Cat Ears Plush Ear Warmer"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "europe_sandals",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 28.1,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Euro Comfort Youla Made in Europe Casual Women's Italian Lightweight S",
-              "iloveSIA Mens Hiking Walking Leather Sandals Brown US Size 8",
-              "TOLLN Men Women Comfortable Walking Garden Shoes Slippers Quick Drying",
-              "Wedge Sandals for Women Comfort Walking Sandals Flower Open Toe Summer"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "husband_wedding",
-          "slots": 1,
-          "expected_slots": 4,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 1,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 41.9,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "June's Young Women Hats Royal Blue Feathers Diamonding Casing Summer S",
-              "June's Young Women Hats Summer Hat Sinamay Bow Polka Dot Elegant Light",
-              "BLUETOP 1 Pair Crystal Ankle Chain Bridal Beach Outdoor Wedding Foot J",
-              "MY'S Men's Custom Made Bridegroom Wedding Suit Vest and Pants Set Purp"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "daughter_unicorn",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 1,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 30.5,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "FOTAP To My Daughter Gift I love You To The Moon And Back Keychain Gif",
-              "bobauna Daddy's Girl Cuff Bangle Bracelet Gift for Dad Daughter No Mat",
-              "Mapileng Daughter Gifts From Dad, To My Daughter Believe In Yourself L",
-              "Daughter Necklace - I Love You To The Moon And Back - Great Gift"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "wfh_winter",
-          "slots": 1,
-          "expected_slots": 3,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 50.3,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
-              "Womens Soft Warm Cozy Snowflake Non Skid Boots Fuzzy Floor Footwear In",
-              "Plzensen Girls Boys Cute Home Shoes Kids Fur Lined Indoor House Slippe",
-              "bestfur Women's Cashmere Fabrics Plush Lining Home Slippers Cozy Indoo"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "interview_startup",
-          "slots": 1,
-          "expected_slots": 3,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 30.3,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Avoid Injury Dont Tell Me How To Do Job Iron Worker T-Shirt Medium Bla",
-              "Women 2 Piece Outfit Sets Casual Oversized T-Shirt Tops Biker Shorts W",
-              "Womens 2 Piece Casual Outfit Sportswear Short Sleeve Butterfly Print T",
-              "SATINATO Women's Stretch Work Pants Office Casual Business Wear Khaki"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "rainy_commute",
-          "slots": 1,
-          "expected_slots": 2,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 39.3,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
-              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
-              "Men's Cycling Shorts Padded Bicycle Riding Pants Bike Biking Clothes C",
-              "Queshark Men's Bicycle Riding Pants Cycling Shorts Padded Bike Biking "
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "budget_sneakers",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 2,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 23.2,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Under Armour Women`s Ultra Low Training Socks 3 Pack (White(U3944R3-10",
-              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
-              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
-              "WEARALL Womens Split Maxi Skirt - White - US 4-6 (UK 8-10)"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "yoga",
-          "slots": 1,
-          "expected_slots": 2,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 41.5,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
-              "Women Workout Yoga Shorts Blue Tie Dye Folded Hot Shorts with Pockets ",
-              "XXTAXN Women's Sexy Booty Running Workout Yoga Shorts Club Hot Pants w",
-              "SweatyRocks Women's Faux Leather Inserted Leggings Outfit Yoga Tights "
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "baby_summer",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 24.6,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Baby Toddler Boy Summer Clothes",
-              "Cute Baby Girls Summer Clothes Watermelon Patterns Romper Sleeveless J",
-              "Infant Toddler Baby Girls Dress Clothes Cute Sleeveless Stripe Vest Su",
-              "Baby Girl Clothes Summer Flowers Floral Ruffle Blouse Tank Top Lace De"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "ski_trip",
-          "slots": 1,
-          "expected_slots": 4,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 3,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 42.1,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Men's Fleece Softshell Warm Windproof Skiing Pants Clothin Black US L",
-              "Winter Warm 3 Hole Knit Ski Mask Balaclava Snowboard Full Face Mask Be",
-              "Ladies Racerback Tank That's A Horrible Idea What Time Sport Grey L",
-              "Yousify Women Onesies Ski Suit Winter Snowsuit Waterproof Ski Jumpsuit"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "black_tie",
-          "slots": 1,
-          "expected_slots": 3,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 3,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 27.1,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Stripe Man Neck Tie Feel Silk Green Neck Ties Boxing Day Formal DAA3A0",
-              "Striped Silk Woven Classic Check Man's Business Tie Necktie Korea Styl",
-              "Men's Black & White Music Staff Formal Pre-tied Bow Tie",
-              "Next Level Apparel 6240 Mens Premium V-Neck Tee XL-Black/Sand"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "hiking_summer",
-          "slots": 1,
-          "expected_slots": 3,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 2,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 42.5,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Daydance Hot Pink Leotards for Girls Dance, Short Sleeve Ballet Clothe",
-              "Unisex Furry Fuzzy Winter Cold Weather Multicolor Earmuffs for All Age",
-              "TBMPOY Women's Lightweight Hiking Pants Quick Dry Outdoor Camping Fish",
-              "Hot New Women Bubble Bib Statement Necklace Fashion Chain Light Purple"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "grandma_gift",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 0,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 28.9,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "FEELMEM Grandmother Bracelet for Grandma Grandma's House Where Cousins",
-              "Sunshiny New The Love Between A Grandmother and Granddaughter is Forev",
-              "The Love Between Grandmother and Granddaughter Is Forever Pendant Neck",
-              "My Greatest Blessings Call me Grandma | Cute Grandmother Ladies' V-Nec"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_nike",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 49.5,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "NIKE Men's Air Max Tavas Fashion/Running Sneaker",
-              "Nike Men's Challenger 5in Brief-Lined Running Shorts",
-              "Nike Men's Dry Breathe Short Sleeve Running Shirt",
-              "Nike Air Zoom Pegasus 34 Mens Running Shoes nk887009 100 (Black/Dark G"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_adidas",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 1,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 26.6,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "adidas Mens Essentials Motion Pack Track Jacket (Legend Ink/XX-Large)",
-              "MEETYOO Men\u2019s Athletic Workout Pants with Pockets,Track Gym Jogger Swe",
-              "Reebok Men's Track & Running Pants with Pockets - Athletic Workout Tra",
-              "MorwenVeo Mens Fashion Casual Track Pants-Casual Gym Workout Joggers P"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_northface",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 32.1,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "THE NORTH FACE Womens Dryzzle Jacket",
-              "The North Face Khumbu Jacket Women's TNF White X-Large",
-              "The North Face Women's Aryia 3-in-1 Triclimate Jacket kodiak blue (L)",
-              "The North Face Women's Glacier 1/4 Zip Fleece Jacket, Medium TNF Black"
-            ]
-          ],
-          "slot_names": [
-            "items"
-          ]
-        },
-        {
-          "id": "brand_champion",
-          "slots": 1,
-          "expected_slots": 1,
-          "slots_found": 0,
-          "unmapped_slots": 1,
-          "items": 4,
-          "match": 4,
-          "mapped_items": 0,
-          "mapped_match": 0,
-          "empty": 0,
-          "success": false,
-          "price_bad": 0,
-          "inferred_over": 0,
-          "ms": 31.5,
-          "planner": "heuristic",
-          "rerank": false,
-          "llm_calls": 0,
-          "tokens": [
-            0,
-            0
-          ],
-          "warnings": 0,
-          "titles": [
-            [
-              "Champion Mens Big and Tall Heritage Fleece Hoodie, 3XT, Grey Scarf",
-              "Champion Big and Tall Mens Pullover Hoodie Sweatshirt Vintage Wash Cor",
-              "Champion Mens Heritage Fleece Pullover Hoodie",
-              "Champion Sherpa Hoodie For Men Big and Tall Fleece Zip Sherpa Lined Sw"
             ]
           ],
           "slot_names": [
@@ -5113,7 +4075,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.9,
+          "ms": 28.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5148,7 +4110,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.8,
+          "ms": 38.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5183,7 +4145,1045 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.9,
+          "ms": 24.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Calvin Klein Men's Underwear Intense Power FX Micro Boxer Brief Black ",
+              "Calvin Klein Men's Underwear Cotton Classics 6 Pack Knit Boxers, White",
+              "Calvin Klein Mens 4 Pack Socks",
+              "Calvin Klein Men's Straight Jeans, Claree Grey,(36x30)"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "hybrid_noquality",
+      "queries": 28,
+      "failures": [],
+      "keyword_match_at_k": 0.679,
+      "macro_match": 0.679,
+      "macro_match_ci95": [
+        0.536,
+        0.812
+      ],
+      "mapped_precision": 0.0,
+      "slot_recall": 0.0,
+      "unmapped_slots": 28,
+      "query_success": 0.0,
+      "price_violations": 0,
+      "inferred_over_budget": 0,
+      "empty_slots": 0,
+      "total_slots": 28,
+      "llm_calls": 0,
+      "tokens": [
+        0,
+        0
+      ],
+      "p50_ms": 31.0,
+      "p95_ms": 42.0,
+      "per_query_match": {
+        "beach_outfit": 0.75,
+        "snow_boots": 1.0,
+        "wedding_guest": 1.0,
+        "office_chinos": 0.75,
+        "fall_sweater": 1.0,
+        "flat_feet_running": 0.0,
+        "ears_warm": 1.0,
+        "europe_sandals": 1.0,
+        "husband_wedding": 0.25,
+        "daughter_unicorn": 0.25,
+        "wfh_winter": 1.0,
+        "interview_startup": 1.0,
+        "rainy_commute": 1.0,
+        "budget_sneakers": 0.5,
+        "yoga": 1.0,
+        "baby_summer": 1.0,
+        "ski_trip": 0.75,
+        "black_tie": 0.75,
+        "hiking_summer": 0.5,
+        "grandma_gift": 0.0,
+        "brand_nike": 1.0,
+        "brand_adidas": 0.25,
+        "brand_northface": 1.0,
+        "brand_champion": 1.0,
+        "brand_fotl": 0.25,
+        "brand_columbia": 0.5,
+        "brand_levis": 0.0,
+        "brand_calvin": 0.5
+      },
+      "rows": [
+        {
+          "id": "beach_outfit",
+          "slots": 1,
+          "expected_slots": 5,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 3,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 29.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "MSBASIC Womens Dresses Summer Spaghetti Strap Dress Casual Beach Outfi",
+              "Hount Womens Summer Short Sleeve Beach Dress Casual Beach Sundress (Pu",
+              "Summer Womens Cover up Beach Wear Swimwear Bikini Lace Floral Long Bea",
+              "BBYES Women Summer Short Beach Dresses Casual T Shirt Dresses Beach Co"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "snow_boots",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 44.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Men's Warm Winter Snow Boots Outdoor Insulated Snowproof Furry Lining ",
+              "Womens Snow Boots Winter Shoes with Warm Plush Fleece Lined Ankle Boot",
+              "TSIODFO Snow Boots for Women's Winter Cold Weather Waterproof Insulate",
+              "PENGCHENG Men's Snow Boots Winter Warm Ankle Outdoor Hiking Insulated "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wedding_guest",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 36.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Womens Short Sleeve Vintage Ruffles Mini Dress A-Line Summer Wedding G",
+              "Gardenwed Wedding Dress Bridesmaid Dress Elegant Cocktail Dress for Wo",
+              "OURS Pink Dress for Women Party Off Shoulder Summer Loose Dresses for ",
+              "Women's Summer Wedding Guest Dresses Lace Hem Pencil Dress White Flora"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "office_chinos",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 3,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 30.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "CHARBONNIER Men\u2019s Slim fit Wrinkle Free Chinos Pants, Flat Front Desig",
+              "Guoji Men's Shorts Casual Slim Fit Chino Short Pants for Men (29, K66-",
+              "Basic Slim Fit Office Pants Stretchy Full Length Black Size L"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "fall_sweater",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 42.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Carpetcom Women's Fall Casual Loose Oversized Batwing Long Sleeve Drop",
+              "TabbyLove Women's Fall Sweaters Long Sleeve V Neck Knit Pullover Sweat",
+              "ANYTITI Women Turtle Neck Pullover Long Sleeve Sweater Cozy Sweaters P",
+              "Fantaslook Oversized Sweater | Turtleneck Sweater Women | Baggly & Coz"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "flat_feet_running",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 0,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 30.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Diabetic Archies Flip Flops for Women, Comfortable Plantar Fasciitis S",
+              "Shoe Insoles Arch Support Inserts Orthotic Insoles for Plantar Fasciit",
+              "Dotmalls Women's Comfy Orthotic Sandals, Sursell Adjustable Arch Suppo",
+              "Unisex Flip Flops Sandals with Arch Support, Comfortable Post Exercise"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ears_warm",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 40.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Girls Winter Warm Earmuffs Headband Adorable Cat Ears Earwarmer for Co",
+              "TINKSKY Ear Warmer Winter Headbands Fleece Thermal Ski Ear Muff Stretc",
+              "JOYEBUY Lovely Cat Ears Super Soft Earmuffs Winter Outdoor Earmuffs Ea",
+              "CHUANGLI Lovely Winter Warm Earmuffs Glitter Cat Ears Plush Ear Warmer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "europe_sandals",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 41.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Euro Comfort Youla Made in Europe Casual Women's Italian Lightweight S",
+              "iloveSIA Mens Hiking Walking Leather Sandals Brown US Size 8",
+              "TOLLN Men Women Comfortable Walking Garden Shoes Slippers Quick Drying",
+              "Wedge Sandals for Women Comfort Walking Sandals Flower Open Toe Summer"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "husband_wedding",
+          "slots": 1,
+          "expected_slots": 4,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 1,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 31.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "June's Young Women Hats Royal Blue Feathers Diamonding Casing Summer S",
+              "June's Young Women Hats Summer Hat Sinamay Bow Polka Dot Elegant Light",
+              "BLUETOP 1 Pair Crystal Ankle Chain Bridal Beach Outdoor Wedding Foot J",
+              "MY'S Men's Custom Made Bridegroom Wedding Suit Vest and Pants Set Purp"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "daughter_unicorn",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 1,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 29.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "FOTAP To My Daughter Gift I love You To The Moon And Back Keychain Gif",
+              "bobauna Daddy's Girl Cuff Bangle Bracelet Gift for Dad Daughter No Mat",
+              "Mapileng Daughter Gifts From Dad, To My Daughter Believe In Yourself L",
+              "Daughter Necklace - I Love You To The Moon And Back - Great Gift"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "wfh_winter",
+          "slots": 1,
+          "expected_slots": 3,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 30.5,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Women's Fuzzy House Slippers Cozy Furry Faux Fur Warm Slip on Home Sho",
+              "Womens Soft Warm Cozy Snowflake Non Skid Boots Fuzzy Floor Footwear In",
+              "Plzensen Girls Boys Cute Home Shoes Kids Fur Lined Indoor House Slippe",
+              "bestfur Women's Cashmere Fabrics Plush Lining Home Slippers Cozy Indoo"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "interview_startup",
+          "slots": 1,
+          "expected_slots": 3,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 34.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Avoid Injury Dont Tell Me How To Do Job Iron Worker T-Shirt Medium Bla",
+              "Women 2 Piece Outfit Sets Casual Oversized T-Shirt Tops Biker Shorts W",
+              "Womens 2 Piece Casual Outfit Sportswear Short Sleeve Butterfly Print T",
+              "SATINATO Women's Stretch Work Pants Office Casual Business Wear Khaki"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "rainy_commute",
+          "slots": 1,
+          "expected_slots": 2,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 28.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Cycling Shorts Men Padded Bicycle Riding Pants Bike Biking Cycle Wear ",
+              "Men's Cycling Shorts Padded Bicycle Riding Pants Bike Biking Clothes C",
+              "Queshark Men's Bicycle Riding Pants Cycling Shorts Padded Bike Biking "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "budget_sneakers",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 2,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 31.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Under Armour Women`s Ultra Low Training Socks 3 Pack (White(U3944R3-10",
+              "Eileency Boys Girls Glitter Shoes Kids Slip On Casual Waterproof Canva",
+              "LitLaces - Premium Reflective Round Shoelaces with Metallic Tips for S",
+              "WEARALL Womens Split Maxi Skirt - White - US 4-6 (UK 8-10)"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "yoga",
+          "slots": 1,
+          "expected_slots": 2,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 29.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "INNERACTIVE Elastic Yoga Leggings with 4 Functions for hot Yoga. (Blac",
+              "Women Workout Yoga Shorts Blue Tie Dye Folded Hot Shorts with Pockets ",
+              "XXTAXN Women's Sexy Booty Running Workout Yoga Shorts Club Hot Pants w",
+              "SweatyRocks Women's Faux Leather Inserted Leggings Outfit Yoga Tights "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "baby_summer",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 28.7,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Baby Toddler Boy Summer Clothes",
+              "Cute Baby Girls Summer Clothes Watermelon Patterns Romper Sleeveless J",
+              "Infant Toddler Baby Girls Dress Clothes Cute Sleeveless Stripe Vest Su",
+              "Baby Girl Clothes Summer Flowers Floral Ruffle Blouse Tank Top Lace De"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "ski_trip",
+          "slots": 1,
+          "expected_slots": 4,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 3,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 33.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Men's Fleece Softshell Warm Windproof Skiing Pants Clothin Black US L",
+              "Winter Warm 3 Hole Knit Ski Mask Balaclava Snowboard Full Face Mask Be",
+              "Ladies Racerback Tank That's A Horrible Idea What Time Sport Grey L",
+              "Yousify Women Onesies Ski Suit Winter Snowsuit Waterproof Ski Jumpsuit"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "black_tie",
+          "slots": 1,
+          "expected_slots": 3,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 3,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 30.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Stripe Man Neck Tie Feel Silk Green Neck Ties Boxing Day Formal DAA3A0",
+              "Striped Silk Woven Classic Check Man's Business Tie Necktie Korea Styl",
+              "Men's Black & White Music Staff Formal Pre-tied Bow Tie",
+              "Next Level Apparel 6240 Mens Premium V-Neck Tee XL-Black/Sand"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "hiking_summer",
+          "slots": 1,
+          "expected_slots": 3,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 2,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 33.9,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Daydance Hot Pink Leotards for Girls Dance, Short Sleeve Ballet Clothe",
+              "Unisex Furry Fuzzy Winter Cold Weather Multicolor Earmuffs for All Age",
+              "TBMPOY Women's Lightweight Hiking Pants Quick Dry Outdoor Camping Fish",
+              "Hot New Women Bubble Bib Statement Necklace Fashion Chain Light Purple"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "grandma_gift",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 0,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 33.6,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "FEELMEM Grandmother Bracelet for Grandma Grandma's House Where Cousins",
+              "Sunshiny New The Love Between A Grandmother and Granddaughter is Forev",
+              "The Love Between Grandmother and Granddaughter Is Forever Pendant Neck",
+              "My Greatest Blessings Call me Grandma | Cute Grandmother Ladies' V-Nec"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_nike",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 34.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "NIKE Men's Air Max Tavas Fashion/Running Sneaker",
+              "Nike Men's Challenger 5in Brief-Lined Running Shorts",
+              "Nike Men's Dry Breathe Short Sleeve Running Shirt",
+              "Nike Air Zoom Pegasus 34 Mens Running Shoes nk887009 100 (Black/Dark G"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_adidas",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 1,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 28.4,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "adidas Mens Essentials Motion Pack Track Jacket (Legend Ink/XX-Large)",
+              "MEETYOO Men\u2019s Athletic Workout Pants with Pockets,Track Gym Jogger Swe",
+              "Reebok Men's Track & Running Pants with Pockets - Athletic Workout Tra",
+              "MorwenVeo Mens Fashion Casual Track Pants-Casual Gym Workout Joggers P"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_northface",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 38.1,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "THE NORTH FACE Womens Dryzzle Jacket",
+              "The North Face Khumbu Jacket Women's TNF White X-Large",
+              "The North Face Women's Aryia 3-in-1 Triclimate Jacket kodiak blue (L)",
+              "The North Face Women's Glacier 1/4 Zip Fleece Jacket, Medium TNF Black"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_champion",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 4,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 27.3,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Champion Mens Big and Tall Heritage Fleece Hoodie, 3XT, Grey Scarf",
+              "Champion Big and Tall Mens Pullover Hoodie Sweatshirt Vintage Wash Cor",
+              "Champion Mens Heritage Fleece Pullover Hoodie",
+              "Champion Sherpa Hoodie For Men Big and Tall Fleece Zip Sherpa Lined Sw"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_fotl",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 1,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 26.2,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
+              "Fruit of the Loom Men's Classics Midweight Thermal Bottom, All Black (",
+              "Fruit of the Loom Men's Jersey Knit Sleep Pant (Large, Navy Foulard)",
+              "Fruit of the Loom Men's Microfleece Pajama Pant (Medium, Black/RED Pla"
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_columbia",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 2,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 42.0,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Columbia Outdry Ex Gold Womens Down Jacket Small Black",
+              "Columbia Benton Springs Full-Zip Fleece Jacket - Women's Black, S",
+              "Bifast Women's Waterproof Lightweight Rain Jacket Anorak with Hood",
+              "Plus Size Women Rain Coats Lightweight Waterproof Outdoor Rain Jacket "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_levis",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 0,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 26.8,
+          "planner": "heuristic",
+          "rerank": false,
+          "llm_calls": 0,
+          "tokens": [
+            0,
+            0
+          ],
+          "warnings": 0,
+          "titles": [
+            [
+              "Men's Skinny Fit Jeans (33)",
+              "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi",
+              "Levi's Mens 550 Relaxed Fit Fonzie 40 34",
+              "YIMANIE Men's Slim Fit Jeans Stretch Straight Leg Fashion Jeans Pants "
+            ]
+          ],
+          "slot_names": [
+            "items"
+          ]
+        },
+        {
+          "id": "brand_calvin",
+          "slots": 1,
+          "expected_slots": 1,
+          "slots_found": 0,
+          "unmapped_slots": 1,
+          "items": 4,
+          "match": 2,
+          "mapped_items": 0,
+          "mapped_match": 0,
+          "empty": 0,
+          "success": false,
+          "price_bad": 0,
+          "inferred_over": 0,
+          "ms": 25.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5229,8 +5229,8 @@
         0,
         0
       ],
-      "p50_ms": 58.7,
-      "p95_ms": 123.1,
+      "p50_ms": 61.9,
+      "p95_ms": 109.0,
       "per_query_match": {
         "beach_outfit": 1.0,
         "snow_boots": 1.0,
@@ -5276,7 +5276,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 127.7,
+          "ms": 142.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5339,7 +5339,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.5,
+          "ms": 37.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5374,7 +5374,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.7,
+          "ms": 37.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5409,7 +5409,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.8,
+          "ms": 25.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5444,7 +5444,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.4,
+          "ms": 37.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5479,7 +5479,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.9,
+          "ms": 30.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5514,7 +5514,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 48.4,
+          "ms": 38.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5549,7 +5549,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.1,
+          "ms": 32.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5584,7 +5584,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 123.1,
+          "ms": 99.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5647,7 +5647,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 65.2,
+          "ms": 85.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5696,7 +5696,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 88.2,
+          "ms": 82.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5745,7 +5745,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 99.1,
+          "ms": 99.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5801,7 +5801,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 142.1,
+          "ms": 113.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5864,7 +5864,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.1,
+          "ms": 42.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5899,7 +5899,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 99.0,
+          "ms": 100.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -5955,7 +5955,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 67.0,
+          "ms": 56.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6004,7 +6004,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 101.5,
+          "ms": 107.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6067,7 +6067,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 106.9,
+          "ms": 108.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6130,7 +6130,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 101.5,
+          "ms": 109.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6186,7 +6186,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 86.5,
+          "ms": 71.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6235,7 +6235,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 50.1,
+          "ms": 52.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6270,7 +6270,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 59.9,
+          "ms": 64.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6305,7 +6305,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 42.3,
+          "ms": 53.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6340,7 +6340,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 42.9,
+          "ms": 52.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6375,7 +6375,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 57.5,
+          "ms": 56.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6389,7 +6389,7 @@
               "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
               "UBM-FOL 5CEL 5 PK Bxr Briefs-2X;Stripes",
               "Fruit of The Loom Mid-Rise Briefs 12-Pack",
-              "YiZYiF Men's Briefs Underwear Boxer Shorts Black X-Large"
+              "Fruit of the Loom Men's Classics Midweight Thermal Bottom, All Black ("
             ]
           ],
           "slot_names": [
@@ -6410,7 +6410,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 55.9,
+          "ms": 63.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6423,8 +6423,8 @@
             [
               "Columbia Benton Springs Full-Zip Fleece Jacket - Women's Black, S",
               "Columbia Outdry Ex Gold Womens Down Jacket Small Black",
-              "ELESOL Women Waterproof Lightweight Drawstring Rain Jacket Outdoor Hoo",
-              "UNibelle Women's Lightweight Waterproof Rain Jacket Active Outdoor Hoo"
+              "Columbia Simply Put II Long Sleeve Flannel Shirt - Women's",
+              "Columbia Women's Silver Ridge Stretch Capri Ii"
             ]
           ],
           "slot_names": [
@@ -6445,7 +6445,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 66.3,
+          "ms": 61.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6456,10 +6456,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Levi's Mens 550 Relaxed Fit Fonzie 40 34",
+              "Levi's\u00ae 501 Mason Hi Chambray Black 10.5 M",
               "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi",
-              "GINGTTO Skinny Blue Jeans for Men Stretchy Pencil Pants Mens Denim Jea",
-              "Men's Hip Hop Loose Fit Denim Jeans Skate Baggy Jeans Pants Light Blue",
-              "Kirkland Signature Men's Relaxed Waist Denim Jeans (34x32)"
+              "GINGTTO Skinny Blue Jeans for Men Stretchy Pencil Pants Mens Denim Jea"
             ]
           ],
           "slot_names": [
@@ -6480,7 +6480,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 56.0,
+          "ms": 62.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6494,7 +6494,7 @@
               "Calvin Klein Men's Underwear Intense Power FX Micro Boxer Brief Black ",
               "Calvin Klein Men's Underwear Cotton Classics 6 Pack Knit Boxers, White",
               "Calvin Klein Men's Cotton Stretch 3 Pack Boxer Briefs (Estate Blue/Ama",
-              "DEENRSEE Men's Underwear Micro Modal Boxers Multipack Stretchy Men Sex"
+              "Calvin Klein Men's Straight Jeans, Claree Grey,(36x30)"
             ]
           ],
           "slot_names": [
@@ -6526,8 +6526,8 @@
         0,
         0
       ],
-      "p50_ms": 58.8,
-      "p95_ms": 91.7,
+      "p50_ms": 53.4,
+      "p95_ms": 86.4,
       "per_query_match": {
         "beach_outfit": 0.9,
         "snow_boots": 1.0,
@@ -6573,7 +6573,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 96.4,
+          "ms": 100.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6636,7 +6636,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.3,
+          "ms": 25.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6671,7 +6671,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.2,
+          "ms": 24.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6706,7 +6706,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 22.7,
+          "ms": 22.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6741,7 +6741,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.6,
+          "ms": 28.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6776,7 +6776,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.3,
+          "ms": 24.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6811,7 +6811,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.5,
+          "ms": 26.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6846,7 +6846,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.4,
+          "ms": 25.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6881,7 +6881,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 76.0,
+          "ms": 73.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6944,7 +6944,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 49.9,
+          "ms": 56.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6993,7 +6993,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 58.8,
+          "ms": 60.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7042,7 +7042,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 78.7,
+          "ms": 80.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7098,7 +7098,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 246.4,
+          "ms": 223.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7161,7 +7161,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.2,
+          "ms": 29.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7196,7 +7196,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 69.4,
+          "ms": 71.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7252,7 +7252,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 64.3,
+          "ms": 52.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7301,7 +7301,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 91.7,
+          "ms": 86.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7364,7 +7364,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 86.7,
+          "ms": 85.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7427,7 +7427,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 67.4,
+          "ms": 78.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7483,7 +7483,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 59.3,
+          "ms": 73.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7532,7 +7532,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 46.8,
+          "ms": 62.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7567,7 +7567,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 58.8,
+          "ms": 52.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7602,7 +7602,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 51.7,
+          "ms": 42.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7637,7 +7637,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 48.9,
+          "ms": 41.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7672,7 +7672,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 59.5,
+          "ms": 53.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7686,7 +7686,7 @@
               "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
               "UBM-FOL 5CEL 5 PK Bxr Briefs-2X;Stripes",
               "Fruit of The Loom Mid-Rise Briefs 12-Pack",
-              "Godsen Men's Cotton Stretch Hip Brief Classic Sport Briefs Underwear M"
+              "Fruit of the Loom Men's Microfleece Pajama Pant (Medium, Black/RED Pla"
             ]
           ],
           "slot_names": [
@@ -7707,7 +7707,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 66.9,
+          "ms": 53.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7720,8 +7720,8 @@
             [
               "Columbia Outdry Ex Gold Womens Down Jacket Small Black",
               "Columbia Benton Springs Full-Zip Fleece Jacket - Women's Black, S",
-              "Women's Spring Fall Hooded Raincoat Outdoor Waterproof Jacket",
-              "UNibelle Women's Lightweight Waterproof Rain Jacket Active Outdoor Hoo"
+              "Columbia Simply Put II Long Sleeve Flannel Shirt - Women's",
+              "Columbia Women's Silver Ridge Stretch Capri Ii"
             ]
           ],
           "slot_names": [
@@ -7742,7 +7742,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 41.4,
+          "ms": 47.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7753,10 +7753,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Levi's Mens 550 Relaxed Fit Fonzie 40 34",
+              "Levi's\u00ae 501 Mason Hi Chambray Black 10.5 M",
               "Jeans Men Stretch Slim Fit Straight Multi-Pocket Denim Pants Comfy Fle",
-              "Men's Skinny Fit Jeans (33)",
-              "ZLZ Regular Fit Denim Jeans for Men, Mens 5-Pockets Classic Straight L",
-              "Tommy Hilfiger Mens Relaxed Fit Jeans (38X30, Vintage Wash)"
+              "Men's Skinny Fit Jeans (33)"
             ]
           ],
           "slot_names": [
@@ -7777,7 +7777,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 61.5,
+          "ms": 56.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7791,7 +7791,7 @@
               "Calvin Klein Men's Underwear Intense Power FX Micro Boxer Brief Black ",
               "Calvin Klein Men's Underwear Cotton Classics 6 Pack Knit Boxers, White",
               "Calvin Klein Men's Cotton Stretch 3 Pack Boxer Briefs (Estate Blue/Ama",
-              "Avidlove Men Underwear Home Boxers Shorts Satin Black XL"
+              "Calvin Klein Mens Shirt"
             ]
           ],
           "slot_names": [
@@ -7824,7 +7824,7 @@
         0
       ],
       "p50_ms": 30.6,
-      "p95_ms": 45.4,
+      "p95_ms": 44.9,
       "per_query_match": {
         "beach_outfit": 1.0,
         "snow_boots": 1.0,
@@ -7870,7 +7870,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 45.9,
+          "ms": 46.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7933,7 +7933,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.5,
+          "ms": 7.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7968,7 +7968,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9.6,
+          "ms": 9.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8003,7 +8003,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9.0,
+          "ms": 9.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8073,7 +8073,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.5,
+          "ms": 8.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8143,7 +8143,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.7,
+          "ms": 6.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8178,7 +8178,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 45.4,
+          "ms": 44.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8290,7 +8290,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.9,
+          "ms": 24.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8339,7 +8339,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.7,
+          "ms": 28.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8395,7 +8395,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 63.1,
+          "ms": 63.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8458,7 +8458,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.5,
+          "ms": 32.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8493,7 +8493,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.4,
+          "ms": 35.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8549,7 +8549,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.3,
+          "ms": 24.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8598,7 +8598,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.9,
+          "ms": 35.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8661,7 +8661,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 43.9,
+          "ms": 44.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8724,7 +8724,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.7,
+          "ms": 33.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8829,7 +8829,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.3,
+          "ms": 30.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8864,7 +8864,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.8,
+          "ms": 40.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8899,7 +8899,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.8,
+          "ms": 27.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8934,7 +8934,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.6,
+          "ms": 28.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8983,7 +8983,7 @@
               "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
               "UBM-FOL 5CEL 5 PK Bxr Briefs-2X;Stripes",
               "Fruit of The Loom Mid-Rise Briefs 12-Pack",
-              "Saxx Underwear Men's Boxer Briefs \u2013 Vibe Men\u2019s Underwear \u2013 Boxer Brief"
+              "Fruit of the Loom Men's Classics Midweight Thermal Bottom, All Black ("
             ]
           ],
           "slot_names": [
@@ -9004,7 +9004,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.6,
+          "ms": 32.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9017,8 +9017,8 @@
             [
               "Columbia Benton Springs Full-Zip Fleece Jacket - Women's Black, S",
               "Columbia Outdry Ex Gold Womens Down Jacket Small Black",
-              "Lixada Women's Waterproof Hooded Jacket Waterproof Jacket Ski Jacket W",
-              "CURLBIUTY Women Waterproof Long Raincoats Outdoor Hooded Rain Jacket B"
+              "Columbia Women's Cades Cape Skirt",
+              "Columbia Simply Put II Long Sleeve Flannel Shirt - Women's"
             ]
           ],
           "slot_names": [
@@ -9039,7 +9039,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.0,
+          "ms": 31.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9050,10 +9050,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Levi's Mens 550 Relaxed Fit Fonzie 40 34",
+              "Levi's\u00ae 501 Mason Hi Chambray Black 10.5 M",
               "Denim Men's Camouflage Pockets Slim Biker Jeans Size 38",
-              "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi",
-              "Denim Men's Patchwork Hole Ripped Jeans Size 30 Blue",
-              "RING OF FIRE Men's 5 Pockets Straight Denim Stretch Jeans"
+              "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi"
             ]
           ],
           "slot_names": [
@@ -9074,7 +9074,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.8,
+          "ms": 33.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9088,7 +9088,7 @@
               "Calvin Klein Men's Underwear Intense Power FX Micro Boxer Brief Black ",
               "Calvin Klein Men's Underwear Cotton Classics 6 Pack Knit Boxers, White",
               "Calvin Klein Men's Cotton Stretch 3 Pack Boxer Briefs (Estate Blue/Ama",
-              "Saxx Underwear Men's Boxer Briefs \u2013 Vibe Men\u2019s Underwear \u2013 Boxer Brief"
+              "Calvin Klein Men's Watch K2181.20"
             ]
           ],
           "slot_names": [
@@ -9117,11 +9117,11 @@
       "total_slots": 65,
       "llm_calls": 65,
       "tokens": [
-        139723,
-        11571
+        139493,
+        11568
       ],
-      "p50_ms": 5360.5,
-      "p95_ms": 6367.4,
+      "p50_ms": 5468.2,
+      "p95_ms": 6272.5,
       "per_query_match": {
         "beach_outfit": 1.0,
         "snow_boots": 1.0,
@@ -9167,13 +9167,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6201.0,
+          "ms": 6250.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10631,
-            912
+            927
           ],
           "warnings": 0,
           "titles": [
@@ -9230,13 +9230,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5343.8,
+          "ms": 5444.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2081,
-            184
+            199
           ],
           "warnings": 0,
           "titles": [
@@ -9265,13 +9265,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5323.6,
+          "ms": 5698.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2177,
-            188
+            192
           ],
           "warnings": 0,
           "titles": [
@@ -9300,13 +9300,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5528.5,
+          "ms": 5262.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2128,
-            185
+            187
           ],
           "warnings": 0,
           "titles": [
@@ -9335,13 +9335,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5017.8,
+          "ms": 5299.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2214,
-            188
+            194
           ],
           "warnings": 0,
           "titles": [
@@ -9370,13 +9370,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5138.9,
+          "ms": 5097.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2229,
-            161
+            172
           ],
           "warnings": 0,
           "titles": [
@@ -9405,13 +9405,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5065.3,
+          "ms": 5576.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2243,
-            184
+            188
           ],
           "warnings": 0,
           "titles": [
@@ -9440,13 +9440,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5377.2,
+          "ms": 5118.5,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2294,
-            182
+            171
           ],
           "warnings": 0,
           "titles": [
@@ -9475,13 +9475,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6238.0,
+          "ms": 6100.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10579,
-            922
+            896
           ],
           "warnings": 0,
           "titles": [
@@ -9511,8 +9511,8 @@
             ],
             [
               "Enmain Check Jacquard Woven Men's Wedding Silk Tie Pocket Square Neckt",
-              "MOHSLEE Men Gold Blue Plaid Silk Neck Tie Necktie Handkerchief Pocket ",
               "Hi-Tie Men Red Berry Paisley Floral Tie Necktie with Cufflinks and Poc",
+              "MOHSLEE Men Gold Blue Plaid Silk Neck Tie Necktie Handkerchief Pocket ",
               "Enmain Stripe Jacquard Woven Men's Wedding Silk Tie Pocket Square Neck"
             ]
           ],
@@ -9538,13 +9538,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8023.8,
+          "ms": 5270.0,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6445,
-            517
+            516
           ],
           "warnings": 1,
           "titles": [
@@ -9558,7 +9558,7 @@
               "COODO CDR2013 Kids Girls LED Light Up Shoes Flashing Sneakers Purple-3",
               "ditont LED Light Up Shoes Flashing Sneakers for Kids Boys Girls(DT36Wh",
               "LoZoDo Kids LED Light Up Shoes Flashing Sneakers For Boys Girls (Toddl",
-              "Dopeme New Boys Girls LED Light up Lace Up Luminous Sneakers Kids Casu"
+              "Girl's Sneakers Casual Canvas Shoes, Low Top Lace up Sneakers Purple G"
             ],
             [
               "Girl's 6 in 1 Backpack Set With Lunch Bag, Pencil Case, Keychain, and ",
@@ -9587,13 +9587,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5738.0,
+          "ms": 5492.4,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6637,
-            572
+            582
           ],
           "warnings": 0,
           "titles": [
@@ -9606,8 +9606,8 @@
             [
               "Secret Treasures Moons & Stars Teal Rain Fleece Jogger Lounge Sleep Pa",
               "Men's Polar Fleece Jogger Pants Outdoor Recreation Open Leg Hiking Pan",
-              "Secret Treasures Ski Resort Print Winter White Fleece Jogger Lounge Sl",
-              "LASLULU Womens Fleece Lined Pants Loose Sweatpants High Waisted Jogger"
+              "LASLULU Womens Fleece Lined Pants Loose Sweatpants High Waisted Jogger",
+              "Secret Treasures Ski Resort Print Winter White Fleece Jogger Lounge Sl"
             ],
             [
               "Women's Warm Soft Cozy Fleece Lining House Slippers Memory Foam Slippe",
@@ -9636,13 +9636,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6076.4,
+          "ms": 5744.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8603,
-            730
+            715
           ],
           "warnings": 0,
           "titles": [
@@ -9662,7 +9662,7 @@
               "COOFANDY Mens Casual Slim Fit Blazer 3 Button Suit Sport Coat Lightwei",
               "Mandarin Collar Blazer Jacket for Men Smart Casual Wool Tweed Sports J",
               "ADOSOUL Womens Casual Lightweight 3/4 Sleeves Open Front Solid Blazer ",
-              "Michel Womens Casual Blazer Work Office Lightweight Stretchy Open Fron"
+              "Womens Casual Lightweight Open Blazer Bolero Shrug Cardigan Leopard 2X"
             ],
             [
               "Robasiom Womens Soft Leather Comfort Driving Loafers Shoes 7.5B(M) US ",
@@ -9692,15 +9692,15 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5955.1,
+          "ms": 5932.3,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10945,
-            779
+            759
           ],
-          "warnings": 1,
+          "warnings": 2,
           "titles": [
             [
               "Men's Cycling Running Rain Jacket Lightweight Waterproof Biking Hiking",
@@ -9710,15 +9710,15 @@
             ],
             [
               "Killtec AIRIK RAIN PANTS WITH LEG ZIP, PACKABLE (Large, Black)",
-              "T&B Men's Cycling Rain Suit Motorcycle Rain Jacket Raincoat Pants Rain",
               "Little Donkey Andy Mens Rain Pants Waterproof Lightweight Breathable R",
-              "SWISSWELL Mens Hiking Pants Waterproof Lightweight Windproof Rain Pant"
+              "SWISSWELL Mens Hiking Pants Waterproof Lightweight Windproof Rain Pant",
+              "ZeroXposur Men's Stretch Commuter 5-Pocket Pants (Dark Olive, 32W x 32"
             ],
             [
               "Per Waterproof Cycling Shoes Covers Reusable Thermal Shoes Covers MTB ",
               "ZOL Stage Road Cycling Shoes White",
-              "Waterproof Shoe Covers - Reusable Rain Shoes Covers Anti-slip Snow Rai",
-              "Waterproof Shoe Covers Foldable Rain Snow Boots Covers"
+              "Waterproof Shoe Covers, Homestine Silicone Shoe Covers Waterproof Boot",
+              "Steel Toe Boots Shoes Safety Boots Shoes Leather Ankle Waterproof Work"
             ],
             [
               "QKURT Cycling Skull Cap, 2PCS Breathable Summer Under Helmet Hat Perfe",
@@ -9755,7 +9755,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3998.8,
+          "ms": 3383.3,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
@@ -9790,13 +9790,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5730.5,
+          "ms": 6272.5,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8380,
-            707
+            708
           ],
           "warnings": 0,
           "titles": [
@@ -9815,7 +9815,7 @@
             [
               "Workout Tank Tops for Women - Racerback Tank Tops Open Back Yoga Runni",
               "Truity Women's Athletic Yoga T-Shirts Fashion Sports Workout Tank Tops",
-              "Vislivin Tank Tops for Women Workout Racerback Tank Top Athletic Yoga ",
+              "YOGARURU Women's Racerback Activewear Gym Sports Yoga Running Tank Top",
               "YOGARURU Women's Racerback Activewear Gym Sports Yoga Running Tank Top"
             ],
             [
@@ -9846,20 +9846,20 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5668.3,
+          "ms": 5934.2,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6744,
-            618
+            614
           ],
           "warnings": 0,
           "titles": [
             [
               "Baby Laundry Cotton Knit Bodysuit, Onesie for Girls - Pink Camo (3-6 M",
               "Carpe Diem Designs Cute and Scottish Too, Baby Onesie (3-6 Months) Whi",
-              "CROSSDECOR Baby Short Sleeve Onesies Bodysuits 0-20 Months (7-10 Month",
+              "0-18 Months Baby Boy Clothes Hoodie Captain America Onesie Romper Cott",
               "Cute Baby Clothes Made with Love Sweet Baby Onesie Bodysuits (NB-Short"
             ],
             [
@@ -9895,13 +9895,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6210.0,
+          "ms": 6350.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10928,
-            963
+            951
           ],
           "warnings": 0,
           "titles": [
@@ -9921,19 +9921,19 @@
               "BaseLayer Mechanics Women's Fleece Lined Base Layers Long Sleeve Therm",
               "MEETYOO Women Thermal Underwear Set, Winter Warm Base Layer Sport Long",
               "DRSKIN] Thermal Wintergear Fleece ColdGear Tight Thermal Compression B",
-              "DRSKIN Men's Long Sleeve Compression Shirts Top Sports Workout Athleti"
+              "Eizniz Women\u2019s 100% Merino Wool Thermal Tee 260g Long Sleeve Base Laye"
             ],
             [
               "NICEWIN Winter Ski Gloves Men Women Snowboarding Windproof Warm Winter",
-              "Winter Gloves -30\u00b0F Thermal Snow Work Ski Glove Windproof Waterproof W",
               "LINERY Ski Gloves Men Waterproof Snowboard Gloves for Cold Weather Ski",
+              "Winter Gloves -30\u00b0F Thermal Snow Work Ski Glove Windproof Waterproof W",
               "OZERO Gloves Thermal Gloves for Men Extreme Cold Freezer Gloves for Wo"
             ],
             [
               "Fox River Women's Andermatt Over-The-Calf Ultra-Lightweight Ski Socks",
-              "Mens Compression Socks, Forcool Merino Wool Knee High Padded Breathabl",
+              "Darn Tough Vermont Merino Wool Boot Socks Full Cushion Plum Heather SM",
               "Merino Wool Hiking Socks 4 Pairs for Men & Women Thermal Winter Warm M",
-              "Darn Tough Vermont Merino Wool Boot Socks Full Cushion Plum Heather SM"
+              "Mens Compression Socks, Forcool Merino Wool Knee High Padded Breathabl"
             ]
           ],
           "slot_names": [
@@ -9958,13 +9958,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6367.4,
+          "ms": 5725.3,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10845,
-            800
+            806
           ],
           "warnings": 2,
           "titles": [
@@ -9977,8 +9977,8 @@
             [
               "Real Cotton Mens Fitted White Dress Shirt or Tuxedo Shirt, Convertible",
               "Tuxedo Shirt- White Wing Collar 1/4\" Pleat (17\" Neck 34/35\" Sleeve)",
-              "J.VER J.Ver Tuxedo Shirts for Men Regular Fit Long Sleeve Button Up Sh",
-              "Tuxedo Shirt, Cummerbund, Bow Tie, Cufflink & Studs Set - Laydown Coll"
+              "Tuxedo Shirt, Cummerbund, Bow Tie, Cufflink & Studs Set - Laydown Coll",
+              "J.VER J.Ver Tuxedo Shirts for Men Regular Fit Long Sleeve Button Up Sh"
             ],
             [
               "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
@@ -10021,26 +10021,26 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7006.9,
+          "ms": 5687.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8668,
-            731
+            745
           ],
           "warnings": 1,
           "titles": [
             [
               "TAPULCO Mens Summer Quick Dry Golf Shirts Breathable Lightweight Casua",
-              "Men\u2019s UPF Long Sleeve Shirt, Loose Fit Outdoor Hiking Fishing Safari Q",
+              "We1Fit Womens UPF 50+ Long Sleeve Sun Protection Shirt Quick Dry Athle",
               "DEMOZU Men's UPF 50+ Sun Protection Long Sleeve Hiking Shirt Lightweig",
-              "We1Fit Womens UPF 50+ Long Sleeve Sun Protection Shirt Quick Dry Athle"
+              "Men\u2019s UPF Long Sleeve Shirt, Loose Fit Outdoor Hiking Fishing Safari Q"
             ],
             [
               "Libin Women's Quick Dry Hiking Shorts Lightweight Active Shorts, UPF 5",
-              "Men's Outdoor Casual Expandable Waist Lightweight Water Resistant Quic",
               "Mesitelin Men Outdoor Sports Shorts with Zipper Pockets Quick Dry Hiki",
+              "Men's Outdoor Casual Expandable Waist Lightweight Water Resistant Quic",
               "MIER Women's Stretchy Hiking Shorts Lightweight Quick Dry Cargo Shorts"
             ],
             [
@@ -10077,13 +10077,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5836.1,
+          "ms": 5628.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6630,
-            588
+            579
           ],
           "warnings": 0,
           "titles": [
@@ -10126,13 +10126,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3683.5,
+          "ms": 3889.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2015,
-            113
+            117
           ],
           "warnings": 1,
           "titles": [
@@ -10161,13 +10161,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4852.2,
+          "ms": 4740.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             1635,
-            187
+            182
           ],
           "warnings": 0,
           "titles": [
@@ -10175,7 +10175,7 @@
               "adidas Men's Soccer Tiro 17 Pants, Black/Metallic Gold, Large",
               "adidas Men's Manchester United Pants (Large) Black",
               "Adidas Men\u2019s Real Madrid Sweatpants (Small) Black",
-              "adidas Women's Essentials Lightweight Capri Pant (0, White)"
+              "adidas Youth Boys Climalite Compression Thermal Pant, Black"
             ]
           ],
           "slot_names": [
@@ -10196,13 +10196,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4920.1,
+          "ms": 6480.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             1968,
-            203
+            205
           ],
           "warnings": 0,
           "titles": [
@@ -10231,13 +10231,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4951.8,
+          "ms": 5394.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2030,
-            166
+            174
           ],
           "warnings": 0,
           "titles": [
@@ -10266,19 +10266,19 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4534.5,
+          "ms": 4247.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2169,
-            154
+            2161,
+            162
           ],
           "warnings": 2,
           "titles": [
             [
-              "Fruit of The Loom Mid-Rise Briefs 12-Pack",
               "Fruit of the Loom Men's 5-Pack Plaid Boxer Shorts Boxers Underwear 3XL",
+              "Fruit of The Loom Mid-Rise Briefs 12-Pack",
               "UBM-FOL 5CEL 5 PK Bxr Briefs-2X;Stripes",
               "YiZYiF Men's Briefs Underwear Boxer Shorts Black X-Large"
             ]
@@ -10301,21 +10301,21 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5097.8,
+          "ms": 5103.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2079,
-            195
+            2024,
+            186
           ],
           "warnings": 1,
           "titles": [
             [
-              "Hotouch Waterproof Raincoats for Womens Hooded Zip-up Rain Jackets Act",
               "Rain Jackets for Women Waterproof Windbreaker Jacket Women Packable Ra",
               "ELESOL Women Waterproof Lightweight Drawstring Rain Jacket Outdoor Hoo",
-              "LOMON Women Lightweight Waterproof Hooded Raincoat Solid Windproof Plu"
+              "LOMON Women Lightweight Waterproof Hooded Raincoat Solid Windproof Plu",
+              "CURLBIUTY Women Waterproof Long Raincoats Outdoor Hooded Rain Jacket B"
             ]
           ],
           "slot_names": [
@@ -10336,21 +10336,21 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5049.9,
+          "ms": 5168.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2092,
+            2060,
             184
           ],
-          "warnings": 1,
+          "warnings": 4,
           "titles": [
             [
               "Genuine Assembly Men's Denim Jeans, Skinny Fit, Weekender, Denims for ",
               "Jeans Men Stretch Slim Fit Straight Multi-Pocket Denim Pants Comfy Fle",
-              "Kirkland Signature Men's Relaxed Waist Denim Jeans (34x32)",
-              "Men's Hip Hop Loose Fit Denim Jeans Skate Baggy Jeans Pants Light Blue"
+              "SASSQEER Men's Jeans Ripped Jeans Classic Comfortable Jeans Relaxed Fi",
+              "GINGTTO Skinny Blue Jeans for Men Stretchy Pencil Pants Mens Denim Jea"
             ]
           ],
           "slot_names": [
@@ -10371,13 +10371,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4696.7,
+          "ms": 4454.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2166,
-            149
+            2031,
+            148
           ],
           "warnings": 2,
           "titles": [

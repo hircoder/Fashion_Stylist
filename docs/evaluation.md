@@ -57,19 +57,19 @@ Re-run with `make eval` (or `python scripts/evaluate.py --index-dir ... --config
 
 ### popular 100K (the default index)
 
-index: `index` (100,000 rows, sampling=popular), llm: claude-sonnet-4-6, prompt v2, 28 queries, code b4be12b
+index: `index` (100,000 rows, sampling=popular), llm: claude-sonnet-4-6, prompt v2, 28 queries, code 9791db9
 
 | config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
 |---|---|---|---|---|---|---|---|---|---|
 | bm25 | 0.500 | 0.500 (0.35 to 0.66) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 8 | 10 |
-| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 28 | 35 |
-| hybrid | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 32 | 40 |
-| hybrid_nokw | 0.625 | 0.625 (0.49 to 0.77) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 42 |
-| hybrid_noquality | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 39 |
-| llm_plan | 0.881 | 0.848 (0.74 to 0.94) | 0.900 | 0.88 | 0.61 | 0/65 | 0 | 4357 | 7110 |
-| llm_plan_dense | 0.862 | 0.840 (0.73 to 0.93) | 0.906 | 0.88 | 0.64 | 0/65 | 0 | 59 | 100 |
-| llm_plan_bm25 | 0.865 | 0.826 (0.70 to 0.93) | 0.889 | 0.88 | 0.61 | 0/65 | 0 | 33 | 52 |
-| llm_plan_rerank | 0.885 | 0.857 (0.76 to 0.94) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5501 | 6766 |
+| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 28 | 36 |
+| hybrid | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 32 | 44 |
+| hybrid_nokw | 0.625 | 0.625 (0.49 to 0.77) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 32 | 44 |
+| hybrid_noquality | 0.625 | 0.625 (0.48 to 0.76) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 33 | 49 |
+| llm_plan | 0.881 | 0.848 (0.74 to 0.94) | 0.900 | 0.88 | 0.61 | 0/65 | 0 | 64 | 123 |
+| llm_plan_dense | 0.862 | 0.840 (0.73 to 0.93) | 0.906 | 0.88 | 0.64 | 0/65 | 0 | 59 | 86 |
+| llm_plan_bm25 | 0.865 | 0.826 (0.70 to 0.93) | 0.889 | 0.88 | 0.61 | 0/65 | 0 | 33 | 61 |
+| llm_plan_rerank | 0.885 | 0.857 (0.76 to 0.94) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5589 | 6569 |
 
 paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 
@@ -85,19 +85,19 @@ paired differences on the same queries (mean of per-query match rate, 95% bootst
 
 ### random 100K
 
-index: `index_random100k` (100,000 rows, sampling=random), llm: claude-sonnet-4-6, prompt v2, 28 queries, code 6d28732
+index: `index_random100k` (100,000 rows, sampling=random), llm: claude-sonnet-4-6, prompt v2, 28 queries, code fe7cd5d
 
 | config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
 |---|---|---|---|---|---|---|---|---|---|
-| bm25 | 0.562 | 0.562 (0.40 to 0.73) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 7 | 10 |
-| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 29 | 39 |
-| hybrid | 0.679 | 0.679 (0.54 to 0.81) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 36 | 45 |
-| hybrid_nokw | 0.705 | 0.705 (0.57 to 0.83) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 33 | 45 |
+| bm25 | 0.562 | 0.562 (0.40 to 0.73) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 8 | 10 |
+| dense | 0.696 | 0.696 (0.55 to 0.82) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 27 | 36 |
+| hybrid | 0.679 | 0.679 (0.54 to 0.81) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 30 | 41 |
+| hybrid_nokw | 0.705 | 0.705 (0.57 to 0.83) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 40 |
 | hybrid_noquality | 0.679 | 0.679 (0.54 to 0.81) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 31 | 42 |
-| llm_plan | 0.881 | 0.849 (0.76 to 0.93) | 0.906 | 0.88 | 0.68 | 0/65 | 0 | 59 | 123 |
-| llm_plan_dense | 0.877 | 0.861 (0.77 to 0.94) | 0.911 | 0.88 | 0.68 | 0/65 | 0 | 59 | 92 |
+| llm_plan | 0.881 | 0.849 (0.76 to 0.93) | 0.906 | 0.88 | 0.68 | 0/65 | 0 | 62 | 109 |
+| llm_plan_dense | 0.877 | 0.861 (0.77 to 0.94) | 0.911 | 0.88 | 0.68 | 0/65 | 0 | 53 | 86 |
 | llm_plan_bm25 | 0.877 | 0.839 (0.75 to 0.92) | 0.900 | 0.88 | 0.64 | 0/65 | 0 | 31 | 45 |
-| llm_plan_rerank | 0.885 | 0.857 (0.75 to 0.95) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5360 | 6367 |
+| llm_plan_rerank | 0.885 | 0.857 (0.75 to 0.95) | 0.911 | 0.88 | 0.61 | 0/65 | 0 | 5468 | 6272 |
 
 paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 
@@ -113,19 +113,19 @@ paired differences on the same queries (mean of per-query match rate, 95% bootst
 
 ### full catalog, 826,108 rows
 
-index: `index_full` (826,108 rows, sampling=all), llm: claude-sonnet-4-6, prompt v2, 28 queries, code 6d28732
+index: `index_full` (826,108 rows, sampling=all), llm: claude-sonnet-4-6, prompt v2, 28 queries, code fe7cd5d
 
 | config | match@k | macro (95% CI) | mapped precision | slot recall | query success | empty slots | price viol. | p50 ms | p95 ms |
 |---|---|---|---|---|---|---|---|---|---|
-| bm25 | 0.652 | 0.652 (0.48 to 0.80) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 12 | 37 |
-| dense | 0.786 | 0.786 (0.67 to 0.89) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 106 | 128 |
-| hybrid | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 114 | 124 |
-| hybrid_nokw | 0.750 | 0.750 (0.62 to 0.87) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 110 | 127 |
-| hybrid_noquality | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 111 | 126 |
-| llm_plan | 0.935 | 0.959 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 244 | 463 |
-| llm_plan_dense | 0.923 | 0.953 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 234 | 419 |
-| llm_plan_bm25 | 0.915 | 0.935 (0.87 to 0.98) | 0.961 | 0.88 | 0.68 | 0/65 | 0 | 87 | 200 |
-| llm_plan_rerank | 0.935 | 0.967 (0.94 to 0.99) | 0.978 | 0.88 | 0.71 | 0/65 | 0 | 5529 | 6472 |
+| bm25 | 0.652 | 0.652 (0.48 to 0.80) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 12 | 38 |
+| dense | 0.786 | 0.786 (0.67 to 0.89) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 104 | 119 |
+| hybrid | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 113 | 126 |
+| hybrid_nokw | 0.750 | 0.750 (0.62 to 0.87) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 114 | 125 |
+| hybrid_noquality | 0.750 | 0.750 (0.62 to 0.86) | 0.000 | 0.00 | 0.00 | 0/28 | 0 | 111 | 129 |
+| llm_plan | 0.935 | 0.959 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 242 | 467 |
+| llm_plan_dense | 0.923 | 0.953 (0.92 to 0.99) | 0.972 | 0.88 | 0.71 | 0/65 | 0 | 237 | 417 |
+| llm_plan_bm25 | 0.915 | 0.935 (0.87 to 0.98) | 0.961 | 0.88 | 0.68 | 0/65 | 0 | 87 | 201 |
+| llm_plan_rerank | 0.935 | 0.967 (0.94 to 0.99) | 0.978 | 0.88 | 0.71 | 0/65 | 0 | 5801 | 6867 |
 
 paired differences on the same queries (mean of per-query match rate, 95% bootstrap interval):
 

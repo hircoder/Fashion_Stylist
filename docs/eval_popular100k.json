@@ -12,8 +12,8 @@
     "prompt_version": "2"
   },
   "queries": 28,
-  "run_at": "2026-08-23T14:08:55Z",
-  "git_sha": "b4be12b",
+  "run_at": "2026-08-23T14:31:43Z",
+  "git_sha": "9791db9",
   "schema_version": 2,
   "results": [
     {
@@ -39,8 +39,8 @@
         0,
         0
       ],
-      "p50_ms": 7.7,
-      "p95_ms": 10.1,
+      "p50_ms": 7.8,
+      "p95_ms": 10.3,
       "per_query_match": {
         "beach_outfit": 0.25,
         "snow_boots": 1.0,
@@ -86,7 +86,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.2,
+          "ms": 8.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -156,7 +156,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.0,
+          "ms": 8.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -261,7 +261,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.4,
+          "ms": 8.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -296,7 +296,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.2,
+          "ms": 7.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -331,7 +331,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.4,
+          "ms": 7.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -366,7 +366,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.9,
+          "ms": 8.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -401,7 +401,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.8,
+          "ms": 8.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -436,7 +436,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.3,
+          "ms": 7.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -471,7 +471,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.7,
+          "ms": 7.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -506,7 +506,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.4,
+          "ms": 6.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -576,7 +576,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.8,
+          "ms": 7.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -611,7 +611,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.9,
+          "ms": 8.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -646,7 +646,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.0,
+          "ms": 7.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -681,7 +681,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.4,
+          "ms": 9.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -716,7 +716,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.1,
+          "ms": 7.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -751,7 +751,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.6,
+          "ms": 7.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -786,7 +786,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.3,
+          "ms": 8.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -821,7 +821,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6.4,
+          "ms": 6.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -856,7 +856,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 10.4,
+          "ms": 10.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -926,7 +926,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.9,
+          "ms": 9.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -961,7 +961,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 10.1,
+          "ms": 10.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -996,7 +996,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.8,
+          "ms": 9.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1031,7 +1031,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.7,
+          "ms": 7.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1077,8 +1077,8 @@
         0,
         0
       ],
-      "p50_ms": 27.8,
-      "p95_ms": 35.4,
+      "p50_ms": 27.9,
+      "p95_ms": 36.2,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -1124,7 +1124,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 100.0,
+          "ms": 88.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1159,7 +1159,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.9,
+          "ms": 30.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1194,7 +1194,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.6,
+          "ms": 26.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1229,7 +1229,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.9,
+          "ms": 30.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1299,7 +1299,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.4,
+          "ms": 24.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1334,7 +1334,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.7,
+          "ms": 32.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1369,7 +1369,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.7,
+          "ms": 24.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1404,7 +1404,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.5,
+          "ms": 27.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1439,7 +1439,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.9,
+          "ms": 36.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1474,7 +1474,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.0,
+          "ms": 30.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1509,7 +1509,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.1,
+          "ms": 27.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1544,7 +1544,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.5,
+          "ms": 32.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1579,7 +1579,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.1,
+          "ms": 17.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1614,7 +1614,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.5,
+          "ms": 41.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1649,7 +1649,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.1,
+          "ms": 20.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1684,7 +1684,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.4,
+          "ms": 29.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1719,7 +1719,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 22.5,
+          "ms": 34.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1754,7 +1754,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.9,
+          "ms": 22.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1789,7 +1789,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.6,
+          "ms": 24.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1824,7 +1824,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 22.8,
+          "ms": 27.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1859,7 +1859,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.7,
+          "ms": 33.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1894,7 +1894,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.3,
+          "ms": 23.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1929,7 +1929,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 43.9,
+          "ms": 33.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1964,7 +1964,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 21.3,
+          "ms": 25.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -1999,7 +1999,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.5,
+          "ms": 26.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2034,7 +2034,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.9,
+          "ms": 21.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2069,7 +2069,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.3,
+          "ms": 23.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2115,8 +2115,8 @@
         0,
         0
       ],
-      "p50_ms": 31.6,
-      "p95_ms": 40.1,
+      "p50_ms": 32.1,
+      "p95_ms": 44.1,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -2162,7 +2162,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.6,
+          "ms": 32.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2197,7 +2197,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.1,
+          "ms": 29.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2232,7 +2232,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.4,
+          "ms": 29.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2267,7 +2267,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.8,
+          "ms": 30.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2302,7 +2302,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 52.7,
+          "ms": 40.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2337,7 +2337,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.1,
+          "ms": 29.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2372,7 +2372,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.4,
+          "ms": 35.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2407,7 +2407,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.5,
+          "ms": 42.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2442,7 +2442,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.0,
+          "ms": 38.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2477,7 +2477,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.2,
+          "ms": 44.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2512,7 +2512,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.0,
+          "ms": 28.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2547,7 +2547,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.3,
+          "ms": 31.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2582,7 +2582,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.6,
+          "ms": 47.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2617,7 +2617,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.3,
+          "ms": 24.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2652,7 +2652,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.1,
+          "ms": 35.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2687,7 +2687,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.7,
+          "ms": 32.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2722,7 +2722,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.9,
+          "ms": 38.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2757,7 +2757,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.2,
+          "ms": 34.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2792,7 +2792,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.7,
+          "ms": 39.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2827,7 +2827,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.0,
+          "ms": 33.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2862,7 +2862,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 50.5,
+          "ms": 47.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2897,7 +2897,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.5,
+          "ms": 27.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2932,7 +2932,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.3,
+          "ms": 27.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -2967,7 +2967,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.8,
+          "ms": 28.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3002,7 +3002,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.3,
+          "ms": 26.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3037,7 +3037,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.0,
+          "ms": 30.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3072,7 +3072,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.5,
+          "ms": 27.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3107,7 +3107,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.6,
+          "ms": 31.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3153,8 +3153,8 @@
         0,
         0
       ],
-      "p50_ms": 30.8,
-      "p95_ms": 41.6,
+      "p50_ms": 31.6,
+      "p95_ms": 44.4,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -3200,7 +3200,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.0,
+          "ms": 31.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3235,7 +3235,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.7,
+          "ms": 29.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3270,7 +3270,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.9,
+          "ms": 30.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3305,7 +3305,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.2,
+          "ms": 27.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3340,7 +3340,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.1,
+          "ms": 37.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3375,7 +3375,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.6,
+          "ms": 32.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3410,7 +3410,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.4,
+          "ms": 35.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3445,7 +3445,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.7,
+          "ms": 37.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3480,7 +3480,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.8,
+          "ms": 30.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3515,7 +3515,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.0,
+          "ms": 51.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3550,7 +3550,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.1,
+          "ms": 29.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3585,7 +3585,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.4,
+          "ms": 38.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3620,7 +3620,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.3,
+          "ms": 28.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3655,7 +3655,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.7,
+          "ms": 39.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3690,7 +3690,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.8,
+          "ms": 29.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3725,7 +3725,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.3,
+          "ms": 31.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3760,7 +3760,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 44.5,
+          "ms": 44.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3795,7 +3795,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.0,
+          "ms": 30.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3830,7 +3830,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.2,
+          "ms": 31.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3865,7 +3865,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 41.6,
+          "ms": 47.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3900,7 +3900,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.1,
+          "ms": 26.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3935,7 +3935,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.5,
+          "ms": 37.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -3970,7 +3970,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.4,
+          "ms": 27.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4005,7 +4005,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 36.6,
+          "ms": 44.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4040,7 +4040,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.0,
+          "ms": 25.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4075,7 +4075,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 44.1,
+          "ms": 32.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4110,7 +4110,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.3,
+          "ms": 24.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4145,7 +4145,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.9,
+          "ms": 27.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4191,8 +4191,8 @@
         0,
         0
       ],
-      "p50_ms": 30.8,
-      "p95_ms": 39.3,
+      "p50_ms": 32.8,
+      "p95_ms": 49.0,
       "per_query_match": {
         "beach_outfit": 0.75,
         "snow_boots": 1.0,
@@ -4238,7 +4238,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 45.9,
+          "ms": 29.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4273,7 +4273,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.0,
+          "ms": 31.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4308,7 +4308,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.1,
+          "ms": 33.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4343,7 +4343,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.5,
+          "ms": 29.7,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4378,7 +4378,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.1,
+          "ms": 30.2,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4413,7 +4413,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.3,
+          "ms": 28.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4448,7 +4448,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.9,
+          "ms": 32.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4483,7 +4483,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.8,
+          "ms": 33.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4518,7 +4518,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.1,
+          "ms": 36.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4553,7 +4553,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.8,
+          "ms": 34.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4588,7 +4588,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.4,
+          "ms": 38.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4623,7 +4623,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.1,
+          "ms": 31.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4658,7 +4658,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.4,
+          "ms": 37.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4693,7 +4693,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 29.7,
+          "ms": 26.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4728,7 +4728,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.9,
+          "ms": 28.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4763,7 +4763,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.0,
+          "ms": 49.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4798,7 +4798,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.9,
+          "ms": 30.8,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4833,7 +4833,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.9,
+          "ms": 35.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4868,7 +4868,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.3,
+          "ms": 32.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4903,7 +4903,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 35.2,
+          "ms": 57.6,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4938,7 +4938,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.4,
+          "ms": 53.1,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -4973,7 +4973,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 39.4,
+          "ms": 35.5,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5008,7 +5008,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.9,
+          "ms": 34.9,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5043,7 +5043,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 24.4,
+          "ms": 31.4,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5078,7 +5078,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 26.5,
+          "ms": 32.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5113,7 +5113,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.3,
+          "ms": 37.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5148,7 +5148,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.0,
+          "ms": 29.0,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5183,7 +5183,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.0,
+          "ms": 36.3,
           "planner": "heuristic",
           "rerank": false,
           "llm_calls": 0,
@@ -5224,13 +5224,13 @@
       "inferred_over_budget": 0,
       "empty_slots": 0,
       "total_slots": 65,
-      "llm_calls": 28,
+      "llm_calls": 0,
       "tokens": [
-        55042,
-        5619
+        0,
+        0
       ],
-      "p50_ms": 4356.8,
-      "p95_ms": 7110.3,
+      "p50_ms": 63.5,
+      "p95_ms": 122.7,
       "per_query_match": {
         "beach_outfit": 1.0,
         "snow_boots": 1.0,
@@ -5276,13 +5276,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7110.3,
+          "ms": 151.5,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1968,
-            342
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5339,13 +5339,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3934.6,
+          "ms": 51.1,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1967,
-            127
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5374,13 +5374,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6756.6,
+          "ms": 54.4,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1968,
-            128
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5409,13 +5409,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3517.2,
+          "ms": 44.3,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            128
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5444,13 +5444,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3611.1,
+          "ms": 46.1,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1965,
-            134
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5479,13 +5479,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3289.5,
+          "ms": 34.0,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            116
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5514,13 +5514,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3045.0,
+          "ms": 33.3,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1965,
-            113
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5549,13 +5549,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3740.9,
+          "ms": 29.9,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            144
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5584,13 +5584,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7137.2,
+          "ms": 112.8,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1968,
-            362
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5647,13 +5647,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4856.2,
+          "ms": 80.4,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1972,
-            239
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5696,13 +5696,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5388.5,
+          "ms": 94.1,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            249
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5745,13 +5745,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6214.6,
+          "ms": 114.6,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1967,
-            312
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5801,13 +5801,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6741.0,
+          "ms": 122.7,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1972,
-            376
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5864,13 +5864,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4167.6,
+          "ms": 43.5,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1963,
-            107
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5899,13 +5899,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6501.5,
+          "ms": 106.6,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1963,
-            313
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -5955,13 +5955,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4999.0,
+          "ms": 81.7,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1968,
-            228
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6004,13 +6004,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6893.9,
+          "ms": 112.3,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1972,
-            362
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6067,13 +6067,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7517.2,
+          "ms": 129.5,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1967,
-            382
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6130,13 +6130,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6169.0,
+          "ms": 98.5,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            290
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6186,13 +6186,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7066.4,
+          "ms": 78.6,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            228
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6235,13 +6235,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3030.3,
+          "ms": 71.5,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1962,
-            113
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6270,13 +6270,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3367.9,
+          "ms": 64.7,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1961,
-            126
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6305,13 +6305,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3470.0,
+          "ms": 57.3,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1963,
-            108
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6340,13 +6340,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3827.3,
+          "ms": 54.6,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1960,
-            117
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6375,13 +6375,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3393.6,
+          "ms": 51.9,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1966,
-            120
+            0,
+            0
           ],
           "warnings": 0,
           "titles": [
@@ -6410,21 +6410,21 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4545.9,
+          "ms": 62.2,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1962,
-            115
+            0,
+            0
           ],
           "warnings": 1,
           "titles": [
             [
+              "Ski Snow Gloves Winter Warm Men Women Waterproof Cold Weather Insulate",
+              "Columbia Women's Bryce Canyon Capri",
               "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "IN'VOLAND Women's Rain Jacket Lightweight Hooded Rain Coat Windbreaker",
-              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja"
+              "IN'VOLAND Women's Rain Jacket Lightweight Hooded Rain Coat Windbreaker"
             ]
           ],
           "slot_names": [
@@ -6445,21 +6445,21 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3340.6,
+          "ms": 59.2,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1964,
-            122
+            0,
+            0
           ],
           "warnings": 1,
           "titles": [
             [
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
               "DAIMIDY Men's Loose Fit Denim Jeans Baggy Jeans",
-              "Jeans Men Stretch Slim Fit Straight Multi-Pocket Denim Pants Comfy Fle",
-              "Genuine Assembly Men's Denim Jeans, Slim Fit, Athleisure, Workout Deni",
-              "HUNGSON Men's Stretchy Ripped Skinny Jeans Taped Slim Fit Denim Jeans"
+              "Jeans Men Stretch Slim Fit Straight Multi-Pocket Denim Pants Comfy Fle"
             ]
           ],
           "slot_names": [
@@ -6480,21 +6480,21 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3303.3,
+          "ms": 51.0,
           "planner": "llm",
           "rerank": false,
-          "llm_calls": 1,
+          "llm_calls": 0,
           "tokens": [
-            1963,
-            118
+            0,
+            0
           ],
           "warnings": 1,
           "titles": [
             [
               "Calvin Klein Underwear Modern Cotton Stretch Woven Boxers",
               "Calvin Klein Men's Cotton Stretch Boxer Brief, Black Blues, Medium",
-              "DEENRSEE Men's Underwear Micro Modal Boxers Multipack Stretchy Men Sex",
-              "SAXX Underwear Men's Briefs \u2013 ULTRA Men\u2019s Underwear \u2013 Briefs for Men w"
+              "Calvin Klein City Green Dial Men's Watch K2G2G14L",
+              "Calvin Klein City Quartz Red Dial Men's Watch K2G2G14P"
             ]
           ],
           "slot_names": [
@@ -6526,8 +6526,8 @@
         0,
         0
       ],
-      "p50_ms": 58.9,
-      "p95_ms": 99.5,
+      "p50_ms": 59.0,
+      "p95_ms": 85.6,
       "per_query_match": {
         "beach_outfit": 0.9,
         "snow_boots": 1.0,
@@ -6573,7 +6573,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 99.5,
+          "ms": 85.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6636,7 +6636,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.5,
+          "ms": 30.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6671,7 +6671,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 33.8,
+          "ms": 26.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6706,7 +6706,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.3,
+          "ms": 24.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6741,7 +6741,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.2,
+          "ms": 31.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6776,7 +6776,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 31.4,
+          "ms": 25.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6811,7 +6811,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 23.7,
+          "ms": 25.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6846,7 +6846,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.6,
+          "ms": 35.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6881,7 +6881,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 80.5,
+          "ms": 73.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6944,7 +6944,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 60.4,
+          "ms": 67.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -6993,7 +6993,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 72.7,
+          "ms": 74.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7042,7 +7042,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 74.7,
+          "ms": 81.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7098,7 +7098,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 245.5,
+          "ms": 237.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7161,7 +7161,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 54.8,
+          "ms": 62.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7196,7 +7196,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 68.7,
+          "ms": 77.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7252,7 +7252,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 46.6,
+          "ms": 54.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7301,7 +7301,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 114.0,
+          "ms": 133.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7427,7 +7427,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 82.3,
+          "ms": 70.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7483,7 +7483,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 69.6,
+          "ms": 59.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7532,7 +7532,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 69.6,
+          "ms": 73.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7567,7 +7567,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 60.6,
+          "ms": 65.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7602,7 +7602,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 52.1,
+          "ms": 46.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7637,7 +7637,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 57.4,
+          "ms": 54.2,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7672,7 +7672,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 47.0,
+          "ms": 58.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7707,7 +7707,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 49.7,
+          "ms": 58.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7718,9 +7718,9 @@
           "warnings": 1,
           "titles": [
             [
+              "Columbia Women's PFG Tamiami Ii Short Sleeve Shirt, Moisture Wicking, ",
+              "Ski Snow Gloves Winter Warm Men Women Waterproof Cold Weather Insulate",
               "IN'VOLAND Women's Rain Jacket Lightweight Hooded Rain Coat Windbreaker",
-              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "Aoogue Rain Jackets for Women Waterproof with Hood Lightweight Rain Co",
               "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja"
             ]
           ],
@@ -7742,7 +7742,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 56.5,
+          "ms": 54.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7753,10 +7753,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
               "Jeans Men Stretch Slim Fit Straight Multi-Pocket Denim Pants Comfy Fle",
-              "Volcom Men's Modown Relaxed Fit Denim Jean",
-              "Tebreux Men's Casual Jeans Slim Fit Black Stretch Denim Pants Trousers",
-              "Lavnis Men's Fleece Lined Jeans Stretch Slim Fit Pants Thicken Denim T"
+              "Volcom Men's Modown Relaxed Fit Denim Jean"
             ]
           ],
           "slot_names": [
@@ -7777,7 +7777,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 64.7,
+          "ms": 51.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7790,8 +7790,8 @@
             [
               "Calvin Klein Underwear Modern Cotton Stretch Woven Boxers",
               "Calvin Klein Men's Cotton Stretch Boxer Brief, Black Blues, Medium",
-              "YiZYiF Men's Smooth Thin Bikini Brief Mesh Bulge Pouch Pants Underwear",
-              "Mens Underwear Boxer Briefs Natural Feelings Cotton Black Classic Unde"
+              "Calvin Klein City Green Dial Men's Watch K2G2G14L",
+              "Calvin Klein City Quartz Red Dial Men's Watch K2G2G14P"
             ]
           ],
           "slot_names": [
@@ -7824,7 +7824,7 @@
         0
       ],
       "p50_ms": 33.0,
-      "p95_ms": 51.8,
+      "p95_ms": 61.1,
       "per_query_match": {
         "beach_outfit": 1.0,
         "snow_boots": 1.0,
@@ -7870,7 +7870,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 47.2,
+          "ms": 46.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7933,7 +7933,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.7,
+          "ms": 8.3,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -7968,7 +7968,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9.8,
+          "ms": 10.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8003,7 +8003,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9.4,
+          "ms": 10.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8038,7 +8038,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.3,
+          "ms": 7.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8073,7 +8073,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 8.9,
+          "ms": 9.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8108,7 +8108,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.9,
+          "ms": 8.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8143,7 +8143,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 7.7,
+          "ms": 7.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8178,7 +8178,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 51.8,
+          "ms": 70.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8241,7 +8241,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.5,
+          "ms": 48.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8290,7 +8290,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 25.3,
+          "ms": 33.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8339,7 +8339,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 30.4,
+          "ms": 30.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8395,7 +8395,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 89.3,
+          "ms": 89.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8493,7 +8493,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.3,
+          "ms": 36.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8549,7 +8549,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.1,
+          "ms": 26.6,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8598,7 +8598,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.2,
+          "ms": 37.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8661,7 +8661,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 48.2,
+          "ms": 46.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8724,7 +8724,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 61.9,
+          "ms": 61.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8780,7 +8780,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 32.4,
+          "ms": 31.8,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8829,7 +8829,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 34.1,
+          "ms": 33.5,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8864,7 +8864,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.9,
+          "ms": 37.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8899,7 +8899,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 28.1,
+          "ms": 27.1,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8934,7 +8934,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.2,
+          "ms": 36.4,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -8969,7 +8969,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 27.2,
+          "ms": 25.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9004,7 +9004,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 40.5,
+          "ms": 35.9,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9015,10 +9015,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Columbia Women's Cades Cape Skirt",
+              "Columbia Women's Down The Path Capri",
               "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
-              "Zando Womens Rain Jackets for Women Waterproof Rain Coats for Women Ra"
+              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja"
             ]
           ],
           "slot_names": [
@@ -9039,7 +9039,7 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 38.0,
+          "ms": 32.7,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9050,10 +9050,10 @@
           "warnings": 1,
           "titles": [
             [
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
+              "Levi's Athletic Mens Socks - 6 PACK Performance Cushion Athletic Gym C",
               "Genuine Assembly Men's Denim Jeans, Slim Fit, Athleisure, Workout Deni",
-              "DAIMIDY Men's Loose Fit Denim Jeans Baggy Jeans",
-              "Denim Men's Patchwork Hole Ripped Jeans Size 33 Blue",
-              "HUNGSON Men's Stretchy Ripped Skinny Jeans Taped Slim Fit Denim Jeans"
+              "DAIMIDY Men's Loose Fit Denim Jeans Baggy Jeans"
             ]
           ],
           "slot_names": [
@@ -9074,7 +9074,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 37.2,
+          "ms": 33.0,
           "planner": "llm",
           "rerank": false,
           "llm_calls": 0,
@@ -9087,8 +9087,8 @@
             [
               "Calvin Klein Underwear Modern Cotton Stretch Woven Boxers",
               "Calvin Klein Men's Cotton Stretch Boxer Brief, Black Blues, Medium",
-              "SAXX Underwear Men's Trunk Underwear \u2013 VIBE Men\u2019s Underwear \u2013 Trunk Br",
-              "SAXX Underwear Men's Boxer Briefs \u2013 PLATINUM Men\u2019s Underwear \u2013 Boxer B"
+              "Calvin Klein City Green Dial Men's Watch K2G2G14L",
+              "Calvin Klein City Quartz Red Dial Men's Watch K2G2G14P"
             ]
           ],
           "slot_names": [
@@ -9117,11 +9117,11 @@
       "total_slots": 65,
       "llm_calls": 65,
       "tokens": [
-        141965,
-        11706
+        141846,
+        11809
       ],
-      "p50_ms": 5501.2,
-      "p95_ms": 6765.8,
+      "p50_ms": 5588.9,
+      "p95_ms": 6569.2,
       "per_query_match": {
         "beach_outfit": 0.95,
         "snow_boots": 1.0,
@@ -9167,27 +9167,27 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6492.1,
+          "ms": 6569.2,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10787,
-            967
+            961
           ],
           "warnings": 0,
           "titles": [
             [
               "SheIn Women's One Piece Swimsuit Sleeveless Asymmetrical Bikini Cut Ou",
               "Dokotoo Womens Ladies Summer Beach Stripes Color Block One Piece Bathi",
-              "Summer Mae Women's Black Mesh One Piece Vintage Swimsuit Halter Swimwe",
-              "Bikini Factory Women One Piece Rainbow Printing Front Zipper Padded Mo"
+              "Women's Kint Crochet Bandeau One-Piece Bikini Swimsuit Beachwear",
+              "Summer Mae Women's Black Mesh One Piece Vintage Swimsuit Halter Swimwe"
             ],
             [
               "Imagine Women's Summer Dress Strapless Floral Print Bohemian Casual Be",
               "Yonala Women's Summer Beach Wear Bikini Swimsuit Cover Up Swimwear Bea",
               "Womens Casual Summer Beach Dress Boho Floral Swing Mini Shift Dress Su",
-              "Womens Casual Summer Beach Dress Boho Floral Swing Mini Shift Dress Su"
+              "ROSKIKI Women\u2019s Tassel Print Swimsuit Beach Dress Bikini Cover Ups for"
             ],
             [
               "Women's Gladiator Flat Sandal Summer Casual Wear PU Leather Open Toe B",
@@ -9204,8 +9204,8 @@
             [
               "UV-BANS Polarized Aviator Sunglasses for Women Uv Protection, Round Su",
               "UV-BANS Women Polarized Sunglasses Classic Retro Cateye Frame 100% UV ",
-              "LianSan Fashion Sunglasses for women oversized Uv400 Protection Women'",
-              "PARZIN Trendy Round Sunglasses for Women Stylish Rimless Shades for Su"
+              "Girl Sunglasses Round Flower UV400 Protection Sunglasses for Party Bea",
+              "LianSan Fashion Sunglasses for women oversized Uv400 Protection Women'"
             ]
           ],
           "slot_names": [
@@ -9230,13 +9230,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5230.8,
+          "ms": 5206.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2145,
-            185
+            182
           ],
           "warnings": 0,
           "titles": [
@@ -9265,13 +9265,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5700.9,
+          "ms": 8286.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2157,
-            190
+            189
           ],
           "warnings": 0,
           "titles": [
@@ -9300,13 +9300,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4492.5,
+          "ms": 4550.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2219,
-            152
+            146
           ],
           "warnings": 1,
           "titles": [
@@ -9335,13 +9335,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4686.2,
+          "ms": 5495.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2216,
-            198
+            200
           ],
           "warnings": 0,
           "titles": [
@@ -9370,13 +9370,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4758.5,
+          "ms": 6052.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2256,
-            137
+            139
           ],
           "warnings": 1,
           "titles": [
@@ -9405,21 +9405,21 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5843.3,
+          "ms": 4984.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2230,
-            188
+            182
           ],
           "warnings": 0,
           "titles": [
             [
               "HIG Ear Warmer Unisex Soft Plush Fleece Outdoor Winter Earmuffs (Black",
               "Winter Outdoor EarMuffs Ear Muffss Unisex Cold Weather Ear Warmer Adju",
-              "Ligart Polar Fleece Ear Warmers Headband/Performance Stretch Ear Muffs",
-              "Fullgren Winter Headbands for Men Women Non Slip Fleece Thick Ear Warm"
+              "Fullgren Winter Headbands for Men Women Non Slip Fleece Thick Ear Warm",
+              "Ligart Polar Fleece Ear Warmers Headband/Performance Stretch Ear Muffs"
             ]
           ],
           "slot_names": [
@@ -9440,7 +9440,7 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5016.7,
+          "ms": 5307.2,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
@@ -9475,21 +9475,21 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6765.8,
+          "ms": 6201.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10787,
-            871
+            883
           ],
           "warnings": 1,
           "titles": [
             [
               "Mens Plaid Suit Blazer Slim 1 Button Purple Khaki Wedding Prom Sport C",
               "Chums | Mens | Double Breasted Oxford Blazer | Black",
-              "QSYJ Men's Premium Wool Blend Business Blazer Suit Jacket",
-              "Mens 3 Piece Linen Suit Set Blazer Jacket Tux, Suit Set-beige, Size XX"
+              "Mens 3 Piece Linen Suit Set Blazer Jacket Tux, Suit Set-beige, Size XX",
+              "Chums | Mens | Double Breasted Oxford Blazer | Navy"
             ],
             [
               "COOFANDY Men's Printed Dress Shirts Slim Fit Long Sleeve Cotton Casual",
@@ -9538,13 +9538,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5775.6,
+          "ms": 5546.0,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6560,
-            546
+            575
           ],
           "warnings": 0,
           "titles": [
@@ -9557,14 +9557,14 @@
             [
               "Vans Girls Asher V Purple Unicorn Shoes Sneakers",
               "COODO Toddler Kid's Sneakers Boys Girls Cute Casual Running Shoes (8 T",
-              "CIOR Kids Boy and Girl's 11 Color Led Sneakers Light Up Flashing Shoes",
-              "Kids Girl's Fashion Sneakers Casual Sports Shoes (13 M US Little Kid,C"
+              "Kids Girl's Fashion Sneakers Casual Sports Shoes (13 M US Little Kid,C",
+              "CIOR Kids Boy and Girl's 11 Color Led Sneakers Light Up Flashing Shoes"
             ],
             [
               "CAMTOP School Backpack Girls Kids Backpacks with Lunch Bag Teen Girls ",
               "Dellukee School Backpack For Girls Cute Durable Book Bags Daypacks Uni",
-              "Middle School Backpack Set Lunch Bag Pen Bags For Girls Fashion Book B",
-              "Unicorn Drawstring Bag Gym Sack Pack for Kids, Gift String Backpack Ci"
+              "Unicorn Drawstring Bag Gym Sack Pack for Kids, Gift String Backpack Ci",
+              "Unicorn Gifts for Girls - Unicorn Drawstring Backpack/Makeup Bag/Brace"
             ]
           ],
           "slot_names": [
@@ -9587,27 +9587,27 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5817.5,
+          "ms": 5631.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6828,
-            604
+            588
           ],
           "warnings": 0,
           "titles": [
             [
               "Beverly Rock Women's Plus Size Active Fleece Pullover Hooded Sweatshir",
-              "Arssm Women's Winter Casual Full Zip Up Fleece Lined Hoodie Sweatshirt",
               "Talakeno Women's Winter Thick Sherpa Lined Hoodies Top Casual Warm Fle",
-              "Miselon Women's Long Pullover Basic Fleece Sweatshirt Dress Winter Min"
+              "Arssm Women's Winter Casual Full Zip Up Fleece Lined Hoodie Sweatshirt",
+              "OUTCOOL Women's Heated Hoodie Full-Zip Hooded Fleece Sweatshirt (Type:"
             ],
             [
               "ALWAYS Women's Fleece Jogger Pants - Buttery Soft Warm Cozy Casual Swe",
               "Arssm Women's Winter Warm Fleece Sherpa Lined Sweatpants Athletic Runn",
-              "Haellun Men's Winter Fleece Sherpa Lined Sweatpants Active Running Jog",
-              "Hixiaohe Women's Winter Sherpa Fleece Lined Sweatpants Active Jogger H"
+              "Hixiaohe Women's Winter Sherpa Fleece Lined Sweatpants Active Jogger H",
+              "Haellun Men's Winter Fleece Sherpa Lined Sweatpants Active Running Jog"
             ],
             [
               "Slippers With 2 Pair Socks For Women,Cozy Plush Comfy Warm Slip-On Sli",
@@ -9636,13 +9636,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6160.6,
+          "ms": 7764.3,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8735,
-            667
+            669
           ],
           "warnings": 1,
           "titles": [
@@ -9692,13 +9692,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 9187.9,
+          "ms": 5696.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             11149,
-            863
+            847
           ],
           "warnings": 2,
           "titles": [
@@ -9715,9 +9715,9 @@
               "Tapasimme Winter Compression Waterproof Trousers Down-Pants Women Men "
             ],
             [
-              "ZOL White MTB Indoor Cycling Shoes 41",
               "Per Waterproof Cycling Shoes Covers Reusable Thermal Shoes Covers MTB ",
               "4ucycling Cycling Waterproof Shoe Covers or Overshoes",
+              "ZOL White MTB Indoor Cycling Shoes 41",
               "HI-TEC Altitude Trek Low I Waterproof Walking Shoes - SS16"
             ],
             [
@@ -9755,13 +9755,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 3747.6,
+          "ms": 3603.0,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2228,
-            75
+            74
           ],
           "warnings": 1,
           "titles": [
@@ -9790,13 +9790,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6150.1,
+          "ms": 6493.9,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8763,
-            772
+            811
           ],
           "warnings": 0,
           "titles": [
@@ -9846,13 +9846,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5871.7,
+          "ms": 6103.0,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6885,
-            626
+            619
           ],
           "warnings": 0,
           "titles": [
@@ -9895,15 +9895,15 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 6631.3,
+          "ms": 6295.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             11364,
-            950
+            988
           ],
-          "warnings": 1,
+          "warnings": 0,
           "titles": [
             [
               "Keevoom Men's Waterproof Ski Jacket Winter Warm Snow Coat Windproof Mo",
@@ -9933,7 +9933,7 @@
               "Pure Compression Midweight Camo Snowboard Socks \u2013 Merino Wool Winter C",
               "Ski Socks Merino Wool Thermal Knee High Winter Snowboard Sport Socks M",
               "Darn Tough Vermont Merino Wool Mountaineering Over-the-Calf Extra Cush",
-              "Darn Tough Vermont Women's Merino Wool Over the Calf Padded Cushion So"
+              "Pure Athlete Ultra Light Ski Socks \u2013 Thin Premium Merino Wool Skiing f"
             ]
           ],
           "slot_names": [
@@ -9958,13 +9958,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5341.2,
+          "ms": 5769.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 5,
           "tokens": [
             10945,
-            859
+            860
           ],
           "warnings": 1,
           "titles": [
@@ -9978,7 +9978,7 @@
               "Dobell Mens White Tuxedo Shirt Regular Fit 100% Cotton Wing Collar Ple",
               "Dobell Mens Black Tuxedo Shirt Regular Fit Wing Collar Pleated Fly Fro",
               "Dobell Mens Black Tuxedo Shirt Regular Fit Laydown Collar Double Cuff ",
-              "Tuxedo Shirt, Cummerbund, Bow Tie, Cufflink & Studs Set - Laydown Coll"
+              "Dobell Mens Black Tuxedo Shirt Regular Fit Laydown Collar Double Cuff "
             ],
             [
               "OUOUVALLEY Lace Up Patent Leather Oxford Dress Shoes Formal Wedding Sh",
@@ -10021,27 +10021,27 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5255.4,
+          "ms": 5750.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 4,
           "tokens": [
             8680,
-            703
+            725
           ],
           "warnings": 1,
           "titles": [
             [
               "MAGCOMSEN Women's Shirts Long Sleeve UPF 50+ UV Sun Protection Quick D",
-              "TAPULCO Mens Summer Quick Dry Golf Shirts Breathable Lightweight Casua",
               "Men\u2019s UPF Long Sleeve Shirt, Loose Fit Outdoor Hiking Fishing Safari Q",
+              "TAPULCO Mens Summer Quick Dry Golf Shirts Breathable Lightweight Casua",
               "VINEMN Crop Tank Tops for Women, Yoga Gym Workout Tops Athletic Shirt,"
             ],
             [
               "XKTTAC Men's Outdoor Quick Dry Lightweight Stretchy Shorts for Hiking,",
               "EZRUN Mens 7 Inches Lightweight Qiuck Dry Running Shorts Workout Short",
               "Libin Women's Quick Dry Hiking Shorts Lightweight Active Shorts, UPF 5",
-              "FREE SOLDIER Men's Lightweight Breathable Quick Dry Tactical Shorts Hi"
+              "Little Donkey Andy Women's Lightweight Stretch Quick Dry Shorts for Ru"
             ],
             [
               "adidas outdoor Men's Ax2 Gore-tex Hiking Shoe",
@@ -10051,9 +10051,9 @@
             ],
             [
               "Sun Hats for Men/Women, Wide Brim Bucket Hat Waterproof Breathable Pac",
-              "Sun Hat for Men/Women,Super Wide Brim Waterproof UPF 50+ UV Protection",
               "Fishing hat Wide Brim Sun Protection Hat with Breathable Safari hat an",
-              "Folouse Sun Hat, Breathable Boonie Adjustable Sun Hat with UV Protecti"
+              "Sun Hat for Men/Women,Super Wide Brim Waterproof UPF 50+ UV Protection",
+              "Bayinbulak Sun Hat for Men/Women, Summer Outdoor Sun Protection Campin"
             ]
           ],
           "slot_names": [
@@ -10077,13 +10077,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5711.6,
+          "ms": 5845.1,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 3,
           "tokens": [
             6704,
-            588
+            603
           ],
           "warnings": 0,
           "titles": [
@@ -10097,7 +10097,7 @@
               "AKJWXN Scarves for Women Winter Warm Scarf Soft Oversized Scarfs for W",
               "Love Lakeside-Women's Cashmere Feel Winter Plaid Scarf (One, Black and",
               "XINYUN Women's Fashion Scarf with Art Printed Tassel Soft Cashmere War",
-              "Crndzsis Womens Cashmere Feel Classic Plaid Polka Dot Pashmina Shawls "
+              "LumiSyne Winter Premium Plain Cashmere Scarf For Women Pashmina Tassel"
             ],
             [
               "HomeTop Women's Elegant Cashmere Knitted Memory Foam Indoor Ballerina ",
@@ -10126,13 +10126,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4798.1,
+          "ms": 4474.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             1889,
-            141
+            140
           ],
           "warnings": 1,
           "titles": [
@@ -10161,13 +10161,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5047.0,
+          "ms": 4999.2,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             1786,
-            186
+            191
           ],
           "warnings": 0,
           "titles": [
@@ -10196,13 +10196,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4479.4,
+          "ms": 5187.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             1640,
-            176
+            181
           ],
           "warnings": 0,
           "titles": [
@@ -10231,21 +10231,21 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 12044.3,
+          "ms": 5170.8,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2055,
-            190
+            181
           ],
           "warnings": 0,
           "titles": [
             [
               "Champion Reverse Weave Pullover Hoodie Journey Yellow",
               "Champion Powerblend Blend Pullover Hoodie Team Red",
-              "Champion NCAA Mens Team Color Gameday Hoodie Sweatshirt (Florida Gator",
-              "Champion NCAA Mens Team Color Gameday Hoodie Sweatshirt-Michigan Wolve"
+              "Champion NCAA Mens Team Color Gameday Hoodie Sweatshirt-Michigan Wolve",
+              "Champion NCAA Mens Team Color Gameday Hoodie Sweatshirt (Florida Gator"
             ]
           ],
           "slot_names": [
@@ -10266,13 +10266,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5187.7,
+          "ms": 5289.2,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
             2162,
-            192
+            202
           ],
           "warnings": 0,
           "titles": [
@@ -10301,21 +10301,21 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4939.1,
+          "ms": 4890.4,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2145,
-            203
+            2131,
+            193
           ],
           "warnings": 1,
           "titles": [
             [
-              "Aoogue Rain Jackets for Women Waterproof with Hood Lightweight Rain Co",
+              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
               "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja",
               "IN'VOLAND Women's Rain Jacket Lightweight Hooded Rain Coat Windbreaker",
-              "Macr and Steve Womens Lightweight Hooded Waterproof Active Outdoor Rai"
+              "Macr&Steve Womens Lightweight Hooded Waterproof Active Outdoor Rain Ja"
             ]
           ],
           "slot_names": [
@@ -10336,13 +10336,13 @@
           "success": false,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 5661.2,
+          "ms": 5815.6,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2196,
-            189
+            2181,
+            188
           ],
           "warnings": 1,
           "titles": [
@@ -10350,7 +10350,7 @@
               "Lavnis Men's Fleece Lined Jeans Stretch Slim Fit Pants Thicken Denim T",
               "DAIMIDY Men's Loose Fit Denim Jeans Baggy Jeans",
               "Ruiatoo Men's Jeans Denim Work Cargo Pants Outdoor Loose Hip Hop Big &",
-              "HUNGSON Men's Stretchy Ripped Skinny Jeans Taped Slim Fit Denim Jeans "
+              "Denim Men's Patchwork Hole Ripped Jeans Size 33 Blue"
             ]
           ],
           "slot_names": [
@@ -10371,13 +10371,13 @@
           "success": true,
           "price_bad": 0,
           "inferred_over": 0,
-          "ms": 4017.1,
+          "ms": 4058.7,
           "planner": "llm",
           "rerank": true,
           "llm_calls": 1,
           "tokens": [
-            2232,
-            101
+            2142,
+            105
           ],
           "warnings": 2,
           "titles": [
