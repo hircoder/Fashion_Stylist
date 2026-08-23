@@ -31,8 +31,9 @@ One more thing that decided the subset policy. Coverage goes up sharply with pop
 
 ## Subset: why popular-first by default
 
-Embedding the whole catalog takes about 20 minutes on an M-series laptop and 40+ on CPU,
-and needs ~1.2 GB of RAM just for the float32 matrix when serving. Nobody reviewing a
+Embedding the whole catalog takes about 19 minutes on an M-series laptop and 40+ on CPU,
+and serving it needs ~3.3 GB RSS (1.2 GB of that is the float32 matrix, measured with
+`scripts/benchmark.py`; the 100K index serves in ~1 GB). Nobody reviewing a
 take-home wants to wait for that. So `make index` takes the 100K most-rated listings
 (about 2.7 minutes on the laptop), `--sampling random` gives a seeded long-tail sample
 instead, and `--sampling all` does the full thing.
