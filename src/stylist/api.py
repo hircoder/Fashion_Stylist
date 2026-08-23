@@ -152,13 +152,17 @@ def _client_ip(request: Request, trust_proxy: bool) -> str:
     return request.client.host if request.client else "unknown"
 
 
-# image hosts mirror schemas.safe_image_url: what the api hands out, the page may load
+# image hosts mirror schemas.safe_image_url: what the api hands out, the page may load.
+# the react page loads its scripts from /assets, so script-src stays 'self'; the overview
+# deck is one self-contained file with its script inline, and it renders no user input,
+# so it gets 'unsafe-inline' rather than a nonce pipeline for a static doc
 _CSP = (
     "default-src 'self'; img-src 'self' data: https://*.media-amazon.com "
     "https://*.ssl-images-amazon.com https://*.images-amazon.com; "
     "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; "
     "frame-ancestors 'none'"
 )
+_CSP_INLINE = _CSP.replace("script-src 'self'", "script-src 'unsafe-inline'")
 
 
 class _SecurityHeaders:
@@ -171,7 +175,7 @@ class _SecurityHeaders:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
-        html = path in ("/", "/overview")
+        csp = _CSP_INLINE if path == "/overview" else _CSP if path == "/" else None
 
         async def send_wrapped(message):
             if message["type"] == "http.response.start":
@@ -181,8 +185,8 @@ class _SecurityHeaders:
                     (b"x-frame-options", b"DENY"),
                     (b"referrer-policy", b"strict-origin-when-cross-origin"),
                 ]
-                if html:
-                    headers.append((b"content-security-policy", _CSP.encode()))
+                if csp:
+                    headers.append((b"content-security-policy", csp.encode()))
                 message = {**message, "headers": headers}
             await send(message)
 

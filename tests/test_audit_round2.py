@@ -627,3 +627,32 @@ def test_partial_budget_split_never_invents_budget():
     plan = normalize_plan(out, "q")
     assert sum(s.budget_max for s in plan.slots) <= 100.0 + 1e-6
     assert plan.slots[1].budget_max >= 10.0  # the floor lifts it, the other slot is scaled down
+
+
+def test_overview_csp_allows_its_own_inline_script(fixture_index, hash_embedder):
+    with TestClient(_app(fixture_index, hash_embedder)) as c:
+        deck = c.get("/overview").headers.get("content-security-policy", "")
+        assert "script-src 'unsafe-inline'" in deck  # the deck is one file, script inline
+        page = c.get("/").headers.get("content-security-policy", "")
+        assert "script-src 'self'" in page
+        assert c.get("/health").headers.get("content-security-policy") is None
+
+
+async def test_retrieval_is_never_queued_past_the_deadline(fixture_index, hash_embedder):
+    import time as _t
+
+    from stylist.service import RecommendationService, RequestTimeout
+
+    svc = RecommendationService(
+        fixture_index, hash_embedder, Settings.from_env({"EMBEDDER": "hash"}), llm=None
+    )
+    try:
+        deadline = _t.monotonic() - 1.0  # already expired
+        plan = svc.heuristic.plan("boots")
+        from stylist.planner import merge_constraints
+
+        windows, _ = merge_constraints(plan)
+        with pytest.raises(RequestTimeout):
+            await svc._retrieve_with_deadline(plan, windows, 10, 4, deadline)
+    finally:
+        svc.close()

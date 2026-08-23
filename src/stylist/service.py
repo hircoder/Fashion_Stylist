@@ -195,6 +195,8 @@ class RecommendationService:
         thread cannot be cancelled, so the permit is released when the thread ends, not
         when the client gives up: RETRIEVAL_CONCURRENCY stays honest under a burst."""
         remaining = deadline - time.monotonic()
+        if remaining <= 0:  # the deadline already passed: never even queue the work
+            raise RequestTimeout("request deadline exceeded before retrieval started")
         try:
             await asyncio.wait_for(self._retrieval_sem.acquire(), timeout=max(remaining, 0.01))
         except TimeoutError as exc:
