@@ -55,11 +55,13 @@ def _write_raw(path, records, bad_lines=()):
 @pytest.mark.parametrize(
     "raw,expected",
     [
-        ("12,99", (1299.0, "string")),  # commas are thousands separators in this (US) dataset
+        ("12,99", (None, "unparsed")),  # malformed grouping is not a price
         ("$1,000", (1000.0, "string")),
+        ("1,234,567.89", (1234567.89, "string")),
+        ("1,23", (None, "unparsed")),
     ],
 )
-def test_parse_price_treats_comma_as_thousands_only(raw, expected):
+def test_parse_price_accepts_only_three_digit_thousands_groups(raw, expected):
     assert parse_price(raw) == expected
 
 

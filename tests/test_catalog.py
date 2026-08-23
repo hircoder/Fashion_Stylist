@@ -226,7 +226,7 @@ def test_load_catalog_subset_matches_select_rows(fixture_catalog, fixture_catalo
     [
         ("1,299", (1299.0, "string")),
         ("$1,299.50", (1299.5, "string")),
-        ("12,99", (1299.0, "string")),  # comma = thousands separator (US listings)
+        ("12,99", (None, "unparsed")),  # malformed grouping, not a price
         (float("inf"), (None, "unparsed")),
     ],
 )

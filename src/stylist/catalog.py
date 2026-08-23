@@ -77,7 +77,10 @@ _RX_UNISEX = re.compile(r"\bunisex\b", re.I)
 _RX_DEPT_BABY = re.compile(r"\b(?:baby|babies|infant|toddler)\b")
 _RX_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 
-_RX_PRICE_NUM = re.compile(r"^\$?\s*(\d[\d,]*(?:[.,]\d+)?)\s*$")
+# digits with optional thousands groups of exactly three and an optional decimal part:
+# "$1,299.50" parses, "12,99" does not (malformed grouping is reported as unparsed, not
+# turned into 1299)
+_RX_PRICE_NUM = re.compile(r"^\$?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*$")
 _RX_PRICE_RANGE = re.compile(r"\d.*[-–].*\d")
 
 # trailing size noise: "US Size 8", "size 9-12", "XL", "2XL", "one size". Plain trailing
@@ -524,11 +527,16 @@ def ingest(
             writer.write_table(_to_table(chunk))
         ok = stats.rows > 0
     finally:
-        writer.close()
-        if ok:
-            os.replace(tmp_path, out_path)
-        else:
-            tmp_path.unlink(missing_ok=True)
+        try:
+            writer.close()
+        except Exception:  # a failing close must still clean up, and must not hide the cause
+            ok = False
+            raise
+        finally:
+            if ok:
+                os.replace(tmp_path, out_path)
+            else:
+                tmp_path.unlink(missing_ok=True)
     if stats.rows == 0:
         raise ValueError(f"no rows read from {raw_path} ({stats.bad_lines} bad lines)")
     n = max(stats.rows, 1)

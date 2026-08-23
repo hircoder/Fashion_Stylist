@@ -41,9 +41,14 @@ RUN if [ "${BAKE_INDEX_LIMIT}" -gt 0 ]; then \
       && rm -rf /app/data/raw /app/data/processed; \
     else mkdir -p /app/data; fi
 
-# run as a normal user; only the data dir and the model cache need to be writable
-RUN useradd --create-home --uid 10001 app && chown -R app:app /app
+# run as a normal user: the code and the virtualenv stay owned by root (read-only for
+# the service), only the data dir and the model cache are writable by it
+RUN useradd --create-home --uid 10001 app \
+    && mkdir -p /app/data /app/.hf \
+    && chown -R app:app /app/data /app/.hf
 USER app
+# container hosts put a proxy in front of the service: the client ip arrives in x-forwarded-for
+ENV TRUST_PROXY_HEADERS=1
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s \
