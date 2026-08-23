@@ -93,6 +93,11 @@ class Settings:
 
     log_level: str
 
+    @property
+    def embedding_name(self) -> str:
+        """Name recorded in index meta for the configured embedder (must match at load)."""
+        return "hash" if self.embedder == "hash" else self.embedding_model
+
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:
         """Build settings from a mapping (defaults to os.environ merged over .env)."""

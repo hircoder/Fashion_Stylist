@@ -47,7 +47,7 @@ def build_service(settings: Settings) -> RecommendationService:
     from stylist.artifacts import ensure_index
 
     ensure_index(settings)
-    index = SearchIndex.load(settings.index_dir, expected_model=settings.embedding_model)
+    index = SearchIndex.load(settings.index_dir, expected_model=settings.embedding_name)
     embedder = make_embedder(settings)
     llm = make_llm_client(settings)
     log.info(

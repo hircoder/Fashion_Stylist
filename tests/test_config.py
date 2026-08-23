@@ -62,3 +62,8 @@ def test_data_dir_moves_all_paths():
     s = Settings.from_env({"DATA_DIR": "/tmp/x"})
     assert s.index_dir == Path("/tmp/x/index")
     assert s.processed_path == Path("/tmp/x/processed/catalog.parquet")
+
+
+def test_embedding_name_follows_embedder_choice():
+    assert Settings.from_env({}).embedding_name == "BAAI/bge-small-en-v1.5"
+    assert Settings.from_env({"EMBEDDER": "hash"}).embedding_name == "hash"
