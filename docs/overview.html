@@ -304,7 +304,7 @@
       <tr><td>bm25s, numpy, pandas, pyarrow</td><td>the lexical channel, exact cosine with one matrix multiply, boolean masks, a typed catalog on disk</td></tr>
       <tr><td>Anthropic and OpenAI SDKs</td><td>structured output on both behind <code>complete_json(system, user, schema)</code>; provider by env, <code>none</code> runs keyless</td></tr>
       <tr><td>React + Vite, plain CSS</td><td>one page with product cards; built bundle committed and served by the API</td></tr>
-      <tr><td>uv, pytest, ruff, Docker, GitHub Actions, Railway</td><td>392 tests, ruff, bandit, pip-audit, a ui drift check, a cpu-only image that bakes a demo index, <code>/ready</code> as health check</td></tr>
+      <tr><td>uv, pytest, ruff, Docker, GitHub Actions, Railway</td><td>394 tests, ruff, bandit, pip-audit, a ui drift check, a cpu-only image that bakes a demo index, <code>/ready</code> as health check</td></tr>
     </table>
     <p class="small">Why not a vector database or an orchestration framework: at this size they add operations without adding correctness, and a reviewer has to install them. Both are listed as the next step past a few million rows.</p>
   </div>
@@ -532,7 +532,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td>full</td><td class="r">826,108</td><td class="r">18.4 min</td><td class="r">3.3 GB</td><td class="r">110 ms</td></tr>
         </table>
         <p class="small">Full pipeline p50 11.5 s cold (plan 5.2 s, rerank 5.9 s in parallel across slots), 5.5 s with a warm plan cache; claude-sonnet-4-6 through an Azure endpoint, laptop numbers. Slide 11 has the throughput and cost measurements.</p>
-        <h3>Tests: 392</h3>
+        <h3>Tests: 394</h3>
         <p class="small">Unit (parsers, plan normalisation, masks, fusion, grouping, budgets, the type gate and brand pass), failure paths (every LLM error class, a failing slot, a stuck planner, a waiter's timeout, retrieval past the deadline with the permit kept), the HTTP surface (validation, rate limit, in-flight cap, body cap, security headers, error bodies, startup failures), artifacts (archive bombs, private hosts, stale indexes, locks), two review rounds folded into regression tests; ruff, bandit and pip-audit in CI, a docker smoke test and a UI drift check.</p>
       </div>
     </div>
@@ -553,7 +553,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td class="r">4</td><td class="r">65 ms</td><td class="r">82 ms</td><td class="r">62</td></tr>
           <tr><td class="r">8</td><td class="r">126 ms</td><td class="r">145 ms</td><td class="r">62</td></tr>
         </table>
-        <p class="small">60 requests per setting, M4 laptop pinned to CPU (<code>scripts/benchmark.py --device cpu</code>, <code>docs/bench_cpu.json</code>). Throughput flattens at about 60 req/s per process because the embedding call and the matmul hold the GIL; more capacity means more processes, not more threads. RSS after load: 1.0 GB (torch + model about 0.5 GB, index 0.25 GB, pandas catalog and bm25 the rest). Load time 0.1 s including sha256 of every file.</p>
+        <p class="small">60 requests per setting, M4 laptop pinned to CPU (<code>scripts/benchmark.py --device cpu</code>, <code>docs/bench_cpu.json</code>). Throughput flattens at about 60 req/s per proces because the embedding call and the matmul hold the GIL; more capacity means more processes, not more threads. RSS after load: 1.0 GB (torch + model about 0.5 GB, index 0.25 GB, pandas catalog and bm25 the rest). Load time 0.1 s including sha256 of every file.</p>
         <h3>Full pipeline with the LLM, 20 eval queries, claude-sonnet-4-6</h3>
         <table>
           <tr><th>stage</th><th class="r">p50</th><th class="r">p95</th><th class="r">share</th></tr>
@@ -574,12 +574,12 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td>same traffic on a $1 / $5 per M model (Haiku class)</td><td class="r">$0.012</td><td class="r">$0.005</td><td class="r">$0.020</td></tr>
           <tr><td>compute (2 vCPU container, $20 / month, 40K req/day)</td><td class="r">$0.00002</td><td class="r"></td><td class="r"></td></tr>
         </table>
-        <p class="small">Token counts come from the SDK usage fields and are returned in every response (<code>llm_info.calls / input_tokens / output_tokens</code>), so cost per request is a number in the logs, not an estimate. Roughly 2,100 input and 195 output tokens per call: the system prompts and the 10 candidate rows dominate.</p>
+        <p class="small">Token counts come strait from the SDK usage fields and are returned in every response (<code>llm_info.calls / input_tokens / output_tokens</code>), so cost per request is a number in the logs, not an estimate. Roughly 2,100 input and 195 output tokens per call: the system prompts and the 10 candidate rows dominate.</p>
         <h3>At 10,000 requests a day</h3>
         <ul>
           <li>LLM: $360 / day on the Sonnet class, $120 on the Haiku class, $36 with a 90% plan cache hit rate plus prompt caching on the two system prompts (about 1,200 cached tokens per call, billed at 10%).</li>
           <li>Compute: one 2 vCPU / 4 GB container serves 40K LLM-mode requests a day at LLM_CONCURRENCY=8 (0.45 req/s sustained) or 5M retrieval-only requests; the LLM provider's rate limit is the ceiling, not the CPU.</li>
-          <li>Levers in order of payoff: cache plans across replicas (Redis), rerank with a smaller model (quality check first: the 20 query eval showed the reranker adds 3 points), cut candidate rows to 8, shorten system prompts, one rerank call for all slots when slots &lt;= 2.</li>
+          <li>Ways to cut the bill, in order of payoff: cache plans across replicas (Redis), rerank with a smaller model (quality check first: the 20 query eval showed the reranker adds 3 points), cut candidate rows to 8, shorten system prompts, one rerank call for all slots when slots &lt;= 2.</li>
         </ul>
       </div>
     </div>
@@ -598,7 +598,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td>runtime</td><td>the existing container (python:3.12-slim, CPU torch), 2 vCPU / 4 GB per replica, 8 GB if the full 826K index is served</td><td>1.0 GB RSS measured for 100K rows, 3.3 GB for 826K; query embedding needs 5 to 10 ms on CPU, a GPU buys nothing at this size</td></tr>
           <tr><td>processes</td><td>1 uvicorn worker per replica, 3 replicas minimum across zones, autoscale on in-flight requests (target 6 per replica)</td><td>the process is stateless; one worker keeps LLM_CONCURRENCY and the rate limiter meaningful per replica</td></tr>
           <tr><td>index artifact</td><td>tarball in object storage (S3 / GCS), pinned by INDEX_URL + INDEX_SHA256, rebuilt by a scheduled job when the catalog changes, rolled out by changing two variables</td><td>already implemented: verified download, safe extraction, atomic install, refuses to serve a mismatched index</td></tr>
-          <tr><td>platform</td><td>Railway or Fly.io for a team of one; ECS Fargate, Cloud Run or Kubernetes when it joins a platform that already runs one of them</td><td>no database, no queue, no GPU: any container host with health checks works</td></tr>
+          <tr><td>platform</td><td>Railway or Fly.io for a team of one; ECS Fargate, Cloud Run or Kubernetes when it joins a platform that already runs one of them</td><td>no database, no queue, no GPU, any container host with health checks works</td></tr>
           <tr><td>LLM</td><td>Anthropic Claude (Sonnet class for plan + rerank, Haiku class as the cost option), prompt caching on, a second provider configured as failover</td><td>the adapters already hide the SDK; ANTHROPIC / OPENAI switch by environment</td></tr>
           <tr><td>shared state</td><td>Redis for the plan cache (key: normalised query + model + prompt version, TTL 24 h) and the rate limiter</td><td>today both are per process; with 3 replicas the hit rate drops and limits triple</td></tr>
           <tr><td>edge</td><td>TLS, CDN for <code>/assets</code>, WAF rate rules, request size limit at the edge too</td><td>the in-app limits are the second line, not the first</td></tr>
@@ -611,7 +611,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <li>Retrieval-only traffic: 60 req/s per vCPU pair, scale linearly with replicas.</li>
           <li>LLM traffic: capacity = replicas x LLM_CONCURRENCY / mean LLM seconds per request (about 11 s with 4 calls) = 0.7 req/s per replica at 8; the provider's tokens-per-minute quota usually binds first (8,200 input tokens x 0.7 req/s = 350K TPM).</li>
           <li>Memory: index bytes x 2 (float16 on disk, float32 in memory) + 600 MB fixed.</li>
-          <li>Startup: 10 to 20 s including the index download; set the readiness probe to <code>/ready</code> with a 60 s initial delay, liveness to <code>/health</code>.</li>
+          <li>Startup: 10 to 20 s incl. the index download; point the readiness probe at <code>/ready</code> with a 60 s initial delay, liveness at <code>/health</code>.</li>
         </ul>
         <h3>Rollout</h3>
         <ul>
@@ -630,7 +630,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
   <div class="inner wide fade">
     <div class="no">13 / 16 &middot; Under one second</div>
     <h2><a class="tl" href="#s13">Getting the total under one second</a></h2>
-    <p>97% of the 11.5 s is two LLM calls that run one after the other. Tuning them does not reach one second; taking them out of the synchronous path does. Each rung below is independent and measurable on the eval set before it ships.</p>
+    <p>97% of the 11.5 s is two LLM calls that run one after the other. Tuning them wont reach one second, taking them out of the synchronous path does. Each rung below is independent and measurable on the eval set before it ships.</p>
     <div class="two">
       <div>
         <table>
@@ -649,7 +649,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <ul>
           <li>The large model's judgement on unusual requests and its written reasons go out of the hot path. Keep that path as a background refinement ("better picks in 8 s", pushed over SSE) and as the generator of the distillation data.</li>
           <li>Gate every rung on the eval set: the distilled planner ships when slot recall and mapped precision are within 3 points of Sonnet's; the cross-encoder when match@k on the 28 queries is within 2 points of the LLM reranker.</li>
-          <li>Streaming alone (per-slot SSE) puts the first products on screen in about 200 ms with no ranking change; it is the cheapest perceived-latency win and needs only the UI and one endpoint.</li>
+          <li>Streaming alone (per-slot SSE) puts the first products on screen in about 200 ms with no ranking change; its the cheapest percieved-latency win and needs only the UI and one endpoint.</li>
         </ul>
         <h3>Order of work</h3>
         <ol>
@@ -680,7 +680,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <table>
           <tr><th>failure</th><th>behaviour</th></tr>
           <tr><td>LLM planner error or 15 s timeout</td><td>regex planner: budget, audience and content words; one slot; a 30 s negative cache stops a stampede</td></tr>
-          <tr><td>one rerank call fails or is late</td><td>that slot keeps retrieval order, the other slots keep their picks</td></tr>
+          <tr><td>one rerank call fails or is late</td><td>that slot keeps retrieval order, the others keep their picks</td></tr>
           <tr><td>reranker returns nothing usable</td><td>retrieval order plus deterministic reasons (keywords, rating, price vs budget)</td></tr>
           <tr><td>a slot below k in the price window</td><td>flagged unpriced backfill when the bound was inferred, a warning when it was explicit</td></tr>
           <tr><td>index missing or invalid at boot</td><td>/health stays up with a curated message, /ready and /recommend return 503, or the process exits with STARTUP_FAIL_FAST</td></tr>
@@ -716,7 +716,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><th>gap</th><th>why it matters</th><th>plan</th></tr>
           <tr><td>relevance is judged by 20 hand-written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job</td></tr>
           <tr><td>no online signal</td><td>offline metrics drift from what shoppers do</td><td>week 3: impression and click logging with request_id, a holdout, CTR and add-to-cart per configuration; A/B switch on prompt version and reranker model</td></tr>
-          <tr><td>latency is LLM-bound (97%)</td><td>11 s median is fine for a stylist page, too slow for type-ahead</td><td>week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s</td></tr>
+          <tr><td>latency is LLM-bound (97%)</td><td>11 s median is fine for a stylist page, way too slow for type-ahead</td><td>week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s</td></tr>
           <tr><td>no outfit coherence</td><td>slots are ranked independently; a floral shirt and a striped blazer can both win</td><td>week 4-5: a coherence pass over the top 3 per slot (colour and style fields, one LLM call on the cross product), evaluated on the labelled set</td></tr>
           <tr><td>catalog scale</td><td>brute-force matmul is fine to about 1M rows x 384-d; beyond that memory and p95 grow linearly</td><td>when needed: HNSW (faiss or usearch) with the same masks applied after search, int8 embeddings, the catalog served from parquet row groups instead of pandas</td></tr>
           <tr><td>single-tenant, single-language</td><td>the prompts and the audience heuristic are English only</td><td>multilingual embedding model (bge-m3) and a language field in the plan; per-tenant index and prompt version</td></tr>
@@ -734,12 +734,12 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td>prompt injection corpus (catalog text and queries)</td><td>a fixture of 100 hostile strings</td><td>no url, no instruction echo, ids still validated</td></tr>
           <tr><td>property-based: planner normalisation and budget allocation</td><td>hypothesis</td><td>invariants hold for any input (sum &lt;= total, floors, caps)</td></tr>
           <tr><td>contract: recorded LLM responses replayed</td><td>cassette fixtures per prompt version</td><td>a prompt change that breaks parsing fails CI, not production</td></tr>
-          <tr><td>security: image and dependency scanning, dynamic scan of the API</td><td>trivy, pip-audit, ZAP baseline, bandit (already run)</td><td>no high findings</td></tr>
+          <tr><td>security: image and dependency scanning, a scan against the running API</td><td>trivy, pip-audit, ZAP baseline, bandit (already run)</td><td>no high findings</td></tr>
           <tr><td>UI end to end</td><td>Playwright</td><td>query, results, warnings, error states render</td></tr>
           <tr><td>multi-replica install race</td><td>3 containers booting against one INDEX_URL</td><td>one download, all ready</td></tr>
         </table>
         <h3>Stack to add</h3>
-        <p class="small">OpenTelemetry + Prometheus + Grafana (or Datadog), Sentry, Redis, S3 for artifacts, k6, hypothesis, trivy and pip-audit in CI, Playwright, a nightly eval job. Nothing here changes the service code's shape: the stages already have boundaries, ids and timings to hang all of it on.</p>
+        <p class="small">OpenTelemetry + Prometheus + Grafana (or Datadog), Sentry, Redis, S3 for artifacts, k6, hypothesis, trivy and pip-audit in CI, Playwright, a nightly eval job. Nothing here changes the shape of the service code: the stages allready have boundaries, ids and timings to hang all of it on.</p>
       </div>
     </div>
   </div>
@@ -766,7 +766,7 @@ scripts/          evaluate, benchmark, fixture
 notebooks/        data exploration, executed
 docs/             prd, adr/ (14), design notes,
                   evaluation, exploration, diagram
-tests/            392 tests + 486 row fixture
+tests/            394 tests + 486 row fixture
 Dockerfile  railway.toml  Makefile  ci.yml</pre>
       </div>
       <div>

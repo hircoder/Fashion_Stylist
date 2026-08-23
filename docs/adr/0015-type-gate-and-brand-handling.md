@@ -3,7 +3,8 @@
 Status: accepted
 
 ## Context
-Two failure modes showed up in the evaluation once the rules matched whole words. A query
+Two failure modes showed up in the evaluation once the rules matched whole words (they
+didnt before, substring matching hid both). A query
 like "running shoes with arch support for flat feet" filled the shoes slot with insoles:
 every channel scores "arch support flat feet" higher than "running shoes", and a 0.5 unit
 keyword boost cannot lift a shoe above twenty insoles. And "nike running shoes" came back
@@ -26,7 +27,7 @@ nothing downstream used it.
 ## Why
 * Masks before top-N already hold for audience and price; product type is the third
   hard constraint of a slot and the one users notice first.
-* The planner's keywords are the cheapest, most reliable type signal available without a
+* The planners keywords are the cheapest, most reliable type signal available without a
   product taxonomy (the dataset has none). They are trusted only when the planner is the
   LLM; the regex planner's keywords are just query words.
 * A brand is a strong constraint but the catalog coverage per brand is thin (one Levi's
@@ -38,7 +39,7 @@ nothing downstream used it.
   the brand queries from 1 of 4 on-brand to 3 to 4 of 4 where the catalog has the items.
 * Titles that never name their type (model names only) can be gated out; the gate only
   bites when k typed alternatives exist, and the warning names the slot.
-* The accessory list is a small curated regex; a title classifier is the next step.
+* The accessory list is a small hand kept regex; a title classifier is the next step.
 
 ## Alternatives considered
 A bigger keyword boost (no: a boost cannot overturn twenty strong scores), brand as a

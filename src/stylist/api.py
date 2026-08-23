@@ -192,7 +192,7 @@ class _SecurityHeaders:
 class _BodyLimit:
     """Pure ASGI middleware: 413 for request bodies above `max_bytes`. Content-Length is
     checked first; chunked bodies are buffered up to the cap (request bodies here are a
-    few hundred bytes of json)."""
+    couple hundred bytes of json)."""
 
     def __init__(self, app, max_bytes: int):
         self.app = app

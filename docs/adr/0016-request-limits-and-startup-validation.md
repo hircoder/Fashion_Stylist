@@ -27,12 +27,12 @@ boot, and the same code serves a public page.
 
 ## Why
 The limits are the second line behind the edge, cheap, and they make the cost of a burst
-bounded and visible. Fail-closed index loading is the one invariant a retrieval system
+bounded and visable. Fail-closed index loading is the one invariant a retrieval system
 cannot recover from at request time: an embedding row next to the wrong product row is a
 silent wrong answer, not an error.
 
 ## Consequences
-* A client behind a shared NAT shares one bucket; the limits are deliberately loose
+* A client behind a shared NAT shares one bucket; the limits are delibarately loose
   (60 a minute) and can be switched off.
 * A locally built index must carry the pinned revision; `make index` records it.
 * The lock file next to the index directory stays forever (removing it would let a late

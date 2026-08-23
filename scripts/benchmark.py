@@ -3,7 +3,7 @@
 usage: uv run python scripts/benchmark.py --index-dir data/index \
            [--concurrency 1,2,4] [--requests 40] [--device cpu]
 
---device cpu makes the laptop numbers comparable with a CPU-only container.
+--device cpu makes the laptop numbers compareable with a CPU-only container.
 """
 
 from __future__ import annotations

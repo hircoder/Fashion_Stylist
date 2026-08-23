@@ -1,7 +1,7 @@
 """Ingest the raw Amazon Fashion metadata into a flat, typed catalog (parquet).
 
 Everything that touches the raw records lives here: price parsing, the audience
-heuristic (the dataset has no usable category taxonomy, `categories` is empty for
+heuristic (the dataset has no useable category taxonomy, `categories` is empty for
 every row), the grouping key used to collapse size/colour variants at query time,
 and the text that gets embedded / indexed.
 

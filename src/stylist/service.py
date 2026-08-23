@@ -168,7 +168,7 @@ class RecommendationService:
             self._plan_inflight[key] = inflight
             inflight.add_done_callback(lambda _f: self._plan_inflight.pop(key, None))
             # the shared call outlives a waiter that gave up: when it succeeds its plan is
-            # cached for the next request even if nobody is left waiting for it
+            # cached for the next request even if noone is left waiting for it
             inflight.add_done_callback(lambda f: self._cache_shared_result(key, f))
         try:
             plan = await asyncio.wait_for(asyncio.shield(inflight), timeout=budget)

@@ -202,7 +202,7 @@ def keyword_matches(title: str, keywords: list[str]) -> list[str]:
 
 
 # things sold FOR a product type that carry its name in the title: a head-noun match
-# alone ("shoe" in "Shoe Insoles") must not count as the product itself
+# alone ("shoe" in "Shoe Insoles") shouldnt count as the product itself
 _ACCESSORY_RX = re.compile(
     r"\b(insoles?|inserts?|laces?|shoelaces?|polish|cleaner|protector|stretcher|shoe ?horn|"
     r"shoe ?trees?|deodori[sz]er|organi[sz]er|hangers?|racks?|covers?|cases?|bags?|liners?|"

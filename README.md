@@ -42,10 +42,10 @@ put a key in `.env` (copy `.env.example`):
 ```
 ANTHROPIC_API_KEY=sk-ant-...      # or OPENAI_API_KEY=sk-...
 LLM_MODEL=claude-sonnet-4-6       # optional. the default is the model every number here was measured with
-LLM_RERANK_MODEL=claude-haiku-4-5-20251001   # optional. a cheaper model for the per-slot rerank calls
+LLM_RERANK_MODEL=claude-haiku-4-5-20251001   # optional, a cheaper model for the per-slot rerank calls
 ```
 
-(the response always tells you which model ran, how many calls it took and how many
+(the response always tells you wich model ran, how many calls it took and how many
 tokens they used, in `llm_info`.)
 
 ## The real catalog
@@ -84,7 +84,7 @@ Online, one request goes trough four stages:
    A named brand is ranked on its own first (a hard filter when it has enough rows of
    the right type, a preference with a warning otherwise), and for LLM plans a type gate
    keeps insoles out of a running shoes slot: once k candidates carry a type word in the
-   title, off-type rows are dropped.
+   title, off-type rows get dropped.
 3. **Rerank.** One LLM call per slot, in parallel, with up to 10 candidates each. It
    returns ordered picks with a short reason and the fields it relied on. Everything it
    says is validated against the candidate set and the product type; a slot is only ever
@@ -342,14 +342,14 @@ parts never exceed the total.
 
 **Product type is a hard constraint, like price.** The first evaluation with whole-word
 rules showed "running shoes for flat feet" filled with insoles: every channel scores
-"arch support flat feet", and no boost lifts a shoe above twenty insoles. So for LLM
+"arch support flat feet", and no boost lifts a shoe over twenty insoles. So for LLM
 plans (whose keywords are curated type synonyms) retrieval gates on type once k matches
 exist, the head noun of a keyword counts ("rain jacket" accepts any jacket), an accessory
 word before or right after the type word vetoes ("Shoe Insoles"), and the reranker's
 picks go through the same rule. A named brand gets its own ranking pass first; with fewer
 than k rows of the right type it degrades to a preference and the response says so.
-match@k on the 28 query set went from 0.83 to about 0.89, brand queries from 1 of 4
-on-brand to 3 or 4 of 4 where the catalog has the items (ADR-0015).
+match@k on the 28 query set went from 0.83 to about 0.89, and the brand queries from 1 of 4
+on-brand to 3 or 4 of 4 where the catalog actualy has the items (ADR-0015).
 
 **LLM reranker, one call per slot.** It sees compact json (title, price or null, rating,
 audience, material/colour/style when present, matched keywords) and is told type fit
@@ -357,7 +357,7 @@ comes first, then occasion, then price, then ratings. Output tokens dominate lat
 the five slots of an outfit run as five parallel calls and a failing slot doesn't take the
 others down. Catalog text is labelled as untrusted data in the prompt, the request itself
 is passed as json data, every id the model returns is checked against the candidates and
-the product type, reasons are link-stripped and capped at 20 words, and the evidence
+the product type, reasons are link-striped and capped at 20 words, and the evidence
 fields are checked against what the candidate actually carried. Why not a cross-encoder
 in the hot path: it can't reason about "for my 6 year old" or "200 total", and it doesn't
 write the reasons; as the sub-second path in `docs/production.md` it is the right tool.
@@ -380,7 +380,7 @@ conversational ones and 8 brand requests) through several configurations on thre
 indexes. The main number, `match@k`, is the share of returned items whose title passes a
 hand written product-type rule for its slot (the "sandals" slot of the beach query
 accepts sandal / flip flop / slide / espadrille; a brand rule needs the brand and the
-type). I wrote the rules before looking at any output so i couldnt cheat. It is a
+type). I wrote the rules before looking at any output so i couldnt cheat. Its a
 regression check for "is this even the right kind of product", not a relevance
 judgement, and it is blind to style, so read it as a floor. Every llm configuration uses
 the same 28 plans on every index, so the comparisons are paired. Details, the other
@@ -410,7 +410,7 @@ channels are within two points and hybrid is kept becuase bm25 is the channel th
 carries a brand token. The reranker adds about a point of type-match on the same plans;
 its job is the constraints, the reasons and keeping off-type items out. The full catalog
 beats the 100K subsets on the same plans (0.935 vs 0.885): the default index is not
-losing product type, it loses specific brands (no Levi's jeans, three Columbia fleeces)
+losing product type, it looses specific brands (no Levi's jeans, three Columbia fleeces)
 and the long tail, the trade it makes for a 3 minute build and 1 GB of memory.
 
 ## Deployment
@@ -425,13 +425,13 @@ the container an index through a volume at `/app/data` or through `INDEX_URL` +
 https host, size capped, checksum verified, extracted with member and path checks,
 validated by the same loader the service uses, and swapped in under a lock).
 
-Limits and knobs that matter once it faces traffic (all environment variables, defaults
+Limits and knobs that matter once it faces real traffic (all env variables, defaults
 in brackets): `RATE_LIMIT_PER_MINUTE` [60] per client with a burst of a sixth of it,
 `MAX_INFLIGHT_REQUESTS` [16], `MAX_BODY_BYTES` [16384], `LLM_CONCURRENCY` [8],
 `REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20],
 `TRUST_PROXY_HEADERS` [off; the container image sets it, so the client ip comes from the
 proxy's x-forwarded-for], `CORS_ALLOW_ORIGINS` [none], `STARTUP_FAIL_FAST` [off],
-`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizing
+`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizeing
 numbers behind the defaults.
 
 `railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
@@ -465,7 +465,7 @@ make lint
 
 The fast suite uses a determinstic hashed-ngram embedder and a scripted fake LLM, and
 covers: price parsing and the audience heuristic, plan normalisation (slot caps, budget
-splits, keyword cleanup, brand), masks and fusion, the type gate and the brand pass,
+splits, keyword cleanup, brand), masks and fusion, the type gate and brand pass,
 variant grouping, every LLM failure class falling back correctly, reranker output
 validation (unknown ids, duplicates, off-type picks, a slot that fails while the others
 succeed, reasons stripped of links), cross-slot uniqueness, deadlines (a stuck planner, a
@@ -476,7 +476,7 @@ missing columns, pickled arrays), artifact installs (archive bombs, private host
 indexes, locks), the CLI, the evaluation scorer, and the regressions from two audit
 rounds. `make test-all` adds the real embedding model and, with a key, one live LLM round
 trip. CI runs the suite, ruff, bandit, pip-audit, a docker smoke test against the fixture
-data and a check that `ui/dist` matches the UI sources.
+data and a check that `ui/dist` still matches the UI sources.
 
 ## Repository layout
 
@@ -511,8 +511,8 @@ tests/            pytest suite + the 486 row fixture
 * `docs/design-notes.md`: the longer narrative behind the decisions.
 * `docs/exploration.md`: the notebook, the scripts, and the prompt experiments in order.
 * `docs/evaluation.md`: every number with its caveats.
-* `docs/production.md`: measured latency, throughput and cost, the economics at scale,
-  how to get under a second, the recommended production setup, guardrails and
+* `docs/production.md`: measured latency, throughput and cost, what it costs at scale,
+  how to get under a second, the recomended production setup, guardrails and
   observability, gaps with a dated plan, the tests still to run.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
   data flow (16 slides, agenda on the left).

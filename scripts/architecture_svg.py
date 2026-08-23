@@ -234,7 +234,7 @@ off.append(
         colx(2),
         lane1_y + 46,
         BW,
-        small="bad lines skipped and counted; written to a temp file then renamed; ~30 s",
+        small="bad lines skipped and counted, written to a temp file then renamed; ~30 s",
     )
 )
 off.append(
@@ -268,7 +268,7 @@ off.append(
         lane1_y + 46,
         BW,
         kind="store",
-        small="Railway: INDEX_URL + INDEX_SHA256, verified and unpacked at boot",
+        small="Railway: INDEX_URL + INDEX_SHA256, verifed and unpacked at boot",
     )
 )
 h1 = max(b.h for b in off)

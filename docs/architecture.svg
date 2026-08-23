@@ -52,7 +52,7 @@
 <text x="620.6666666666667" y="314" class="t">doc_text = title | features |</text>
 <text x="620.6666666666667" y="330" class="t">department, material, style,</text>
 <text x="620.6666666666667" y="347" class="t">colour, brand | store</text>
-<text x="620.6666666666667" y="366" class="s">bad lines skipped and counted; written</text>
+<text x="620.6666666666667" y="366" class="s">bad lines skipped and counted, written</text>
 <text x="620.6666666666667" y="381" class="s">to a temp file then renamed; ~30 s</text>
 <rect x="893.0000000000001" y="138" width="218.33333333333334" height="256" rx="4" fill="#f4f4f4" stroke="#111" stroke-width="1.3"/>
 <text x="905.0000000000001" y="163" class="h">catalog.parquet</text>
@@ -89,8 +89,8 @@
 <text x="1473.666666666667" y="316" class="t">+ revision, dim, counts, sampling,</text>
 <text x="1473.666666666667" y="332" class="t">checksums</text>
 <text x="1473.666666666667" y="352" class="s">Railway: INDEX_URL +</text>
-<text x="1473.666666666667" y="366" class="s">INDEX_SHA256, verified and</text>
-<text x="1473.666666666667" y="380" class="s">unpacked at boot</text>
+<text x="1473.666666666667" y="366" class="s">INDEX_SHA256, verifed and unpacked</text>
+<text x="1473.666666666667" y="380" class="s">at boot</text>
 <path d="M 543 266 L 608 266" class="line"/>
 <rect x="558" y="237" width="34" height="14" fill="#fff" opacity="0.95"/><text x="576" y="247" class="lbl" text-anchor="middle">json</text>
 <rect x="555" y="250" width="41" height="14" fill="#fff" opacity="0.95"/><text x="576" y="260" class="lbl" text-anchor="middle">lines</text>

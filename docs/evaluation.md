@@ -1,7 +1,8 @@
 # Evaluation
 
 What this measures, honestly: whether the service returns the *right kind of product*
-(and, for brand queries, the right brand) for each slot of 28 human style queries. It does
+(and, for brand queries, the right brand) for each slot of 28 human style queries. Thats
+it. It does
 not measure taste and it has no human relevance labels. Treat every number below as a
 regression diagnostic, not as accuracy.
 
@@ -10,7 +11,7 @@ regression diagnostic, not as accuracy.
 * Queries: `scripts/eval_queries.json`. 20 requests written the way people type ("what
   should my husband wear to an outdoor wedding in june", "something to keep my ears warm
   in winter", "white sneakers under $40") plus 8 brand requests ("nike running shoes for
-  men", "levi's jeans for men"). For each query the expected slots and a rule per slot were
+  men", "levi's jeans for men"). For each query the expected slots and a rule per slot where
   written before running anything: `any` = at least one of these words must appear in the
   title (whole words, plural tolerant), `none` = none of these may, `all` = one of these
   must (the brand, so a branded sock never passes a jeans slot).
@@ -20,7 +21,7 @@ regression diagnostic, not as accuracy.
     overlap; a slot the planner invented that has no rule ("beach bag" in the beach
     query) is scored against the union of the query's rules, which keeps the forbidden
     words and the brand requirement. Those slots are counted in `unmapped`, about 20 of
-    65 slots on every index, and they make the LLM configs look a little worse than they
+    65 slots on every index, and they make the LLM configs look a bit worse then they
     are.
   * `macro`: the same rate averaged per query, with a percentile bootstrap 95% interval
     over queries. A failed request or an all-empty answer counts as zero.
@@ -141,7 +142,7 @@ paired differences on the same queries (mean of per-query match rate, 95% bootst
 
 ## What the numbers say
 
-* The planner is the feature. The raw sentence gets 0.63 to 0.75 on hybrid retrieval;
+* The planner is the feature here. The raw sentence gets 0.63 to 0.75 on hybrid retrieval;
   the planner's listing-style queries lift every index to 0.88 to 0.94 and give the
   outfit queries their slots (recall 0.88: the planner skips one expected slot in about
   one query in eight, typically "sunglasses" for "beach bag").
@@ -186,7 +187,7 @@ response says so in a warning and shows the product type from other brands.
 ## Caveats, so nobody over-reads this
 
 * 28 queries is enough to catch a regression of 5 points or more and not enough to
-  rank two configurations that differ by 2; the intervals say so.
+  rank two configurations that differ by 2, the intervals say so.
 * The rules check titles. A correct product whose title never names its type (model
   names only) fails the rule, and a wrong product that mentions the type word passes.
   `mapped precision` of 0.91 to 0.98 is therefore an upper bound on precision and a
@@ -197,6 +198,6 @@ response says so in a warning and shows the product type from other brands.
 * Everything was measured on one machine (M4 laptop) against one provider endpoint;
   latency columns describe that setup only. `docs/production.md` has the throughput and
   cost measurements.
-* There is no human judgement anywhere in this. The next step in `docs/production.md`
+* Theres no human judgement anywhere in this. The next step in `docs/production.md`
   (200 labelled queries, nDCG, a calibrated LLM judge) is the step that turns these into
   relevance numbers.
