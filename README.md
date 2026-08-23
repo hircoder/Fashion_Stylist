@@ -318,34 +318,43 @@ per-slot rerank calls, which is where most of the tokens go.
 
 ## Evaluation
 
-`scripts/evaluate.py` runs 20 human style queries (`scripts/eval_queries.json`) through
-several configurations. The main number, `keyword_match@k`, is the share of returned items
-whose title passes a hand written product-type rule for its slot (e.g. the "sandals" slot
-of the beach query accepts sandal / flip flop / slide / espadrille). I wrote the rules
-before looking at any output so i couldnt cheat. It is a regression check for "is this even the right kind
-of product", not a relevance judgement, and it is blind to style, so read it as a floor.
-Details, per query tables and the caveats are in `docs/evaluation.md`.
+`scripts/evaluate.py` runs 28 human style queries (`scripts/eval_queries.json`, 20
+conversational ones and 8 brand requests) through several configurations on three
+indexes. The main number, `match@k`, is the share of returned items whose title passes a
+hand written product-type rule for its slot (the "sandals" slot of the beach query
+accepts sandal / flip flop / slide / espadrille; a brand rule needs the brand and the
+type). I wrote the rules before looking at any output so i couldnt cheat. It is a
+regression check for "is this even the right kind of product", not a relevance
+judgement, and it is blind to style, so read it as a floor. Every llm configuration uses
+the same 28 plans on every index, so the comparisons are paired. Details, the other
+metrics (macro average with bootstrap intervals, mapped precision, slot recall, strict
+query success, paired deltas), per index tables and the caveats are in `docs/evaluation.md`.
 
 | config (what runs) | popular 100K | random 100K | full 826K |
 |---|---|---|---|
-| bm25 only, regex planner | 0.463 | 0.575 | 0.588 |
-| dense only, regex planner | 0.787 | 0.812 | 0.838 |
-| hybrid, regex planner | 0.725 | 0.762 | 0.738 |
-| hybrid, LLM planner | 0.882 | 0.873 | 0.895 |
-| dense only, LLM planner | 0.886 | n/a | 0.917 |
-| hybrid, LLM planner + LLM rerank (the default path) | 0.915 | 0.871 | 0.893 |
+| bm25 only, regex planner | 0.500 | 0.562 | 0.652 |
+| dense only, regex planner | 0.696 | 0.696 | 0.786 |
+| hybrid, regex planner | 0.625 | 0.679 | 0.750 |
+| hybrid, LLM planner | 0.881 | 0.881 | 0.935 |
+| dense only, LLM planner | 0.862 | 0.877 | 0.923 |
+| hybrid, LLM planner + LLM rerank (the default path) | 0.885 | 0.885 | 0.935 |
 
-`keyword_match@k` with k=4 per slot, 20 queries, `claude-sonnet-4-6`. Full pipeline p50
-latency was ~10 s on all three indexes, retrieval alone p50 32 ms (100K) and 113 ms
-(full). Zero empty slots and zero price violations in every run.
+`match@k` with k=4 per slot, `claude-sonnet-4-6`, prompt version 2, code at the commit
+in each json file. Zero empty slots and zero price violations in every run. Full
+pipeline p50 about 5.5 s with a warm plan cache and 11.5 s cold (plan 4 to 7 s, rerank
+5 to 7 s in parallel across slots); retrieval alone p50 22 ms (100K, cpu) and 110 ms
+(full). The macro average of the full pipeline is 0.857 (95% interval 0.76 to 0.94) on
+the default index and 0.967 (0.94 to 0.99) on the full catalog.
 
-Reading it: the LLM planner is what makes the conversational queries work (raw sentence
-in, the regex planner gets 0.73; product-style queries from the LLM get 0.88), and bm25 on
-its own is not usable for this kind of query. Hybrid vs dense-only is a wash on this
-metric with the regex planner and i kept hybrid becuase it protects brand and exact
-phrase queries that the 20 queries under-represent. The popular 100K default is not losing product type vs the full catalog (0.915 vs
-0.893 with the full pipeline, run to run noise is about 2 points), what it loses is priced
-items and the long tail.
+Reading it: the LLM planner is what makes the conversational queries work (the raw
+sentence gets 0.63 to 0.75 on hybrid retrieval, the planner's product-style queries
+0.88 to 0.94). bm25 on its own is not usable for sentences; under the planner the two
+channels are within two points and hybrid is kept becuase bm25 is the channel that
+carries a brand token. The reranker adds about a point of type-match on the same plans;
+its job is the constraints, the reasons and keeping off-type items out. The full catalog
+beats the 100K subsets on the same plans (0.935 vs 0.885): the default index is not
+losing product type, it loses specific brands (no Levi's jeans, three Columbia fleeces)
+and the long tail, the trade it makes for a 3 minute build and 1 GB of memory.
 
 ## Deployment
 
