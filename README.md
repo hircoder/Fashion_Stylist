@@ -295,7 +295,7 @@ regex planner made the plan. The full request schema (with every knob) is at `/d
 
 The UI is the same call with product cards:
 
-![ui](docs/ui-beach.png)
+![ui](docs/ui-beach.jpg)
 
 ## Design decisions and trade-offs
 
