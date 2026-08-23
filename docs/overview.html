@@ -43,7 +43,7 @@
   #agenda { position: fixed; top: 14px; left: 14px; width: 208px; background: #fff; border: 1px solid #111; z-index: 20; font-size: 12px; }
   #agenda .ttl { display: block; padding: 5px 8px 4px; font-weight: 700; text-decoration: none; border-bottom: 1px solid #111; letter-spacing: .02em; }
   #agenda .ttl span { float: right; font-weight: 400; color: #666; font-variant-numeric: tabular-nums; }
-  #agenda .bar { height: 4px; background: #e6e6e6; } #agenda .bar i { display: block; height: 100%; width: 7%; background: #111; transition: width .4s ease; }
+  #agenda .bar { height: 4px; background: #e6e6e6; } #agenda .bar i { display: block; height: 100%; width: 6%; background: #111; transition: width .4s ease; }
   #agenda table { margin: 0; font-size: 12px; }
   #agenda td { padding: 2px 6px; border-bottom: 1px solid #eee; line-height: 1.4; }
   #agenda td.n { width: 22px; color: #888; text-align: right; font-variant-numeric: tabular-nums; }
@@ -95,10 +95,10 @@
 </style>
 </head>
 <body>
-<div id="pos">1 / 15</div>
+<div id="pos">1 / 16</div>
 <button id="agenda-toggle" type="button" aria-controls="agenda" aria-expanded="false">agenda</button>
 <nav id="agenda" aria-label="agenda">
-  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 15</span></a>
+  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 16</span></a>
   <div class="bar"><i id="ag-bar"></i></div>
   <table>
     <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">Overview</a></td></tr>
@@ -113,16 +113,17 @@
     <tr data-s="9"><td class="n">10</td><td><a class="row" href="#s10">Evaluation</a></td></tr>
     <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">Production numbers</a></td></tr>
     <tr data-s="11"><td class="n">12</td><td><a class="row" href="#s12">Production setup</a></td></tr>
-    <tr data-s="12"><td class="n">13</td><td><a class="row" href="#s13">Guardrails and observability</a></td></tr>
-    <tr data-s="13"><td class="n">14</td><td><a class="row" href="#s14">Gaps and next actions</a></td></tr>
-    <tr data-s="14"><td class="n">15</td><td><a class="row" href="#s15">Files and deployment</a></td></tr>
+    <tr data-s="12"><td class="n">13</td><td><a class="row" href="#s13">Under one second</a></td></tr>
+    <tr data-s="13"><td class="n">14</td><td><a class="row" href="#s14">Guardrails and observability</a></td></tr>
+    <tr data-s="14"><td class="n">15</td><td><a class="row" href="#s15">Gaps and next actions</a></td></tr>
+    <tr data-s="15"><td class="n">16</td><td><a class="row" href="#s16">Files and deployment</a></td></tr>
   </table>
   <div class="hint">Arrow keys or scroll. On slide 5, left / right step the flow.</div>
 </nav>
 
 <section class="slide" id="s1">
   <div class="inner fade">
-    <div class="no">1 / 15 &middot; Take-home project</div>
+    <div class="no">1 / 16 &middot; Take-home project</div>
     <h1><a class="tl" href="#s1">Fashion Stylist: a semantic recommendation service</a></h1>
     <p>The brief: a small service that takes a sentence like the one below, works out what the person actually needs, and finds it in the Amazon Fashion catalog (826,108 listings) using semantic search and an LLM. Exposed as an API. This page is the short version; the README, the PRD, the decision records and the evaluation doc in <code>docs/</code> have the long one.</p>
     <p class="small">shopper types:</p>
@@ -140,7 +141,7 @@
 
 <section class="slide" id="s2">
   <div class="inner fade">
-    <div class="no">2 / 15 &middot; Scope and business case</div>
+    <div class="no">2 / 16 &middot; Scope and business case</div>
     <h2><a class="tl" href="#s2">Scope and business case</a></h2>
     <p>A catalog search box understands product words. "I need an outfit to go to the beach this summer" has none, and the budget, the audience or the occasion hiding in a sentence get dropped by keyword search. The business value of fixing that: one search box that accepts situations, bundles instead of single items, and answers that explain themselves so the product team can trust and debug them.</p>
     <p>I wrote a short PRD first (<code>docs/prd.md</code>) and kept it honest as the data pushed back. The requirements and how each one is met:</p>
@@ -159,7 +160,7 @@
 
 <section class="slide" id="s3">
   <div class="inner fade">
-    <div class="no">3 / 15 &middot; Data</div>
+    <div class="no">3 / 16 &middot; Data</div>
     <h2><a class="tl" href="#s3">Data: what the catalog contains and what it lacks</a></h2>
     <p>I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (<code>categories</code>, <code>bought_together</code>): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.</p>
     <div class="two">
@@ -186,7 +187,7 @@
 
 <section class="slide" id="s4">
   <div class="inner fade">
-    <div class="no">4 / 15 &middot; Exploration</div>
+    <div class="no">4 / 16 &middot; Exploration</div>
     <h2><a class="tl" href="#s4">Exploration: scripts, notebooks and prompt experiments</a></h2>
     <div class="two">
       <div>
@@ -225,7 +226,7 @@
 
 <section class="slide" id="s5">
   <div class="inner wide fade">
-    <div class="no">5 / 15 &middot; Architecture, one request animated</div>
+    <div class="no">5 / 16 &middot; Architecture, one request animated</div>
     <h2><a class="tl" href="#s5">Architecture and data flow</a></h2>
     <div class="stage" id="stage">
       <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
@@ -269,7 +270,7 @@
 
 <section class="slide" id="s6">
   <div class="inner wide fade">
-    <div class="no">6 / 15 &middot; Design decisions</div>
+    <div class="no">6 / 16 &middot; Design decisions</div>
     <h2><a class="tl" href="#s6">Design decisions and their rationale</a></h2>
     <p class="small">One line each here; each has a full record in <code>docs/adr/</code> (context, decision, why, consequences, alternatives).</p>
     <table>
@@ -293,7 +294,7 @@
 
 <section class="slide" id="s7">
   <div class="inner fade">
-    <div class="no">7 / 15 &middot; Technology stack</div>
+    <div class="no">7 / 16 &middot; Technology stack</div>
     <h2><a class="tl" href="#s7">Technology stack</a></h2>
     <table>
       <tr><td>Python 3.12, FastAPI, pydantic</td><td>typed request and response models, OpenAPI at <code>/docs</code> for free, async pipeline, <code>/health</code> and <code>/ready</code></td></tr>
@@ -309,7 +310,7 @@
 
 <section class="slide" id="s8">
   <div class="inner fade">
-    <div class="no">8 / 15 &middot; Capabilities</div>
+    <div class="no">8 / 16 &middot; Capabilities</div>
     <h2><a class="tl" href="#s8">Features and capabilities</a></h2>
     <ul>
       <li>Outfit decomposition: "what to wear to an outdoor wedding" becomes shirt, pants, blazer, shoes, tie. A single item request stays one slot.</li>
@@ -327,7 +328,7 @@
 
 <section class="slide" id="s9">
   <div class="inner fade">
-    <div class="no">9 / 15 &middot; Sample results</div>
+    <div class="no">9 / 16 &middot; Sample results</div>
     <h2><a class="tl" href="#s9">Sample results</a></h2>
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
@@ -407,7 +408,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s10">
   <div class="inner wide fade">
-    <div class="no">10 / 15 &middot; Evaluation</div>
+    <div class="no">10 / 16 &middot; Evaluation</div>
     <h2><a class="tl" href="#s10">Evaluation and quality</a></h2>
     <div class="two">
       <div>
@@ -442,7 +443,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s11">
   <div class="inner wide fade">
-    <div class="no">11 / 15 &middot; Production numbers</div>
+    <div class="no">11 / 16 &middot; Production numbers</div>
     <h2><a class="tl" href="#s11">Latency, throughput and cost, measured</a></h2>
     <div class="two">
       <div>
@@ -489,7 +490,7 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s12">
   <div class="inner wide fade">
-    <div class="no">12 / 15 &middot; Production deployment</div>
+    <div class="no">12 / 16 &middot; Production deployment</div>
     <h2><a class="tl" href="#s12">Recommended production setup</a></h2>
     <div class="two">
       <div>
@@ -529,8 +530,45 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s13">
   <div class="inner wide fade">
-    <div class="no">13 / 15 &middot; Guardrails, observability, reliability</div>
-    <h2><a class="tl" href="#s13">Guardrails, observability, fallback and monitoring</a></h2>
+    <div class="no">13 / 16 &middot; Under one second</div>
+    <h2><a class="tl" href="#s13">Getting the total under one second</a></h2>
+    <p>97% of the 11.5 s is two LLM calls that run one after the other. Tuning them does not reach one second; taking them out of the synchronous path does. Each rung below is independent and measurable on the eval set before it ships.</p>
+    <div class="two">
+      <div>
+        <table>
+          <tr><th>rung</th><th>what changes</th><th class="r">plan</th><th class="r">rerank</th></tr>
+          <tr><td>1. plan cache + prompt caching (in the code)</td><td>repeat queries cost nothing to plan; misses still pay</td><td class="r">0 ms / 5 s</td><td class="r">5.9 s</td></tr>
+          <tr><td>2. semantic plan cache</td><td>embed the query (5 ms, model already loaded), reuse the nearest plan at cosine &gt;= 0.92; Zipf traffic gives 60 to 80% hits</td><td class="r">5 ms / 5 s</td><td class="r">5.9 s</td></tr>
+          <tr><td>3. distilled planner</td><td>Qwen2.5-1.5B or Llama-3.2-3B fine-tuned on 10 to 20K (request, plan json) pairs generated by the current planner, vLLM on one L4 GPU; 1 to 2 s on CPU with a 4-bit build</td><td class="r">150 to 300 ms</td><td class="r">5.9 s</td></tr>
+          <tr><td>4. cross-encoder reranker</td><td>bge-reranker-v2-m3 or MiniLM-L6 over 50 (query, title + attributes) pairs; constraints stay in the masks; reasons from the deterministic template or generated after the response over SSE</td><td class="r">150 to 300 ms</td><td class="r">60 to 120 ms</td></tr>
+          <tr><td>5. offline enrichment</td><td>LLM once per catalog row at index time (type, occasion, season, style, audience); $100 to $800 one-off for 826K rows; the type gate becomes exact</td><td class="r">same</td><td class="r">same, better</td></tr>
+          <tr><td>6. retrieval</td><td>pre-tokenised bm25, int8 embeddings, HNSW only past a million rows</td><td class="r">130 to 40 ms</td><td class="r"></td></tr>
+        </table>
+        <p class="small">After rung 4: plan 10 to 300 ms + retrieval 40 to 130 ms + rerank 60 to 120 ms + select 1 ms = p50 about 250 to 600 ms, p95 under a second, about $0.001 per request with the GPU amortised.</p>
+      </div>
+      <div>
+        <h3 style="margin-top:0">What it costs in quality, and how to keep it</h3>
+        <ul>
+          <li>The large model's judgement on unusual requests and its written reasons go out of the hot path. Keep that path as a background refinement ("better picks in 8 s", pushed over SSE) and as the generator of the distillation data.</li>
+          <li>Gate every rung on the eval set: the distilled planner ships when slot recall and mapped precision are within 3 points of Sonnet's; the cross-encoder when match@k on the 28 queries is within 2 points of the LLM reranker.</li>
+          <li>Streaming alone (per-slot SSE) puts the first products on screen in about 200 ms with no ranking change; it is the cheapest perceived-latency win and needs only the UI and one endpoint.</li>
+        </ul>
+        <h3>Order of work</h3>
+        <ol>
+          <li>SSE partial results and the semantic plan cache (2 days, no new model).</li>
+          <li>Cross-encoder reranker behind a flag, compared on the eval set (3 days).</li>
+          <li>Distillation set from logged plans, fine-tune, vLLM deployment (1 to 2 weeks).</li>
+          <li>Offline enrichment as a catalog build step (1 week, mostly pipeline work).</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s14">
+  <div class="inner wide fade">
+    <div class="no">14 / 16 &middot; Guardrails, observability, reliability</div>
+    <h2><a class="tl" href="#s14">Guardrails, observability, fallback and monitoring</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Guardrails in place today</h3>
@@ -569,10 +607,10 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
   </div>
 </section>
 
-<section class="slide" id="s14">
+<section class="slide" id="s15">
   <div class="inner wide fade">
-    <div class="no">14 / 15 &middot; Gaps and next actions</div>
-    <h2><a class="tl" href="#s14">What is missing, and the plan to close it</a></h2>
+    <div class="no">15 / 16 &middot; Gaps and next actions</div>
+    <h2><a class="tl" href="#s15">What is missing, and the plan to close it</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Gaps, by impact</h3>
@@ -609,10 +647,10 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
   </div>
 </section>
 
-<section class="slide" id="s15">
+<section class="slide" id="s16">
   <div class="inner fade">
-    <div class="no">15 / 15 &middot; Files and deployment</div>
-    <h2><a class="tl" href="#s15">Repository structure, documentation and deployment</a></h2>
+    <div class="no">16 / 16 &middot; Files and deployment</div>
+    <h2><a class="tl" href="#s16">Repository structure, documentation and deployment</a></h2>
     <div class="two">
       <div>
 <pre>src/stylist/
