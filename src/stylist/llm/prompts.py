@@ -23,7 +23,9 @@ Fill every field of the schema. Rules:
 - slot.exclude_keywords: 0 to 4 lowercase title words that mark a DIFFERENT product type
   which often shares words with this one, so it can be pushed away: a swimsuit slot
   excludes ["cover up", "coverup", "cover-up"], a shirt slot might exclude ["jacket"],
-  a sandals slot ["sock"]. Leave it empty when nothing comes to mind.
+  a sandals slot ["sock"]. Never exclude a word that correct listings commonly contain
+  (cover-up listings usually say "swimsuit cover up", so a cover-up slot must not
+  exclude "swimsuit"). Leave it empty when nothing comes to mind.
 - audience: only when stated or clearly implied ("my husband" -> men, "my 6 year old
   daughter" -> girls, "for the baby" -> baby). Otherwise null.
 - occasion / season: short phrases when implied, else null.

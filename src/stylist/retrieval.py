@@ -31,7 +31,8 @@ from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
 from stylist.planner import QueryPlan, Slot, SlotWindow
 
-EXCLUDE_PENALTY = 2.0  # x keyword_boost, for titles matching a slot's exclude_keywords
+EXCLUDE_PENALTY = 1.0  # x keyword_boost: a title matching both a keyword and an exclude word
+# nets zero (ambiguous, let the reranker decide), one matching only the exclude word drops
 IN_WINDOW_BONUS = 0.25  # in units of RRF(rank 1), added to priced in-budget items when a
 # budget exists and unpriced items are also in play (half of the keyword boost)
 RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_number is 10; 20 = a
@@ -253,7 +254,7 @@ class Retriever:
             if c.matched_keywords:
                 c.score += self.s.keyword_boost * self._unit
             c.excluded_keywords = keyword_matches(c.title, slot.exclude_keywords)
-            if c.excluded_keywords:  # look-alike type: twice the boost, in the other direction
+            if c.excluded_keywords:  # look-alike type
                 c.score -= EXCLUDE_PENALTY * self.s.keyword_boost * self._unit
             quality = bayes_rating(c.average_rating, c.rating_number, prior=self.rating_prior)
             c.score += self.s.quality_weight * self._unit * (quality / 5.0)
