@@ -100,133 +100,190 @@ against the 100K index with `claude-sonnet-4-6`:
 
 ```
 query: I need an outfit to go to the beach this summer
-plan (llm): Complete beach outfit for summer
+plan (llm): Outfit for a beach day this summer
 
-[swimsuit]  search: women's swimsuit beach summer one piece or bikini
+[swimsuit]  search: women's swimsuit one piece or bikini summer beach
   1. SheIn Women's One Piece Swimsuit Sleeveless Asymmetrical Bikini Cut Out Monokini Orange La
      price n/a | 4.6 stars (26) | https://www.amazon.com/dp/B08R5YVDB9
-     Highest rating 4.6, women's one piece, beach summer style
+     High rating 4.6, women's one-piece monokini, beach summer style
   2. Dokotoo Womens Ladies Summer Beach Stripes Color Block One Piece Bathing Suit Swimsuit Mon
      price n/a | 4.3 stars (36) | https://www.amazon.com/dp/B01N5IB4AO
-     Strong 4.3 rating, beach summer stripes, women's one piece
+     Good rating 4.3, beach stripes color block one-piece, summer vibe
 
-[cover-up]  search: women's beach cover up summer dress lightweight
-  1. CASILY Womens Summer Beach Swimsuit Bikini Crochet Cover Up Dress White
-     price n/a | 4.4 stars (158) | https://www.amazon.com/dp/B07NSL9P68
-     Highest rating 4.4, crochet beach cover-up, women's summer beach style
-  2. Imagine Women's Summer Dress Strapless Floral Print Bohemian Casual Beach Dress Cover Ups 
+[cover-up]  search: women's beach cover up dress summer lightweight
+  1. Imagine Women's Summer Dress Strapless Floral Print Bohemian Casual Beach Dress Cover Ups 
      price n/a | 4.1 stars (3,453) | https://www.amazon.com/dp/B07R1XGJZ2
-     High rating 4.1, massive reviews, floral boho beach dress cover-up
+     High rating 4.1, 3453 ratings, floral boho beach style, women
+  2. Yonala Women's Summer Beach Wear Bikini Swimsuit Cover Up Swimwear Beach Dress,White, One 
+     price n/a | 4.1 stars (24) | https://www.amazon.com/dp/B0796L86KM
+     Rating 4.1, classic white beach cover-up, women's summer
 
-[sandals]  search: women's flat sandals beach summer open toe
-  1. Women's Gladiator Flat Sandal Summer Casual Wear PU Leather Open Toe Buckle Sandals
-     price n/a | 4.2 stars (195) | https://www.amazon.com/dp/B0931ZN49J
-     High rating, casual gladiator style, open toe, summer beach ready
-  2. Women Summer Sandals,Todaies Women Summer Bohemia Sweet Beaded Sandals Clip Toe Sandals Be
-     price n/a | 4.0 stars (23) | https://www.amazon.com/dp/B07BHKB627
-     Bohemia beaded style, beach shoes, decent rating, summer vibe
+[sandals]  search: women's beach sandals summer flat
+  1. Mu Dan Women's Thong Flat Gladiator Summer Sandals
+     price n/a | 4.0 stars (79) | https://www.amazon.com/dp/B01ESNNRZE
+     Flat gladiator sandal, women's, beach-ready, highest rating count
+  2. Amlaiworld Women Walking Sandals Summer Bohemia Sweet Beaded Sandals Comfortable Flat Beac
+     price n/a | 4.0 stars (35) | https://www.amazon.com/dp/B07QKFHWWB
+     Flat beach water sandal, bohemian summer style, solid rating
 
-[sun hat]  search: women's wide brim sun hat beach summer straw
-  1. Women's Sun Hat UPF50 Wide Brim Sun Hat Foldable Straw Hat Summer Hat for Women (Khaki)
-     price n/a | 4.1 stars (32) | https://www.amazon.com/dp/B094PVJG2P
-     Highest rating, UPF50, foldable straw, perfect for beach summer
-  2. Oversized Beach Hat, Sun Hat with Wide Brim, Foldable Straw Hat with Ribbon and Storage Ba
-     price n/a | 4.1 stars (33) | https://www.amazon.com/dp/B09Y1FTT6D
-     4.1 rating, oversized wide brim, foldable with ribbon, beach ready
+[sun hat]  search: women's sun hat beach summer wide brim
+  1. Sun Hat for Women Wide Brim Hat Sun Visor for Women UV Protection Summer Beach Fishing Hat
+     price n/a | 4.5 stars (22) | https://www.amazon.com/dp/B08FGPGK82
+     High rating, UV protection, wide brim, perfect beach summer style
+  2. Women's Large Wide Brim Floppy Straw Hat Summer Beach Sun Hat w/ Bow Ribbon
+     price n/a | 3.4 stars (84) | https://www.amazon.com/dp/B019WB49KY
+     Classic straw floppy hat, great beach summer look, variety in style
 
 [sunglasses]  search: women's sunglasses beach summer UV protection
   1. UV-BANS Polarized Aviator Sunglasses for Women Uv Protection, Round Sunglasses, Oversized 
      price n/a | 4.3 stars (60) | https://www.amazon.com/dp/B07CSQ5FVJ
-     Polarized, UV protection, multiple beach-ready styles, high rating
-  2. UV-BANS Women Polarized Sunglasses Classic Retro Cateye Frame 100% UV Protection Ladies Ch
-     price n/a | 4.0 stars (21) | https://www.amazon.com/dp/B07CSP3WJH
-     Classic cateye, polarized, 100% UV protection, women's beach style
+     Polarized, women's, multiple beach-ready styles, higher rating
+  2. LianSan Fashion Sunglasses for women oversized Uv400 Protection Women's Sunglasses 13038 (
+     price n/a | 3.9 stars (27) | https://www.amazon.com/dp/B00K3JSCB2
+     Oversized UV400, women's, fun purple color for beach
 
-note: Here's a stylish one-piece and a fun striped option perfect for your summer beach day! A chic crochet white cover-up and a flowy floral option to keep you beach-ready this summer! These sandals are perfect for a casual, bree ...
+note: Here are two lovely cover-ups to keep you stylish and sun-protected at the beach! Stay shaded in style with a UV-protective wide brim or a classic straw floppy hat! These stylish one-pieces are perfect for a fun summer beach day! These stylish shades will keep your eyes protected and beach-ready all summer! These cute flat sandals are perfect for strolling the beach this summer!
 
-timings: {'plan_ms': 6914.9, 'retrieve_ms': 211.3, 'rerank_ms': 4415.0, 'total_ms': 11541.5}  (planner=llm, rerank=True, index rows=100000)
+timings: {'plan_ms': 6698.5, 'retrieve_ms': 234.9, 'rerank_ms': 4623.6, 'total_ms': 11557.3}  (planner=llm, rerank=True, index rows=100000)
 ```
 
-Same thing over HTTP, trimmed to one slot:
+A single-item request over HTTP with an explicit per-item bound (so only items with a
+known price inside it are eligible), trimmed to two items:
 
 ```bash
 curl -s localhost:8000/recommend -H 'content-type: application/json' -d '{
-  "query": "warm waterproof boots for hiking in the snow, under $80",
-  "k": 2
+  "query": "warm waterproof boots for hiking in the snow",
+  "k": 2, "max_price": 80
 }'
 ```
 
 ```json
 {
-  "request_id": "506e3658087b",
-  "query": "warm waterproof boots for hiking in the snow, under $80",
+  "request_id": "40e5b9943aa4",
+  "query": "warm waterproof boots for hiking in the snow",
   "plan": {
-    "intent": "Find warm waterproof hiking boots suitable for snow under $80",
+    "intent": "Find warm waterproof boots suitable for hiking in snowy conditions",
     "audience": null,
-    "budget_max": 80.0,
-    "budget_scope": "per_item",
+    "season": "winter",
+    "budget_max": null,
+    "budget_scope": "unknown",
+    "brand": null,
     "source": "llm",
     "slots": [
       {
-        "name": "snow hiking boots",
-        "search_query": "waterproof insulated snow hiking boots winter",
+        "name": "hiking boots",
+        "search_query": "waterproof insulated snow hiking boots",
         "keywords": [
           "hiking boots",
           "snow boots",
           "winter boots",
-          "trail boots"
+          "trekking boots"
         ],
         "exclude_keywords": [
-          "sandal",
-          "slip-on",
-          "rain boot"
+          "rain boot",
+          "wellington",
+          "casual"
         ],
-        "budget_max": 80.0
+        "budget_max": null
       }
     ]
   },
   "slots": [
     {
-      "name": "snow hiking boots",
+      "name": "hiking boots",
+      "search_query": "waterproof insulated snow hiking boots",
+      "keywords": [
+        "hiking boots",
+        "snow boots",
+        "winter boots",
+        "trekking boots"
+      ],
+      "exclude_keywords": [
+        "rain boot",
+        "wellington",
+        "casual"
+      ],
+      "budget_max": 80.0,
       "n_eligible": 10,
+      "eligible_rows": 13181,
       "items": [
         {
           "rank": 1,
-          "title": "Eagsouni Men's Women's Snow Boots Fur Lined Winter Hiking Boots Anti-Slip Leather Shoes Trekking Trail Climbing Shoes Working Outdoor Booties Waterproof Warm",
-          "price": null,
-          "price_known": false,
-          "average_rating": 4.1,
-          "rating_number": 162,
-          "url": "https://www.amazon.com/dp/B07Y7F25ZZ",
-          "matched_keywords": [
-            "hiking boots",
-            "snow boots"
-          ],
-          "reason": "High rating 4.1, 162 ratings, unisex, fur-lined, anti-slip snow hiking boots",
+          "row_id": 272668,
+          "parent_asin": "B01MG8KYVS",
+          "title": "Karrimor Hot Rock Mens Walking Boots Waterproof Lace Up",
+          "price": 73.99,
+          "price_known": true,
+          "average_rating": 4.3,
+          "rating_number": 42,
+          "store": "Karrimor",
+          "audience": "men",
+          "image_url": "https://m.media-amazon.com/images/I/41gTZoB8cWL._AC_.jpg",
+          "url": "https://www.amazon.com/dp/B01MG8KYVS",
+          "score": 0.032881,
+          "matched_keywords": [],
+          "reason": "Waterproof hiking boot, within budget, good rating",
           "evidence": [
             "title",
+            "price",
             "rating",
-            "audience",
-            "keywords"
+            "features"
           ]
         },
-        "... 1 more"
+        {
+          "rank": 2,
+          "row_id": 24576,
+          "parent_asin": "B003VWBN46",
+          "title": "Nevados Men's Klondike Mid Waterproof Hiking Boot | Lightweight for Trail, Walking, Summer",
+          "price": 75.0,
+          "price_known": true,
+          "average_rating": 4.2,
+          "rating_number": 418,
+          "store": "Nevados",
+          "audience": "men",
+          "image_url": "https://m.media-amazon.com/images/I/41KQpNlBVPL._AC_.jpg",
+          "url": "https://www.amazon.com/dp/B003VWBN46",
+          "score": 0.037101,
+          "matched_keywords": [
+            "hiking boots"
+          ],
+          "reason": "Waterproof hiking boot, memory foam, within budget",
+          "evidence": [
+            "title",
+            "price",
+            "rating",
+            "features"
+          ]
+        }
       ]
     }
   ],
-  "note": "These warm, insulated boots are built for snowy hikes and should keep your feet ...",
+  "note": "These waterproof hiking boots should keep your feet dry and comfortable in snowy trails!",
   "warnings": [],
+  "index_info": {
+    "rows": 100000,
+    "sampling": "popular",
+    "limit": 100000,
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "built_at": "2026-08-23T12:17:24Z"
+  },
   "llm_info": {
     "provider": "anthropic",
     "model": "claude-sonnet-4-6",
     "planner_used": "llm",
-    "rerank_used": true
+    "rerank_used": true,
+    "rerank_model": null,
+    "plan_cache_hit": false,
+    "calls": 2,
+    "failed_calls": 0,
+    "input_tokens": 4087,
+    "output_tokens": 236
   },
   "timings": {
-    "plan_ms": 3772.9,
-    "retrieve_ms": 116.5,
-    "rerank_ms": 4338.8,
-    "total_ms": 8228.4
+    "plan_ms": 3577.3,
+    "retrieve_ms": 89.1,
+    "rerank_ms": 3497.3,
+    "total_ms": 7163.9
   }
 }
 ```
