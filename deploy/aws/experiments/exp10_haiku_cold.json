@@ -1,0 +1,145 @@
+{
+ "label": "exp10_haiku_cold",
+ "base": "https://d3bys47v9rho9.cloudfront.net",
+ "n": 12,
+ "errors": 0,
+ "p50_ms": 343.5,
+ "p95_ms": 590.5,
+ "min_ms": 273.0,
+ "max_ms": 590.5,
+ "ran_at": "2026-08-23T22:32:52Z",
+ "rows": [
+  {
+   "i": 0,
+   "ms": 590.5,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 207.9,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 1,
+   "ms": 384.1,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 179.1,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 2,
+   "ms": 410.0,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 205.4,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 3,
+   "ms": 499.5,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 223.9,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 4,
+   "ms": 396.1,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 191.4,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 5,
+   "ms": 387.6,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 1,
+   "server_total_ms": 181.5,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 6,
+   "ms": 286.9,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 80.3,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 7,
+   "ms": 273.1,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 70.4,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 8,
+   "ms": 281.7,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 78.9,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 9,
+   "ms": 303.0,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 97.3,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 10,
+   "ms": 285.2,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 80.6,
+   "slots": 1,
+   "items": 4
+  },
+  {
+   "i": 11,
+   "ms": 273.0,
+   "planner": "heuristic",
+   "cache_hit": false,
+   "rerank": false,
+   "calls": 0,
+   "server_total_ms": 70.8,
+   "slots": 1,
+   "items": 4
+  }
+ ]
+}

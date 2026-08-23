@@ -5,9 +5,11 @@ the number; run it twice (against CloudFront and against the origin) to split th
 """
 
 import argparse
+import http.client
 import json
 import statistics
 import time
+import urllib.parse
 import urllib.request
 
 QUERIES = [
@@ -20,16 +22,24 @@ QUERIES = [
 ]
 
 
-def call(base, body, timeout=65):
-    req = urllib.request.Request(
-        base.rstrip("/") + "/recommend",
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+def call(base, body, timeout=65, conn=None):
+    payload = json.dumps(body).encode()
     t = time.perf_counter()
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        data = json.load(r)
+    if conn is not None:  # keep-alive: the connection a real page would hold open
+        conn.request(
+            "POST", "/recommend", body=payload, headers={"Content-Type": "application/json"}
+        )
+        resp = conn.getresponse()
+        data = json.loads(resp.read())
+    else:
+        req = urllib.request.Request(
+            base.rstrip("/") + "/recommend",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = json.load(r)
     ms = (time.perf_counter() - t) * 1000
     return ms, data
 
@@ -42,7 +52,21 @@ def main():
     ap.add_argument("--use-llm", default="true")
     ap.add_argument("--rerank", default=None, help="unset = server default")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--keepalive", action="store_true", help="reuse one https connection")
+    ap.add_argument("--warmup", type=int, default=0, help="unmeasured rounds through all queries")
     args = ap.parse_args()
+
+    conn = None
+    if args.keepalive:
+        host = urllib.parse.urlsplit(args.base).hostname
+        conn = http.client.HTTPSConnection(host, timeout=65)
+    for w in range(args.warmup):
+        for q in QUERIES:
+            try:
+                call(args.base, {"query": q, "k": 4}, conn=conn)
+            except Exception:
+                pass
+        time.sleep(1)
 
     lat, rows = [], []
     for i in range(args.n):
@@ -50,7 +74,7 @@ def main():
         if args.rerank is not None:
             body["rerank"] = args.rerank == "true"
         try:
-            ms, data = call(args.base, body)
+            ms, data = call(args.base, body, conn=conn)
         except Exception as exc:
             rows.append({"i": i, "error": str(exc)[:200]})
             continue
