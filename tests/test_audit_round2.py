@@ -289,3 +289,97 @@ def test_cli_rejects_non_positive_build_limits():
         build_parser().parse_args(["build-index", "--limit", "0"])
     with pytest.raises(SystemExit):
         build_parser().parse_args(["recommend", "q", "--k", "-1"])
+
+
+# ----------------------------------------------------------------------------- api round 2
+
+
+from fastapi.testclient import TestClient  # noqa: E402
+
+from stylist.api import _TokenBucket, create_app  # noqa: E402
+from stylist.service import RecommendationService  # noqa: E402
+
+
+def _app(fixture_index, hash_embedder, **env):
+    settings = Settings.from_env({"EMBEDDER": "hash", **env})
+    svc = RecommendationService(fixture_index, hash_embedder, settings, llm=None)
+    return create_app(settings, service=svc)
+
+
+def test_forwarded_for_is_ignored_unless_proxy_headers_are_trusted(fixture_index, hash_embedder):
+    with TestClient(_app(fixture_index, hash_embedder, RATE_LIMIT_PER_MINUTE="12")) as c:
+        codes = [
+            c.post(
+                "/recommend", json={"query": "boots"}, headers={"x-forwarded-for": f"10.0.0.{i}"}
+            ).status_code
+            for i in range(4)
+        ]
+        assert codes == [
+            200,
+            200,
+            429,
+            429,
+        ]  # burst is per_minute / 6 = 2; spoofed ips share one bucket
+    with TestClient(
+        _app(fixture_index, hash_embedder, RATE_LIMIT_PER_MINUTE="12", TRUST_PROXY_HEADERS="1")
+    ) as c:
+        codes = [
+            c.post(
+                "/recommend", json={"query": "boots"}, headers={"x-forwarded-for": f"10.0.0.{i}"}
+            ).status_code
+            for i in range(4)
+        ]
+        assert codes == [200, 200, 200, 200]  # behind a proxy each forwarded ip has its own bucket
+
+
+def test_token_bucket_burst_is_a_sixth_of_the_minute():
+    b = _TokenBucket(60)
+    assert b.burst == 10
+    allowed = [b.allow("k", now=100.0)[0] for _ in range(11)]
+    assert allowed[:10] == [True] * 10 and allowed[10] is False
+    assert b.allow("k", now=101.0)[0] is True  # one token per second refills
+
+
+def test_security_headers_are_set(fixture_index, hash_embedder):
+    with TestClient(_app(fixture_index, hash_embedder)) as c:
+        r = c.get("/health")
+        assert r.headers["x-content-type-options"] == "nosniff"
+        assert r.headers["x-frame-options"] == "DENY"
+        assert "referrer-policy" in r.headers
+        r = c.get("/")
+        assert "content-security-policy" in r.headers
+        assert "m.media-amazon.com" in r.headers["content-security-policy"]
+
+
+def test_body_limit_replays_a_chunked_body_once_and_then_ends(fixture_index, hash_embedder):
+    from stylist.api import _BodyLimit
+
+    seen = []
+
+    async def inner(scope, receive, send):
+        seen.append(await receive())
+        seen.append(await receive())  # a second read must not hang or re-read the socket
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"ok"})
+
+    chunks = [
+        {"type": "http.request", "body": b'{"query":', "more_body": True},
+        {"type": "http.request", "body": b' "x"}', "more_body": False},
+    ]
+
+    async def receive():
+        return chunks.pop(0) if chunks else {"type": "http.disconnect"}
+
+    sent = []
+
+    async def send(m):
+        sent.append(m)
+
+    import asyncio
+
+    asyncio.run(
+        _BodyLimit(inner, 100)({"type": "http", "method": "POST", "headers": []}, receive, send)
+    )
+    assert seen[0]["body"] == b'{"query": "x"}' and seen[0]["more_body"] is False
+    assert seen[1]["body"] == b"" and seen[1]["more_body"] is False
+    assert sent[0]["status"] == 200

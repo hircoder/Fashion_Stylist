@@ -120,7 +120,8 @@ class _TokenBucket:
 
     def __init__(self, per_minute: int, max_clients: int = 10_000):
         self.rate = per_minute / 60.0
-        self.burst = float(per_minute)
+        # a sixth of the minute at once (10 at 60/min): enough for a page load, not a flood
+        self.burst = float(max(1, per_minute // 6))
         self.max_clients = max_clients
         self._buckets: OrderedDict[str, tuple[float, float]] = OrderedDict()
 
@@ -138,12 +139,49 @@ class _TokenBucket:
         return allowed, (0.0 if allowed else (1.0 - tokens) / self.rate)
 
 
-def _client_ip(request: Request) -> str:
-    # Railway / most proxies set x-forwarded-for; the first entry is the client
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()[:64]
+def _client_ip(request: Request, trust_proxy: bool) -> str:
+    """The rate-limit key. x-forwarded-for is client-controlled unless a proxy in front of
+    us overwrites it, so it is only honoured behind one (TRUST_PROXY_HEADERS=1)."""
+    if trust_proxy:
+        fwd = request.headers.get("x-forwarded-for")
+        if fwd:
+            return fwd.split(",")[0].strip()[:64]
     return request.client.host if request.client else "unknown"
+
+
+_CSP = (
+    "default-src 'self'; img-src 'self' data: https://m.media-amazon.com "
+    "https://images-na.ssl-images-amazon.com; style-src 'self' 'unsafe-inline'; "
+    "script-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+)
+
+
+class _SecurityHeaders:
+    """Pure ASGI middleware adding the usual browser protections to every response."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        path = scope.get("path", "")
+        html = path in ("/", "/overview")
+
+        async def send_wrapped(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers") or [])
+                headers += [
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"x-frame-options", b"DENY"),
+                    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                ]
+                if html:
+                    headers.append((b"content-security-policy", _CSP.encode()))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        return await self.app(scope, receive, send_wrapped)
 
 
 class _BodyLimit:
@@ -166,8 +204,8 @@ class _BodyLimit:
         more = True
         while more:
             message = await receive()
-            if message["type"] != "http.request":
-                return await self.app(scope, receive, send)  # disconnect
+            if message["type"] == "http.disconnect":
+                return  # the client left mid-body: nothing to answer
             body += message.get("body", b"")
             more = message.get("more_body", False)
             if len(body) > self.max_bytes:
@@ -175,9 +213,10 @@ class _BodyLimit:
         replayed = False
 
         async def replay():
+            # the whole body once, then an empty terminator forever (never the drained socket)
             nonlocal replayed
             if replayed:
-                return await receive()
+                return {"type": "http.request", "body": b"", "more_body": False}
             replayed = True
             return {"type": "http.request", "body": body, "more_body": False}
 
@@ -241,6 +280,7 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
             allow_headers=["content-type"],
         )
     app.add_middleware(_BodyLimit, max_bytes=settings.max_body_bytes)
+    app.add_middleware(_SecurityHeaders)
     bucket = (
         _TokenBucket(settings.rate_limit_per_minute) if settings.rate_limit_per_minute else None
     )
@@ -296,11 +336,14 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
     )
     async def recommend(body: RecommendRequest, request: Request):
         if bucket is not None:
-            allowed, wait = bucket.allow(_client_ip(request))
+            allowed, wait = bucket.allow(_client_ip(request, settings.trust_proxy_headers))
             if not allowed:
                 resp = _error(429, "rate_limited", "too many requests from this client, slow down")
                 resp.headers["Retry-After"] = str(max(1, int(wait + 0.999)))
                 return resp
+        # asyncio runs one task at a time and Semaphore.acquire() does not yield when a
+        # permit is free, so this check-then-acquire pair cannot be interleaved by another
+        # request: the cap holds. (It would not under threads.)
         if inflight is not None and inflight.locked():
             resp = _error(503, "busy", "the service is at its concurrency limit, retry shortly")
             resp.headers["Retry-After"] = "2"
