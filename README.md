@@ -330,19 +330,31 @@ items and the long tail.
 ## Deployment
 
 `Dockerfile` builds a cpu-only image (python 3.12 slim, uv, the embedding model
-pre-downloaded at a pinned revision, runs as a non-root user). The image does not contain
-an index. Two ways to give it one:
-
-* mount a volume at `/app/data` with a `data/index` you built locally, or
-* build locally, `make index-tar`, upload `data/index.tar.gz` somewhere reachable and set
-  `INDEX_URL` + `INDEX_SHA256`. On boot the service downloads it (size capped, checksum
-  verified, extracted with path checks, installed with an atomic rename under a lock).
+pre-downloaded at a pinned revision, runs as a non-root user) and, by default, **bakes a
+demo index into the image**: the build downloads the raw metadata, ingests it and embeds
+the 40K most rated listings (about 4 minutes on a cpu builder). The container then needs
+no volume and no external files. `--build-arg BAKE_INDEX_LIMIT=0` skips that; then give
+the container an index through a volume at `/app/data` or through `INDEX_URL` +
+`INDEX_SHA256` (a tarball from `make index-tar`; on boot it is downloaded, size capped,
+checksum verified, extracted with path checks and installed with an atomic rename).
 
 `railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
-check, `PORT` picked up automatically. Set the LLM key and `INDEX_URL` / `INDEX_SHA256` as
-service variables. I dont have Docker on the machine i wrote this on, so the image is
-verified by the GitHub Actions workflow (`.github/workflows/ci.yml`), which builds it,
-indexes the fixture inside the container and hits `/ready` and `/recommend`.
+check, `PORT` picked up automatically. After the first deploy add `ANTHROPIC_API_KEY` or
+`OPENAI_API_KEY` (and optionally `LLM_MODEL`) as service variables to switch on the LLM
+planner and reranker; without a key the service runs in regex mode. From a clone:
+
+```bash
+npm i -g @railway/cli && railway login
+railway init          # new project
+railway up            # uploads this directory and builds the Dockerfile
+railway domain        # public url
+railway variables --set ANTHROPIC_API_KEY=sk-ant-...
+```
+
+I dont have Docker on the machine i wrote this on, so the image is verified by the GitHub
+Actions workflow (`.github/workflows/ci.yml`), which builds it without the baked index,
+indexes the fixture inside the container and hits `/ready` and `/recommend`, and by the
+Railway build itself.
 
 `/health` always answers (what is loaded, which model), `/ready` is 503 until the index is
 in memory.

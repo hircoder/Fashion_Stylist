@@ -1,12 +1,18 @@
-# cpu-only image for railway / any container host. the index is NOT baked in:
-# either mount a volume with data/index or set INDEX_URL + INDEX_SHA256 (see README).
+# cpu-only image for railway / any container host.
+#
+# By default the build bakes a real demo index into the image: it downloads the raw
+# Amazon Fashion metadata (224 MB), ingests it and embeds the BAKE_INDEX_LIMIT most rated
+# listings (40K by default, ~4 min on a cpu builder). The running container then needs no
+# volume and no INDEX_URL. Build with --build-arg BAKE_INDEX_LIMIT=0 to skip that (ci does)
+# and provide an index through a volume at /app/data or INDEX_URL + INDEX_SHA256 instead.
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     HF_HOME=/app/.hf \
-    EMBED_DEVICE=cpu
+    EMBED_DEVICE=cpu \
+    LOG_LEVEL=INFO
 
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.7.19 /uv /uvx /bin/
@@ -22,14 +28,23 @@ RUN uv sync --frozen --no-dev
 # pin + pre-download the embedding model so boot does not depend on the hub
 ARG EMBEDDING_REVISION=5c38ec7c405ec4b44b94cc5a9bb96e735b38267a
 ENV EMBEDDING_REVISION=${EMBEDDING_REVISION}
-RUN uv run python -c "from sentence_transformers import SentenceTransformer; \
+RUN /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer; \
 SentenceTransformer('BAAI/bge-small-en-v1.5', revision='${EMBEDDING_REVISION}', device='cpu')"
 
+# optional: bake a demo index (see the note at the top)
+ARG BAKE_INDEX_LIMIT=40000
+RUN if [ "${BAKE_INDEX_LIMIT}" -gt 0 ]; then \
+      /app/.venv/bin/stylist download-data \
+      && /app/.venv/bin/stylist ingest \
+      && /app/.venv/bin/stylist build-index --limit "${BAKE_INDEX_LIMIT}" --sampling popular \
+      && rm -rf /app/data/raw /app/data/processed; \
+    else mkdir -p /app/data; fi
+
 # run as a normal user; only the data dir and the model cache need to be writable
-RUN useradd --create-home --uid 10001 app && mkdir -p /app/data && chown -R app:app /app
+RUN useradd --create-home --uid 10001 app && chown -R app:app /app
 USER app
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready').status==200 else 1)"
-CMD ["uv", "run", "stylist", "serve", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/.venv/bin/stylist", "serve", "--host", "0.0.0.0"]

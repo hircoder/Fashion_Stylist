@@ -24,14 +24,14 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t stylist:ci .
+      - run: docker build --build-arg BAKE_INDEX_LIMIT=0 -t stylist:ci .
       # build a tiny index inside the image (real embedding model, fixture data)
       - run: |
-          mkdir -p "$PWD/ci-data"
+          mkdir -p "$PWD/ci-data" && chmod 777 "$PWD/ci-data"
           docker run --rm -v "$PWD/ci-data:/app/data" stylist:ci \
-            uv run stylist ingest --raw tests/fixtures/sample_500.jsonl.gz --out /app/data/catalog.parquet
+            /app/.venv/bin/stylist ingest --raw tests/fixtures/sample_500.jsonl.gz --out /app/data/catalog.parquet
           docker run --rm -v "$PWD/ci-data:/app/data" stylist:ci \
-            uv run stylist build-index --catalog /app/data/catalog.parquet --index-dir /app/data/index --sampling all
+            /app/.venv/bin/stylist build-index --catalog /app/data/catalog.parquet --index-dir /app/data/index --sampling all
       - run: |
           docker run -d --name stylist -p 8000:8000 -v "$PWD/ci-data:/app/data" -e LLM_PROVIDER=none stylist:ci
           for i in $(seq 1 60); do
