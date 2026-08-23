@@ -54,3 +54,44 @@ def test_bootstrap_ci_brackets_the_mean():
 
     lo, hi = bootstrap_ci([0.5, 1.0, 0.75, 1.0, 0.25], n=500, seed=1)
     assert lo <= 0.7 <= hi and lo < hi
+
+
+def test_query_success_requires_every_expected_slot():
+    from evaluate import score_query
+
+    rules = {"hat": {"any": ["hat"]}, "boots": {"any": ["boot"]}}
+    s = score_query(rules, [("sun hat", ["Straw Hat"])])
+    assert s["slots_found"] == 1 and s["success"] is False  # boots never came back
+    s = score_query(rules, [("sun hat", ["Straw Hat"]), ("boots", ["Snow Boot"])])
+    assert s["success"] is True
+
+
+def test_unmapped_slots_keep_none_and_all_rules():
+    from evaluate import score_query
+
+    rules = {"jeans": {"all": ["levi"], "any": ["jean"], "none": ["sock"]}}
+    s = score_query(rules, [("mystery", ["Levi's Socks", "Acme Jeans", "Levi's 501 Jeans"])])
+    assert s["unmapped_slots"] == 1 and s["match"] == 1  # only the branded jeans pass
+
+
+def test_slot_mapping_prefers_exact_then_best_overlap():
+    from evaluate import _match_slot_rule
+
+    rules = {
+        "dress shirt": {"any": ["shirt"]},
+        "dress shoes": {"any": ["shoe"]},
+        "dress": {"any": ["dress"]},
+    }
+    assert _match_slot_rule("dress shoes", rules) is rules["dress shoes"]
+    assert _match_slot_rule("formal shoes", rules) is rules["dress shoes"]
+    assert _match_slot_rule("dress", rules) is rules["dress"]
+
+
+def test_paired_delta_ci_brackets_the_mean_difference():
+    from evaluate import paired_delta
+
+    a = {"q1": 0.5, "q2": 1.0, "q3": 0.75}
+    b = {"q1": 0.25, "q2": 0.5, "q3": 0.75}
+    d = paired_delta(a, b, n=300, seed=1)
+    assert d["n"] == 3 and abs(d["mean"] - 0.25) < 1e-9
+    assert d["ci95"][0] <= 0.25 <= d["ci95"][1]

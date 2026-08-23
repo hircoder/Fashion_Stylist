@@ -84,7 +84,15 @@ def _passes(title: str, rule: dict) -> bool:
 def score_query(rules: dict, returned: list[tuple[str, list[str]]]) -> dict:
     """Score one query: `rules` maps expected slot name -> rule, `returned` is a list of
     (slot name, item titles). Returns counts for every metric in the module docstring."""
-    union = {"any": sorted({a for r in rules.values() for a in r.get("any", [])})}
+    # a slot the planner invented is scored against the union of the query's rules: every
+    # type word counts, every forbidden word still forbids, a required brand stays required
+    union: dict = {"any": sorted({a for r in rules.values() for a in r.get("any", [])})}
+    nones = sorted({n for r in rules.values() for n in r.get("none", [])})
+    alls = sorted({a for r in rules.values() for a in r.get("all", [])})
+    if nones:
+        union["none"] = nones
+    if alls:
+        union["all"] = alls
     found: set[int] = set()
     items = match = mapped_items = mapped_match = unmapped = empty = 0
     success = True
@@ -107,6 +115,8 @@ def score_query(rules: dict, returned: list[tuple[str, list[str]]]) -> dict:
             mapped_match += hits
         if hits == 0:
             success = False
+    if len(found) < len(rules):
+        success = False  # an expected slot never came back
     return {
         "expected_slots": len(rules),
         "slots_found": len(found),
@@ -120,6 +130,22 @@ def score_query(rules: dict, returned: list[tuple[str, list[str]]]) -> dict:
     }
 
 
+def paired_delta(a: dict[str, float], b: dict[str, float], n: int = 1000, seed: int = 0) -> dict:
+    """Mean of (a - b) over the queries both have, with a percentile bootstrap 95% interval:
+    the honest way to say one configuration beats another on the same queries."""
+    keys = sorted(set(a) & set(b))
+    if not keys:
+        return {"n": 0, "mean": 0.0, "ci95": [0.0, 0.0]}
+    diffs = [a[k] - b[k] for k in keys]
+    rng = random.Random(seed)
+    means = sorted(statistics.fmean(rng.choices(diffs, k=len(diffs))) for _ in range(n))
+    return {
+        "n": len(keys),
+        "mean": round(statistics.fmean(diffs), 3),
+        "ci95": [round(means[int(0.025 * n)], 3), round(means[int(0.975 * n) - 1], 3)],
+    }
+
+
 def bootstrap_ci(values: list[float], n: int = 1000, seed: int = 0) -> tuple[float, float]:
     """Percentile bootstrap 95% interval of the mean over queries."""
     if not values:
@@ -130,12 +156,22 @@ def bootstrap_ci(values: list[float], n: int = 1000, seed: int = 0) -> tuple[flo
 
 
 def _match_slot_rule(slot_name: str, rules: dict) -> dict | None:
-    """Find the rule for a returned slot by name overlap; falls back to the union of all."""
-    name_words = set(re.findall(r"[a-z]+", slot_name.lower()))
+    """Find the rule for a returned slot: an exact name first, then the rule whose name
+    shares the most words (Jaccard) with it; None when nothing overlaps."""
+    name = slot_name.lower().strip()
+    if name in rules:
+        return rules[name]
+    name_words = set(re.findall(r"[a-z]+", name))
+    best, best_score = None, 0.0
     for rule_name, rule in rules.items():
-        if set(re.findall(r"[a-z]+", rule_name.lower())) & name_words:
-            return rule
-    return None
+        words = set(re.findall(r"[a-z]+", rule_name.lower()))
+        inter = len(words & name_words)
+        if not inter:
+            continue
+        score = inter / len(words | name_words)
+        if score > best_score:
+            best, best_score = rule, score
+    return best
 
 
 async def run_config(
@@ -173,6 +209,33 @@ async def run_config(
             res = await svc.recommend(req)
         except Exception as exc:  # noqa: BLE001 - record and keep going
             failures.append({"id": q["id"], "error": f"{type(exc).__name__}: {exc}"[:200]})
+            # a failed request is a failed query: it stays in every denominator as a zero
+            rows.append(
+                {
+                    "id": q["id"],
+                    "slots": 0,
+                    "expected_slots": len(q["slots"]),
+                    "slots_found": 0,
+                    "unmapped_slots": 0,
+                    "items": 0,
+                    "match": 0,
+                    "mapped_items": 0,
+                    "mapped_match": 0,
+                    "empty": 0,
+                    "success": False,
+                    "failed": True,
+                    "price_bad": 0,
+                    "inferred_over": 0,
+                    "ms": round((time.perf_counter() - t) * 1000, 1),
+                    "planner": None,
+                    "rerank": False,
+                    "llm_calls": 0,
+                    "tokens": [0, 0],
+                    "warnings": 0,
+                    "titles": [],
+                    "slot_names": [],
+                }
+            )
             continue
         ms = (time.perf_counter() - t) * 1000
         scored = score_query(
@@ -208,7 +271,8 @@ async def run_config(
         )
     items = sum(r["items"] for r in rows) or 1
     mapped = sum(r["mapped_items"] for r in rows) or 1
-    per_query = [r["match"] / r["items"] for r in rows if r["items"]]
+    # per-query rate; a query with no items (failed, or every slot empty) scores zero
+    per_query = [(r["match"] / r["items"]) if r["items"] else 0.0 for r in rows]
     lat = [r["ms"] for r in rows]
     lo, hi = bootstrap_ci(per_query)
     summary = {
@@ -233,9 +297,22 @@ async def run_config(
         "tokens": [sum(r["tokens"][0] for r in rows), sum(r["tokens"][1] for r in rows)],
         "p50_ms": round(statistics.median(lat), 1) if lat else 0.0,
         "p95_ms": round(sorted(lat)[max(0, int(len(lat) * 0.95) - 1)], 1) if lat else 0.0,
+        "per_query_match": {r["id"]: round(v, 4) for r, v in zip(rows, per_query, strict=True)},
         "rows": rows,
     }
     return summary
+
+
+def _git_sha() -> str | None:
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT
+        )
+        return out.stdout.strip() or None
+    except OSError:
+        return None
 
 
 async def main_async(args):
@@ -266,7 +343,10 @@ async def main_async(args):
         },
         "queries": len(queries),
         "run_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "git_sha": _git_sha(),
+        "schema_version": 2,
         "results": [],
+        "paired_deltas": {},
     }
     plan_cache: OrderedDict = OrderedDict()  # shared by every llm config: paired plans
     cache_path = Path(args.plan_cache) if args.plan_cache else None
@@ -292,6 +372,13 @@ async def main_async(args):
             f"p50={summary['p50_ms']}ms p95={summary['p95_ms']}ms",
             file=sys.stderr,
         )
+    # paired comparisons on the same queries: every llm config against llm_plan, every
+    # retrieval-only config against hybrid
+    by_name = {r["config"]: r["per_query_match"] for r in out["results"]}
+    for name, per in by_name.items():
+        base = "llm_plan" if name.startswith("llm") else "hybrid"
+        if base in by_name and base != name:
+            out["paired_deltas"][f"{name} - {base}"] = paired_delta(per, by_name[base])
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2))
     print(f"wrote {args.out}", file=sys.stderr)
