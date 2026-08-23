@@ -63,7 +63,9 @@ How to judge a candidate, in this order:
 Prefer some variety in style and colour among your picks.
 
 Output rules:
-- use only row_id values from the candidate list, never invent ids
+- use only row_id values from the candidate list, never invent ids; at most k picks
+- no_good_match: true when nothing in the list is the slot's product type (then picks may
+  be empty); false otherwise
 - reason: at most 15 words, citing only the fields you were given
 - evidence: the names of the fields that drove the choice
 - note: one short friendly sentence for the shopper about these picks (max 20 words)

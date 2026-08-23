@@ -7,6 +7,7 @@ stage, fall back to the heuristic planner) without knowing which SDK is undernea
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from typing import Any, Protocol, TypeVar
 
@@ -105,6 +106,30 @@ class FakeLLM:
             return schema.model_validate(item)
         except ValidationError as exc:
             raise LLMValidationError(str(exc)) from exc
+
+
+class ThrottledLLM:
+    """Wraps any client with a global concurrency cap (one semaphore for all requests)."""
+
+    def __init__(self, inner: LLMClient, semaphore: asyncio.Semaphore):
+        self._inner = inner
+        self._sem = semaphore
+        self.provider = inner.provider
+        self.model = inner.model
+
+    async def complete_json(
+        self,
+        *,
+        system: str,
+        user: str,
+        schema: type[T],
+        max_tokens: int = 2000,
+        timeout: float = 30.0,
+    ) -> T:
+        async with self._sem:
+            return await self._inner.complete_json(
+                system=system, user=user, schema=schema, max_tokens=max_tokens, timeout=timeout
+            )
 
 
 def make_llm_client(settings: Settings) -> LLMClient | None:

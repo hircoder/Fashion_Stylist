@@ -265,3 +265,90 @@ async def test_reranker_only_sees_the_configured_number_of_candidates():
         "beach", plan, slots, k=2, timeout=5
     )
     assert seen == {"swimsuit": 2, "sandals": 2}
+
+
+async def test_picks_are_capped_at_k_with_a_warning():
+    plan, slots = _slots()
+    llm = _by_slot(
+        {
+            "swimsuit": {
+                "picks": [{"row_id": i, "reason": "r", "evidence": []} for i in (3, 2, 1, 4)]
+            },
+            "sandals": {"picks": []},
+        }
+    )
+    res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
+    assert [c.row_id for c in res.slots[0].ordered[:2]] == [3, 2]
+    assert set(res.slots[0].reasons) == {3, 2}  # only the accepted picks carry llm reasons
+    assert any("more than 2" in w for w in res.warnings)
+
+
+async def test_no_good_match_returns_an_empty_slot_instead_of_retrieval_order():
+    plan, slots = _slots()
+    llm = _by_slot({"swimsuit": {"picks": [], "no_good_match": True}, "sandals": {"picks": []}})
+    res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
+    assert res.slots[0].ordered == []
+    assert any("no suitable" in w for w in res.warnings)
+    assert res.slots[1].ordered  # the other slot keeps retrieval order as usual
+
+
+async def test_fewer_picks_than_k_are_topped_up_from_retrieval_order_with_a_warning():
+    plan, slots = _slots()
+    llm = _by_slot(
+        {
+            "swimsuit": {"picks": [{"row_id": 2, "reason": "r", "evidence": []}]},
+            "sandals": {"picks": []},
+        }
+    )
+    res = await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
+    assert [c.row_id for c in res.slots[0].ordered] == [2, 1, 3, 4]
+    assert any("1 of 2" in w and "retrieval order" in w for w in res.warnings)
+
+
+async def test_a_slow_slot_does_not_discard_the_fast_slots_result():
+    import asyncio
+
+    plan, slots = _slots()
+
+    async def handler(system, user, schema):
+        payload = json.loads(user[user.index("{") :])
+        if payload["slot"]["name"] == "sandals":
+            await asyncio.sleep(5)
+        return {"picks": [{"row_id": 2, "reason": "bikini", "evidence": []}]}
+
+    class AsyncFake(FakeLLM):
+        async def complete_json(self, **kw):
+            self.calls.append(kw)
+            return schema_validate(
+                kw["schema"], await handler(kw["system"], kw["user"], kw["schema"])
+            )
+
+    def schema_validate(schema, data):
+        return schema.model_validate(data)
+
+    res = await LLMReranker(AsyncFake()).rerank("beach", plan, slots, k=2, timeout=0.4)
+    assert res.used_llm
+    assert [c.row_id for c in res.slots[0].ordered][:1] == [2]  # swimsuit reranked
+    assert [c.row_id for c in res.slots[1].ordered] == [10, 11]  # sandals kept retrieval order
+    assert any("sandals" in w and "time" in w for w in res.warnings)
+
+
+async def test_global_llm_concurrency_cap_serialises_calls():
+    import asyncio
+
+    from stylist.llm import ThrottledLLM
+
+    plan, slots = _slots()
+    state = {"running": 0, "max": 0}
+
+    class Slow(FakeLLM):
+        async def complete_json(self, **kw):
+            state["running"] += 1
+            state["max"] = max(state["max"], state["running"])
+            await asyncio.sleep(0.05)
+            state["running"] -= 1
+            return kw["schema"].model_validate({"picks": []})
+
+    llm = ThrottledLLM(Slow(), asyncio.Semaphore(1))
+    await LLMReranker(llm).rerank("beach", plan, slots, k=2, timeout=5)
+    assert state["max"] == 1

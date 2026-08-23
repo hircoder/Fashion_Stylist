@@ -278,3 +278,123 @@ async def test_late_stage_never_returns_after_the_deadline(fixture_index, hash_e
     res = await svc.recommend(RecommendRequest(query="sandals"))
     assert asyncio.get_event_loop().time() - t < 1.0  # no grace period past the deadline
     assert res.llm_info.planner_used == "heuristic"
+
+
+async def test_rerank_candidates_setting_reaches_the_reranker(fixture_index, hash_embedder):
+    seen = {}
+
+    def handler(system, user, schema):
+        if schema is PlannerOutput:
+            return _plan_out(("x", "sandals", ["sandal"]))
+        payload = __import__("json").loads(user[user.index("{") :])
+        seen["n"] = len(payload["candidates"])
+        return {"picks": []}
+
+    svc = RecommendationService(
+        fixture_index,
+        hash_embedder,
+        _settings(RERANK_CANDIDATES="3"),
+        llm=FakeLLM(handler=handler),
+    )
+    await svc.recommend(RecommendRequest(query="sandals", k=2))
+    assert seen["n"] == 3
+
+
+async def test_queued_requests_stop_at_the_deadline_and_never_start(fixture_index, hash_embedder):
+    import time
+
+    from stylist.service import RequestTimeout
+
+    settings = _settings(REQUEST_DEADLINE_S="0.5", RETRIEVAL_CONCURRENCY="1")
+    svc = RecommendationService(fixture_index, hash_embedder, settings, llm=None)
+    real = svc.retriever.retrieve
+    calls = []
+
+    def slow(*a, **kw):
+        calls.append(time.monotonic())
+        time.sleep(1.5)
+        return real(*a, **kw)
+
+    svc.retriever.retrieve = slow
+    results = await asyncio.gather(
+        *(svc.recommend(RecommendRequest(query=f"boots {i}")) for i in range(4)),
+        return_exceptions=True,
+    )
+    assert all(isinstance(r, RequestTimeout) for r in results)
+    await asyncio.sleep(1.6)  # let the one running thread finish
+    assert len(calls) == 1  # the queued three never started
+
+
+async def test_identical_concurrent_requests_plan_once(fixture_index, hash_embedder):
+    class SlowPlanner(FakeLLM):
+        async def complete_json(self, **kw):
+            self.calls.append(kw)
+            await asyncio.sleep(0.2)
+            return _plan_out(("x", "sandals", ["sandal"]))
+
+    llm = SlowPlanner()
+    svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
+    await asyncio.gather(
+        *(svc.recommend(RecommendRequest(query="sandals", rerank=False)) for _ in range(6))
+    )
+    assert len(llm.calls) == 1
+
+
+async def test_planner_failure_is_not_retried_within_the_negative_cache_ttl(
+    fixture_index, hash_embedder
+):
+    llm = FakeLLM(handler=lambda s, u, schema: LLMTransportError("down"))
+    svc = RecommendationService(
+        fixture_index, hash_embedder, _settings(PLANNER_FAILURE_TTL_S="30"), llm=llm
+    )
+    await svc.recommend(RecommendRequest(query="sandals", rerank=False))
+    res = await svc.recommend(RecommendRequest(query="sandals", rerank=False))
+    assert len(llm.calls) == 1
+    assert res.llm_info.planner_used == "heuristic"
+    assert any("recent" in w for w in res.warnings)
+
+
+async def test_plan_cache_size_zero_disables_caching(fixture_index, hash_embedder):
+    llm = _stylist_llm(_plan_out(("x", "sandals", ["sandal"])))
+    svc = RecommendationService(
+        fixture_index, hash_embedder, _settings(PLAN_CACHE_SIZE="0"), llm=llm
+    )
+    await svc.recommend(RecommendRequest(query="sandals", rerank=False))
+    await svc.recommend(RecommendRequest(query="sandals", rerank=False))
+    assert len(llm.calls) == 2
+
+
+async def test_cross_slot_selection_is_round_robin_not_greedy(fixture_index, hash_embedder):
+    from stylist.planner import Slot, SlotWindow
+    from stylist.reranker import RankedSlot
+    from stylist.retrieval import Candidate
+
+    def cand(i):
+        return Candidate(idx=i, row_id=i, score=1.0 / (i + 1), group_key=f"g{i}", title=f"t{i}")
+
+    win = SlotWindow(None, None, None, False)
+    a = RankedSlot(Slot(name="a", search_query="q"), win, [cand(1), cand(2), cand(3), cand(4)], 4)
+    b = RankedSlot(Slot(name="b", search_query="q"), win, [cand(1), cand(2), cand(3), cand(4)], 4)
+    warnings: list[str] = []
+    picked = RecommendationService._select([a, b], 2, warnings)
+    assert [c.row_id for c in picked[0]] == [1, 3]
+    assert [c.row_id for c in picked[1]] == [2, 4]
+
+
+async def test_total_budget_overspend_and_unpriced_items_are_warned(fixture_index, hash_embedder):
+    llm = _stylist_llm(
+        _plan_out(
+            ("a", "swimsuit", ["swimsuit"]),
+            ("b", "sandals", ["sandal"]),
+            budget_max=10.0,
+            budget_scope="total",
+        )
+    )
+    svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
+    res = await svc.recommend(
+        RecommendRequest(query="beach stuff, 10 dollars total", k=3, rerank=False)
+    )
+    assert any("unknown price" in w for w in res.warnings)
+    priced = sum(i.price for s in res.slots for i in s.items if i.price_known)
+    if priced > 10.0:
+        assert any("add up to" in w for w in res.warnings)

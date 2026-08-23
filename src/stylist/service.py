@@ -3,10 +3,11 @@
     plan (LLM or regex)  ->  merge constraints  ->  retrieve per slot  ->  rerank (LLM)
       ->  select k per slot with cross-slot uniqueness  ->  response
 
-One deadline covers the whole request. Each LLM stage gets at most its own budget and
-never more than what is left; when the planner fails or times out we fall back to the
-regex planner, when the reranker cannot finish we keep retrieval order. The response
-always says which path was taken (`llm_info`) and why something was skipped (`warnings`).
+One deadline covers the whole request, including waiting for a retrieval slot. Each LLM
+stage gets at most its own budget and never more than what is left; when the planner
+fails or times out we fall back to the regex planner, when a slot's rerank cannot finish
+that slot keeps retrieval order. The response always says which path was taken
+(`llm_info`) and why something was skipped (`warnings`).
 """
 
 from __future__ import annotations
@@ -17,19 +18,21 @@ import re
 import time
 import uuid
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 
 from stylist.config import Settings
 from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
-from stylist.llm import LLMClient, LLMError
+from stylist.llm import LLMClient, LLMError, ThrottledLLM
 from stylist.llm.prompts import PROMPT_VERSION
-from stylist.planner import (
-    HeuristicPlanner,
-    LLMPlanner,
-    QueryPlan,
-    merge_constraints,
+from stylist.planner import HeuristicPlanner, LLMPlanner, QueryPlan, merge_constraints
+from stylist.reranker import (
+    LLMReranker,
+    RankedSlot,
+    RerankResult,
+    deterministic_reason,
+    fused_slot,
 )
-from stylist.reranker import LLMReranker, RankedSlot, RerankResult, deterministic_reason, fused_slot
 from stylist.retrieval import Candidate, Retriever
 from stylist.schemas import (
     IndexInfo,
@@ -48,7 +51,7 @@ MIN_PLAN_SECONDS = 0.5
 
 
 class RequestTimeout(Exception):
-    """The request deadline passed before retrieval finished (the API maps this to 504)."""
+    """The request deadline passed before the response was built (the API maps this to 504)."""
 
 
 class RecommendationService:
@@ -61,13 +64,23 @@ class RecommendationService:
     ):
         self.index = index
         self.settings = settings
-        self.llm = llm
+        # one global cap on llm calls in flight, shared by the planner and the reranker
+        self.llm = ThrottledLLM(llm, asyncio.Semaphore(settings.llm_concurrency)) if llm else None
         self.retriever = Retriever(index, embedder, settings)
         self.heuristic = HeuristicPlanner()
-        self.llm_planner = LLMPlanner(llm) if llm else None
-        self.reranker = LLMReranker(llm) if llm else None
+        self.llm_planner = LLMPlanner(self.llm) if self.llm else None
+        self.reranker = (
+            LLMReranker(self.llm, candidates=settings.rerank_candidates) if self.llm else None
+        )
         self._plan_cache: OrderedDict[tuple, QueryPlan] = OrderedDict()
+        self._plan_inflight: dict[tuple, asyncio.Future] = {}
+        self._plan_failed_until: dict[tuple, float] = {}
         self._retrieval_sem = asyncio.Semaphore(max(1, settings.retrieval_concurrency))
+        # a dedicated, bounded pool: retrieval is cpu bound numpy and must not spill into
+        # the default executor and pile up under load
+        self._executor = ThreadPoolExecutor(
+            max_workers=max(1, settings.retrieval_concurrency), thread_name_prefix="retrieval"
+        )
 
     # ------------------------------------------------------------------ planning
 
@@ -78,14 +91,18 @@ class RecommendationService:
         return (norm, mode, provider, model, PROMPT_VERSION, self.heuristic.version)
 
     def _cache_get(self, key: tuple) -> QueryPlan | None:
+        if self.settings.plan_cache_size <= 0:
+            return None
         plan = self._plan_cache.get(key)
         if plan is not None:
             self._plan_cache.move_to_end(key)
         return plan
 
     def _cache_put(self, key: tuple, plan: QueryPlan) -> None:
+        if self.settings.plan_cache_size <= 0:
+            return
         self._plan_cache[key] = plan
-        while len(self._plan_cache) > max(1, self.settings.plan_cache_size):
+        while len(self._plan_cache) > self.settings.plan_cache_size:
             self._plan_cache.popitem(last=False)
 
     async def _plan(
@@ -98,65 +115,104 @@ class RecommendationService:
         if cached is not None:
             return cached.model_copy(deep=True), mode
         if use_llm:
-            remaining = deadline - time.monotonic()
-            budget = min(self.settings.planner_budget_s, remaining)
-            if budget >= MIN_PLAN_SECONDS:
-                try:
-                    plan = await asyncio.wait_for(
-                        self.llm_planner.plan(req.query, timeout=budget),  # type: ignore[union-attr]
-                        timeout=budget,
-                    )
-                    self._cache_put(key, plan)
-                    return plan.model_copy(deep=True), "llm"
-                except (TimeoutError, LLMError) as exc:
-                    warnings.append(f"planner fell back to regex rules ({type(exc).__name__})")
-                    log.warning("planner failed: %s: %s", type(exc).__name__, exc)
+            if time.monotonic() < self._plan_failed_until.get(key, 0.0):
+                warnings.append("planner fell back to regex rules (recent planner failure)")
             else:
-                warnings.append("planner fell back to regex rules (request deadline)")
+                plan = await self._plan_with_llm(req.query, key, deadline, warnings)
+                if plan is not None:
+                    return plan.model_copy(deep=True), "llm"
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
         return plan.model_copy(deep=True), "heuristic"
+
+    async def _plan_with_llm(
+        self, query: str, key: tuple, deadline: float, warnings: list[str]
+    ) -> QueryPlan | None:
+        """One planner call per key at a time: concurrent identical requests share it.
+        A failure is remembered for PLANNER_FAILURE_TTL_S so an outage is not retried on
+        every request."""
+        budget = min(self.settings.planner_budget_s, deadline - time.monotonic())
+        if budget < MIN_PLAN_SECONDS:
+            warnings.append("planner fell back to regex rules (request deadline)")
+            return None
+        inflight = self._plan_inflight.get(key)
+        if inflight is None:
+            inflight = asyncio.ensure_future(
+                self.llm_planner.plan(query, timeout=budget)  # type: ignore[union-attr]
+            )
+            self._plan_inflight[key] = inflight
+            inflight.add_done_callback(lambda _f: self._plan_inflight.pop(key, None))
+        try:
+            plan = await asyncio.wait_for(asyncio.shield(inflight), timeout=budget)
+        except (LLMError, TimeoutError) as exc:
+            warnings.append(f"planner fell back to regex rules ({type(exc).__name__})")
+            log.warning("planner failed: %s: %s", type(exc).__name__, exc)
+            if self.settings.planner_failure_ttl_s > 0:
+                self._plan_failed_until[key] = (
+                    time.monotonic() + self.settings.planner_failure_ttl_s
+                )
+            return None
+        self._cache_put(key, plan)
+        self._plan_failed_until.pop(key, None)
+        return plan
+
+    # ------------------------------------------------------------------ retrieval
+
+    async def _retrieve_with_deadline(self, plan, windows, n_candidates: int, k: int, deadline):
+        """Wait for a retrieval permit only until the deadline (a request that times out in
+        the queue never starts work), then run retrieval in the bounded pool. A running
+        thread cannot be cancelled, so the permit is released when the thread ends, not
+        when the client gives up: RETRIEVAL_CONCURRENCY stays honest under a burst."""
+        remaining = deadline - time.monotonic()
+        try:
+            await asyncio.wait_for(self._retrieval_sem.acquire(), timeout=max(remaining, 0.01))
+        except TimeoutError as exc:
+            raise RequestTimeout("waited for a retrieval slot past the request deadline") from exc
+        loop = asyncio.get_running_loop()
+        fut = loop.run_in_executor(
+            self._executor, self.retriever.retrieve, plan, windows, n_candidates, k
+        )
+        fut.add_done_callback(lambda _f: self._retrieval_sem.release())
+        try:
+            return await asyncio.wait_for(
+                asyncio.shield(fut), timeout=max(deadline - time.monotonic(), 0.01)
+            )
+        except TimeoutError as exc:
+            fut.add_done_callback(lambda f: f.exception() if not f.cancelled() else None)
+            raise RequestTimeout("retrieval did not finish before the request deadline") from exc
 
     # ------------------------------------------------------------------ selection
 
     @staticmethod
     def _select(ranked: list[RankedSlot], k: int, warnings: list[str]) -> list[list[Candidate]]:
-        """Top k per slot in order, a product group is used by at most one slot."""
+        """Top k per slot, a product group used by at most one slot. Round robin by rank
+        (every slot takes its best available item before any slot takes its second) so an
+        early slot cannot drain the shared candidates of a later one."""
         used: set[str] = set()
-        out: list[list[Candidate]] = []
-        for rs in ranked:
-            picked: list[Candidate] = []
-            for c in rs.ordered:
-                key = c.group_key or f"row:{c.row_id}"
-                if key in used:
+        out: list[list[Candidate]] = [[] for _ in ranked]
+        cursors = [0] * len(ranked)
+        progress = True
+        while progress:
+            progress = False
+            for i, rs in enumerate(ranked):
+                if len(out[i]) >= k:
                     continue
-                used.add(key)
-                picked.append(c)
-                if len(picked) >= k:
+                while cursors[i] < len(rs.ordered):
+                    c = rs.ordered[cursors[i]]
+                    cursors[i] += 1
+                    key = c.group_key or f"row:{c.row_id}"
+                    if key in used:
+                        continue
+                    used.add(key)
+                    out[i].append(c)
+                    progress = True
                     break
+        for rs, picked in zip(ranked, out, strict=True):
             if not picked:
                 warnings.append(f"slot '{rs.slot.name}': nothing matched the constraints")
             elif len(picked) < k:
                 warnings.append(f"slot '{rs.slot.name}': only {len(picked)} of {k} items found")
-            out.append(picked)
         return out
-
-    async def _retrieve(self, plan, windows, n_candidates: int, k: int):
-        async with self._retrieval_sem:
-            return await asyncio.to_thread(self.retriever.retrieve, plan, windows, n_candidates, k)
-
-    async def _retrieve_with_deadline(self, plan, windows, n_candidates: int, k: int, deadline):
-        """Time out the *wait*, not the work: the thread cannot be cancelled, so the task
-        that holds the concurrency permit keeps running until the thread returns. That is
-        what keeps RETRIEVAL_CONCURRENCY honest under a burst of timeouts."""
-        task = asyncio.ensure_future(self._retrieve(plan, windows, n_candidates, k))
-        try:
-            return await asyncio.wait_for(
-                asyncio.shield(task), timeout=max(deadline - time.monotonic(), 0.01)
-            )
-        except TimeoutError:
-            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
-            raise
 
     # ------------------------------------------------------------------ main entry
 
@@ -189,9 +245,9 @@ class RecommendationService:
             slot_cands = await self._retrieve_with_deadline(
                 plan, windows, n_candidates, req.k, deadline
             )
-        except TimeoutError as exc:
+        except RequestTimeout:
             log.warning("request %s: retrieval exceeded the deadline", request_id)
-            raise RequestTimeout("retrieval did not finish before the request deadline") from exc
+            raise
         for sc in slot_cands:
             warnings.extend(sc.warnings)
         timings["retrieve_ms"] = round((time.monotonic() - t1) * 1000, 1)
@@ -200,27 +256,39 @@ class RecommendationService:
         note = ""
         t2 = time.monotonic()
         if do_rerank:
-            remaining = deadline - time.monotonic()
-            budget = min(self.settings.rerank_budget_s, remaining)
+            budget = min(self.settings.rerank_budget_s, deadline - time.monotonic())
             if budget < MIN_RERANK_SECONDS:
                 warnings.append("rerank skipped (request deadline), results are in retrieval order")
                 ranked = [fused_slot(sc) for sc in slot_cands]
             else:
-                try:
-                    result: RerankResult = await asyncio.wait_for(
-                        self.reranker.rerank(req.query, plan, slot_cands, req.k, budget),  # type: ignore[union-attr]
-                        timeout=budget,
-                    )
-                    ranked, rerank_used, note = result.slots, result.used_llm, result.note
-                    warnings.extend(result.warnings)
-                except TimeoutError:
-                    warnings.append("rerank skipped (timeout), results are in retrieval order")
-                    ranked = [fused_slot(sc) for sc in slot_cands]
+                # the reranker bounds itself per slot and keeps the slots that finished
+                result: RerankResult = await self.reranker.rerank(  # type: ignore[union-attr]
+                    req.query, plan, slot_cands, req.k, budget
+                )
+                ranked, rerank_used, note = result.slots, result.used_llm, result.note
+                warnings.extend(result.warnings)
         else:
             ranked = [fused_slot(sc) for sc in slot_cands]
         timings["rerank_ms"] = round((time.monotonic() - t2) * 1000, 1)
+        if time.monotonic() > deadline:
+            log.warning("request %s: past the deadline after reranking", request_id)
+            raise RequestTimeout("the request deadline passed before the response was built")
 
         picked = self._select(ranked, req.k, warnings)
+        has_bound = any(w.min_price is not None or w.max_price is not None for w in windows)
+        if has_bound and any(c.price is None for items in picked for c in items):
+            warnings.append(
+                "some returned items have an unknown price (price_known=false); they are not "
+                "claimed to fit the budget"
+            )
+        if plan.budget_scope == "total" and plan.budget_max is not None:
+            priced_sum = sum(c.price for items in picked for c in items if c.price is not None)
+            if priced_sum > plan.budget_max + 1e-6:
+                warnings.append(
+                    f"the priced picks add up to ${priced_sum:.2f}, above the stated total "
+                    f"budget of ${plan.budget_max:.2f}"
+                )
+
         slots_out: list[SlotResult] = []
         for rs, items in zip(ranked, picked, strict=True):
             out_items = []
@@ -234,7 +302,9 @@ class RecommendationService:
                         title=c.title,
                         price=c.price,
                         price_known=c.price is not None,
-                        average_rating=round(c.average_rating, 2),
+                        average_rating=(
+                            round(c.average_rating, 2) if c.average_rating is not None else None
+                        ),
                         rating_number=c.rating_number,
                         store=c.store,
                         audience=c.audience,
@@ -269,7 +339,8 @@ class RecommendationService:
             timings,
             len(warnings),
         )
-        log.debug("request %s query=%r", request_id, req.query)
+        if self.settings.log_queries:
+            log.info("request %s query=%r", request_id, req.query)
         return RecommendResponse(
             request_id=request_id,
             query=req.query,

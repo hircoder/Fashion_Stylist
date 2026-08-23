@@ -42,6 +42,7 @@ class PickOutput(BaseModel):
 
 class SlotRerankOutput(BaseModel):
     picks: list[PickOutput] = Field(default_factory=list)
+    no_good_match: bool = False  # true = nothing in the list fits the slot, leave it empty
     note: str = ""
 
 
@@ -76,6 +77,14 @@ _WS = re.compile(r"\s+")
 def sanitize(text: object, max_len: int) -> str:
     s = _CONTROL.sub("", str(text or ""))
     return _WS.sub(" ", s).strip()[:max_len]
+
+
+_LINKISH = re.compile(r"(https?://\S+|www\.\S+|\S+@\S+\.\S+)", re.I)
+
+
+def strip_links(text: str) -> str:
+    """Model prose can be steered by catalog text; never let it carry a url or an email."""
+    return _WS.sub(" ", _LINKISH.sub("", text)).strip()
 
 
 def candidate_payload(c: Candidate) -> dict:
@@ -147,22 +156,43 @@ def fused_slot(sc: SlotCandidates) -> RankedSlot:
     return RankedSlot(sc.slot, sc.window, list(sc.candidates), sc.n_eligible, {}, list(sc.warnings))
 
 
-def apply_slot_rerank(out: SlotRerankOutput, sc: SlotCandidates) -> tuple[RankedSlot, list[str]]:
-    """Validate the model's picks for one slot and build its final ordering."""
+def apply_slot_rerank(
+    out: SlotRerankOutput, sc: SlotCandidates, k: int
+) -> tuple[RankedSlot, list[str]]:
+    """Validate the model's picks for one slot and build its final ordering.
+
+    At most k picks are accepted, in the model's order, and only ids that were offered.
+    no_good_match=True makes the slot empty (plus a warning) instead of falling back to
+    retrieval order; otherwise a short list is topped up from retrieval order, flagged.
+    """
     warnings: list[str] = []
+    name = sc.slot.name
     offered = {c.row_id: c for c in sc.candidates}
     chosen: list[Candidate] = []
     reasons: dict[int, Reason] = {}
     for p in out.picks:
         c = offered.get(p.row_id)
         if c is None:
-            warnings.append(f"rerank pick {p.row_id} is not a candidate of '{sc.slot.name}'")
+            warnings.append(f"rerank pick {p.row_id} is not a candidate of '{name}'")
             continue
         if c.row_id in reasons:
             continue
+        if len(chosen) >= k:
+            warnings.append(f"rerank returned more than {k} picks for '{name}', extra ones ignored")
+            break
         chosen.append(c)
         reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
+    if out.no_good_match and not chosen:
+        warnings.append(f"slot '{name}': the reranker found no suitable item, slot left empty")
+        return RankedSlot(sc.slot, sc.window, [], sc.n_eligible, {}, list(sc.warnings)), warnings
     rest = [c for c in sc.candidates if c.row_id not in reasons]  # retrieval order
+    if out.no_good_match:
+        rest = []
+    elif len(chosen) < k and rest:
+        warnings.append(
+            f"slot '{name}': {len(chosen)} of {k} items chosen by the reranker, the rest are in "
+            f"retrieval order"
+        )
     ranked = RankedSlot(
         sc.slot, sc.window, chosen + rest, sc.n_eligible, reasons, list(sc.warnings)
     )
@@ -200,25 +230,33 @@ class LLMReranker:
         todo = [i for i, sc in enumerate(slots) if sc.candidates]
         if not todo:
             return RerankResult(ranked, "", False, warnings)
-        results = await asyncio.gather(
-            *(self._rerank_slot(query, plan, slots[i], k, timeout) for i in todo),
-            return_exceptions=True,
-        )
+        tasks = {
+            asyncio.ensure_future(self._rerank_slot(query, plan, slots[i], k, timeout)): i
+            for i in todo
+        }
+        # wait, don't gather: a slot that overruns the budget must not throw away the
+        # results of the slots that finished in time
+        done, pending = await asyncio.wait(tasks, timeout=timeout)
+        for task in pending:
+            task.cancel()
+            name = slots[tasks[task]].slot.name
+            warnings.append(f"rerank of '{name}' ran out of time, retrieval order kept")
         used = False
-        for i, result in zip(todo, results, strict=True):
+        for task in done:
+            i = tasks[task]
             name = slots[i].slot.name
-            if isinstance(result, Exception):  # LLMError or anything unexpected: this slot only
-                level = log.warning if isinstance(result, LLMError) else log.error
-                level("rerank of slot %r skipped: %s: %s", name, type(result).__name__, result)
+            exc = task.exception()
+            if exc is not None:  # LLMError or anything unexpected: this slot only
+                level = log.warning if isinstance(exc, LLMError) else log.error
+                level("rerank of slot %r skipped: %s: %s", name, type(exc).__name__, exc)
                 warnings.append(
-                    f"rerank skipped for '{name}' ({type(result).__name__}), retrieval order kept"
+                    f"rerank skipped for '{name}' ({type(exc).__name__}), retrieval order kept"
                 )
                 continue
-            if isinstance(result, BaseException):  # cancellation and friends propagate
-                raise result
-            ranked[i], slot_warnings = apply_slot_rerank(result, slots[i])
+            result = task.result()
+            ranked[i], slot_warnings = apply_slot_rerank(result, slots[i], k)
             warnings.extend(slot_warnings)
             used = True
             if result.note and result.note.strip():
-                notes.append(sanitize(result.note, 200))
+                notes.append(strip_links(sanitize(result.note, 200)))
         return RerankResult(ranked, " ".join(notes), used, warnings)

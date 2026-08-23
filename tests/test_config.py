@@ -89,3 +89,13 @@ def test_out_of_range_numeric_settings_are_config_errors(env):
 def test_default_budgets_fit_inside_the_deadline():
     s = Settings.from_env({})
     assert s.planner_budget_s + s.rerank_budget_s <= s.request_deadline_s
+
+
+def test_new_operational_settings_have_safe_defaults():
+    s = Settings.from_env({})
+    assert s.llm_concurrency >= 1 and s.planner_failure_ttl_s >= 0
+    assert s.cors_allow_origins == ()
+    assert s.rate_limit_per_minute > 0 and s.max_inflight_requests > 0 and s.max_body_bytes > 0
+    assert s.log_queries is False and s.startup_fail_fast is False
+    assert s.index_allow_file_url is False
+    assert "sk-secret" not in repr(Settings.from_env({"OPENAI_API_KEY": "sk-secret"}))

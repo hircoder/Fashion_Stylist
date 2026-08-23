@@ -42,6 +42,18 @@ def _get_int(env: Mapping[str, str], key: str, default: int) -> int:
         raise ConfigError(f"{key} must be an integer, got {raw!r}") from exc
 
 
+def _get_bool(env: Mapping[str, str], key: str, default: bool) -> bool:
+    raw = env.get(key)
+    if raw is None or raw.strip() == "":
+        return default
+    val = raw.strip().lower()
+    if val in ("1", "true", "yes", "on"):
+        return True
+    if val in ("0", "false", "no", "off"):
+        return False
+    raise ConfigError(f"{key} must be true or false, got {raw!r}")
+
+
 def _get_str(env: Mapping[str, str], key: str, default: str | None = None) -> str | None:
     raw = env.get(key)
     if raw is None or raw.strip() == "":
@@ -92,8 +104,28 @@ class Settings:
     index_url: str | None
     index_sha256: str | None
     index_max_bytes: int
+    index_allow_file_url: bool  # file:// urls are for tests and local dev only
+
+    # operational limits for a public deployment
+    llm_concurrency: int  # llm calls in flight across all requests
+    planner_failure_ttl_s: (
+        float  # do not retry the llm planner for a query this soon after a failure
+    )
+    cors_allow_origins: tuple[str, ...]  # empty = same origin only
+    rate_limit_per_minute: int  # per client ip
+    max_inflight_requests: int
+    max_body_bytes: int
+    log_queries: bool
+    startup_fail_fast: bool
 
     log_level: str
+
+    def __repr__(self) -> str:  # never leak keys through a repr in a log or traceback
+        hidden = {"anthropic_api_key", "openai_api_key"}
+        fields = ", ".join(
+            f"{k}={'***' if k in hidden and v else v!r}" for k, v in self.__dict__.items()
+        )
+        return f"Settings({fields})"
 
     @property
     def embedding_name(self) -> str:
@@ -182,6 +214,19 @@ class Settings:
             index_url=_get_str(env, "INDEX_URL"),
             index_sha256=_get_str(env, "INDEX_SHA256"),
             index_max_bytes=_get_int(env, "INDEX_MAX_BYTES", 4 * 1024**3),
+            index_allow_file_url=_get_bool(env, "INDEX_ALLOW_FILE_URL", False),
+            llm_concurrency=_get_int(env, "LLM_CONCURRENCY", 8),
+            planner_failure_ttl_s=_get_float(env, "PLANNER_FAILURE_TTL_S", 30.0),
+            cors_allow_origins=tuple(
+                o.strip()
+                for o in (_get_str(env, "CORS_ALLOW_ORIGINS", "") or "").split(",")
+                if o.strip()
+            ),
+            rate_limit_per_minute=_get_int(env, "RATE_LIMIT_PER_MINUTE", 60),
+            max_inflight_requests=_get_int(env, "MAX_INFLIGHT_REQUESTS", 16),
+            max_body_bytes=_get_int(env, "MAX_BODY_BYTES", 16 * 1024),
+            log_queries=_get_bool(env, "LOG_QUERIES", False),
+            startup_fail_fast=_get_bool(env, "STARTUP_FAIL_FAST", False),
             log_level=(_get_str(env, "LOG_LEVEL", "INFO") or "INFO").upper(),
         )
         settings.validate()
@@ -199,6 +244,10 @@ class Settings:
             "retrieval_concurrency": self.retrieval_concurrency,
             "max_seq_length": self.max_seq_length,
             "index_max_bytes": self.index_max_bytes,
+            "llm_concurrency": self.llm_concurrency,
+            "rate_limit_per_minute": self.rate_limit_per_minute,
+            "max_inflight_requests": self.max_inflight_requests,
+            "max_body_bytes": self.max_body_bytes,
         }
         for name, value in positive.items():
             if not math.isfinite(value) or value <= 0:
@@ -207,6 +256,7 @@ class Settings:
             "keyword_boost": self.keyword_boost,
             "quality_weight": self.quality_weight,
             "plan_cache_size": self.plan_cache_size,
+            "planner_failure_ttl_s": self.planner_failure_ttl_s,
         }.items():
             if not math.isfinite(value) or value < 0:
                 raise ConfigError(f"{name.upper()} must be finite and >= 0, got {value}")
