@@ -61,6 +61,7 @@ class RecommendationService:
         embedder: Embedder,
         settings: Settings,
         llm: LLMClient | None = None,
+        plan_cache: OrderedDict[tuple, QueryPlan] | None = None,
     ):
         self.index = index
         self.settings = settings
@@ -72,7 +73,10 @@ class RecommendationService:
         self.reranker = (
             LLMReranker(self.llm, candidates=settings.rerank_candidates) if self.llm else None
         )
-        self._plan_cache: OrderedDict[tuple, QueryPlan] = OrderedDict()
+        # a caller may share one cache between services (the evaluation pairs configs)
+        self._plan_cache: OrderedDict[tuple, QueryPlan] = (
+            plan_cache if plan_cache is not None else OrderedDict()
+        )
         self._plan_inflight: dict[tuple, asyncio.Future] = {}
         self._plan_failed_until: dict[tuple, float] = {}
         self._retrieval_sem = asyncio.Semaphore(max(1, settings.retrieval_concurrency))

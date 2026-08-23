@@ -40,6 +40,8 @@ RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_numbe
 # deliberately stronger pull toward the mean for thinly rated items)
 AUDIENCE_MATCH_BONUS = 0.15  # x unit: a row whose audience equals the requested one edges
 # out unisex / unknown rows on otherwise equal relevance (they stay eligible)
+BRAND_BOOST = 2.0  # x unit: when a named brand has too few rows to filter on, its rows still
+# come first; 2 rank-1 contributions beats any fusion score
 
 
 @dataclass
@@ -244,6 +246,23 @@ class Retriever:
         self.rating_prior = prior if math.isfinite(prior) else 4.0
         self._unit = 1.0 / (settings.rrf_k + 1)  # RRF contribution of a rank-1 hit
         self._group_keys: dict[int, str] = {}  # row position -> group key, filled on demand
+        self._brand_masks: dict[str, np.ndarray] = {}  # brand -> rows that carry it
+
+    def _brand_mask(self, brand: str) -> np.ndarray:
+        """Rows whose title, store or brand field contains `brand` as whole words."""
+        key = brand.lower().strip()
+        mask = self._brand_masks.get(key)
+        if mask is None:
+            rx = re.compile(r"\b" + re.escape(key).replace(r"\ ", r"[\s\-]*") + r"\b", re.I)
+            cat = self.index.catalog
+            cols = [cat["title"]] + [cat[c] for c in ("store", "brand") if c in cat.columns]
+            mask = np.zeros(self.index.n_rows, dtype=bool)
+            for col in cols:
+                mask |= col.fillna("").astype(str).str.contains(rx).to_numpy()
+            if len(self._brand_masks) >= 64:
+                self._brand_masks.pop(next(iter(self._brand_masks)))
+            self._brand_masks[key] = mask
+        return mask
 
     def _group_key(self, idx: int, title: str) -> str:
         key = self._group_keys.get(idx)
@@ -282,12 +301,15 @@ class Retriever:
         slot: Slot,
         top_n: int,
         audience: str | None = None,
+        bonus: np.ndarray | None = None,
     ) -> list[Candidate]:
         fused = rrf_fuse(dense, bm25, mask, top_n=top_n, k=self.s.rrf_k)
         for c in fused:
             self._hydrate(c)
             if audience and c.audience == audience:
                 c.score += AUDIENCE_MATCH_BONUS * self._unit
+            if bonus is not None and bonus[c.idx]:
+                c.score += BRAND_BOOST * self._unit
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
             if c.matched_keywords:
                 c.score += self.s.keyword_boost * self._unit
@@ -310,13 +332,14 @@ class Retriever:
         needed: int,
         seen: set[str],
         audience: str | None = None,
+        bonus: np.ndarray | None = None,
     ) -> list[Candidate]:
         """Rank and collapse variants; widen the per-channel window (x4 each time) while
         the masked pool still has rows and we have fewer than `needed` distinct groups."""
         n_masked = int(mask.sum())
         top_n = self.s.top_n_per_channel
         while True:
-            fused = self._rank(dense, bm25, mask, slot, top_n, audience)
+            fused = self._rank(dense, bm25, mask, slot, top_n, audience, bonus)
             distinct = diversify_by_group(fused, set(seen))
             if len(distinct) >= needed or top_n >= n_masked:
                 seen.update(c.group_key or f"__{c.idx}" for c in distinct)
@@ -338,22 +361,37 @@ class Retriever:
         dense_all = (
             self.index.dense_scores(self.embedder.encode_queries(queries)) if use_dense else None
         )
+        brand_mask = self._brand_mask(plan.brand) if plan.brand else None
         out: list[SlotCandidates] = []
         for i, (slot, window) in enumerate(zip(plan.slots, windows, strict=True)):
             warnings: list[str] = []
             eligible, pool = eligibility_masks(self.index, window)
+            bonus = None
+            if brand_mask is not None:
+                n_brand = int((eligible & brand_mask).sum())
+                if n_brand >= k:  # enough of the brand: the brand becomes a hard filter
+                    eligible &= brand_mask
+                    pool &= brand_mask
+                else:  # too few: they come first, the rest fills up, and the client is told
+                    bonus = brand_mask
+                    warnings.append(
+                        f"slot '{slot.name}': only {n_brand} items of brand '{plan.brand}' match "
+                        f"the constraints, other brands follow"
+                    )
             dense = dense_all[i] if dense_all is not None else None
             bm25 = self.index.bm25_scores(slot.search_query) if use_bm25 else None
             seen: set[str] = set()
             aud = window.audience
-            ranked = self._rank_distinct(dense, bm25, eligible, slot, n_candidates, seen, aud)
+            ranked = self._rank_distinct(
+                dense, bm25, eligible, slot, n_candidates, seen, aud, bonus
+            )
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():
                 # unpriced pool, same depth, flagged. Merged into ONE score order: a known
                 # in-budget price earns a small bonus, it does not trump relevance (a priced
                 # wooden ring must not outrank an unpriced blazer in a blazer slot)
-                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen, aud)
+                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen, aud, bonus)
                 for c in ranked:
                     c.score += IN_WINDOW_BONUS * self._unit
                 for c in extra[:n_candidates]:

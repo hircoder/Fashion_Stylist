@@ -162,8 +162,10 @@ def apply_slot_rerank(
     """Validate the model's picks for one slot and build its final ordering.
 
     At most k picks are accepted, in the model's order, and only ids that were offered.
-    no_good_match=True makes the slot empty (plus a warning) instead of falling back to
-    retrieval order; otherwise a short list is topped up from retrieval order, flagged.
+    A short list is topped up from retrieval order, but only with candidates whose title
+    matches one of the slot's type keywords (a thin pool must not be padded with a ball
+    pump under "white sneakers"); the top-up is flagged. no_good_match=True with no picks
+    uses the same keyword-matching fallback, flagged, or leaves the slot empty.
     """
     warnings: list[str] = []
     name = sc.slot.name
@@ -182,17 +184,30 @@ def apply_slot_rerank(
             break
         chosen.append(c)
         reasons[c.row_id] = Reason(sanitize(p.reason, 240), list(p.evidence))
-    if out.no_good_match and not chosen:
-        warnings.append(f"slot '{name}': the reranker found no suitable item, slot left empty")
-        return RankedSlot(sc.slot, sc.window, [], sc.n_eligible, {}, list(sc.warnings)), warnings
     rest = [c for c in sc.candidates if c.row_id not in reasons]  # retrieval order
+    if sc.slot.keywords:  # only type-matching items may pad a slot
+        rest = [c for c in rest if c.matched_keywords]
     if out.no_good_match:
-        rest = []
-    elif len(chosen) < k and rest:
-        warnings.append(
-            f"slot '{name}': {len(chosen)} of {k} items chosen by the reranker, the rest are in "
-            f"retrieval order"
-        )
+        if chosen:
+            rest = []
+        elif rest:
+            warnings.append(
+                f"slot '{name}': the reranker found no suitable item, showing the closest "
+                f"type matches in retrieval order"
+            )
+        else:
+            warnings.append(f"slot '{name}': the reranker found no suitable item, slot left empty")
+    elif len(chosen) < k:
+        if rest:
+            warnings.append(
+                f"slot '{name}': {len(chosen)} of {k} items chosen by the reranker, the rest are "
+                f"type matches in retrieval order"
+            )
+        elif len(chosen) < min(k, len(sc.candidates)):
+            warnings.append(
+                f"slot '{name}': only {len(chosen)} suitable items, the other candidates did "
+                f"not match the product type"
+            )
     ranked = RankedSlot(
         sc.slot, sc.window, chosen + rest, sc.n_eligible, reasons, list(sc.warnings)
     )

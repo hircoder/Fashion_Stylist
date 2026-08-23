@@ -62,6 +62,7 @@ MIN_RATINGS_FOR_KEYWORD_PICK = 20
 def main(raw: str, out: str) -> None:
     rng = random.Random(SEED)
     by_aud: dict[str, list[dict]] = defaultdict(list)
+    n_seen: dict[str, int] = defaultdict(int)  # per-audience counts for the reservoir
     kw_hits: dict[str, list[dict]] = defaultdict(list)
     seen_titles: set[str] = set()
     for rec in iter_raw(Path(raw)):
@@ -70,12 +71,15 @@ def main(raw: str, out: str) -> None:
             continue
         seen_titles.add(title.lower())
         aud = derive_audience(title, (rec.get("details") or {}).get("Department"))
-        # reservoir per audience, capped so memory stays small
+        # reservoir sampling per audience (Algorithm R), capped so memory stays small
         bucket = by_aud[aud]
+        n_seen[aud] += 1
         if len(bucket) < 5000:
             bucket.append(rec)
-        elif rng.random() < 5000 / max(len(seen_titles), 1):
-            bucket[rng.randrange(5000)] = rec
+        else:
+            j = rng.randrange(n_seen[aud])
+            if j < 5000:
+                bucket[j] = rec
         if (rec.get("rating_number") or 0) >= MIN_RATINGS_FOR_KEYWORD_PICK:
             low = title.lower()
             for kw in KEYWORDS:

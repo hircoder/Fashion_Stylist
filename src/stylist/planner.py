@@ -61,6 +61,7 @@ class PlannerOutput(BaseModel):
     budget_max: float | None = None
     budget_scope: BudgetScope = "unknown"
     style_keywords: list[str] = Field(default_factory=list)
+    brand: str | None = None
     slots: list[SlotOutput] = Field(default_factory=list)
 
 
@@ -81,6 +82,7 @@ class QueryPlan(BaseModel):
     budget_max: float | None = None
     budget_scope: BudgetScope = "unknown"
     style_keywords: list[str] = Field(default_factory=list)
+    brand: str | None = None  # a brand the shopper named; retrieval filters or boosts on it
     slots: list[Slot] = Field(min_length=1, max_length=MAX_SLOTS)
     source: Literal["llm", "heuristic"] = "llm"
     warnings: list[str] = Field(default_factory=list)
@@ -417,6 +419,7 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
         budget_max=budget_max,
         budget_scope=scope,
         style_keywords=_clean_keywords(out.style_keywords)[:8],
+        brand=_clean_text(out.brand, 40).lower() or None,
         slots=slots,
         source="llm",
         warnings=warnings,
