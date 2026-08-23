@@ -16,3 +16,5 @@ One page each. Context, decision, why, consequences, alternatives.
 * [ADR-0012](0012-self-contained-index-and-baked-image.md): Self-contained index directory with checksums; demo index baked into the container image
 * [ADR-0013](0013-serving-stack.md): FastAPI + React page + CLI; Docker on Railway
 * [ADR-0014](0014-evaluation-approach.md): Evaluation with hand written type rules and ablations, not human labels
+* [ADR-0015](0015-type-gate-and-brand-handling.md): A type gate on LLM plans, and a named brand as a first pass
+* [ADR-0016](0016-request-limits-and-startup-validation.md): Request limits in the app, and an index that fails closed

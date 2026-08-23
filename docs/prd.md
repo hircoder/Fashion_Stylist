@@ -44,7 +44,7 @@ for, how much, when) are lost completely.
 | respect audience and price constraints | boolean masks on the full score vectors before top-N | 0 price violations, 0 empty slots in 798 slot results |
 | explain picks | LLM reranker returns reason + evidence fields per item, validated against the candidate set | `reranker.py`, samples in the README |
 | honest prices | `price_known` on every item, strict explicit bounds, flagged unpriced items for inferred budgets | ADR-008 |
-| outfit coherence | a product fills at most one slot, total budgets split across slots with a floor | `service.py` selection, tests |
+| no duplicates across slots | a product fills at most one slot (round robin by rank), total budgets split across slots with a 10% floor; style coherence between slots is not scored (see production notes) | `service.py` selection, tests |
 | API, CLI, page | FastAPI `POST /recommend` with OpenAPI, `stylist` CLI, React page at `/` | `api.py`, `cli.py`, `ui/` |
 | reduced mode without a key | `LLM_PROVIDER=none`, regex planner, retrieval order | `make demo` path, tests |
 

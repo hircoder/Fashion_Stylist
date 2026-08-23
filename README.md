@@ -41,11 +41,12 @@ put a key in `.env` (copy `.env.example`):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...      # or OPENAI_API_KEY=sk-...
-LLM_MODEL=claude-sonnet-5         # optional. defaults: claude-opus-5 / gpt-5-mini, sonnet is cheaper
+LLM_MODEL=claude-sonnet-4-6       # optional. the default is the model every number here was measured with
+LLM_RERANK_MODEL=claude-haiku-4-5-20251001   # optional. a cheaper model for the per-slot rerank calls
 ```
 
-(the sample outputs further down were produced with `claude-sonnet-4-6`, the response
-always tells you which model ran in `llm_info`.)
+(the response always tells you which model ran, how many calls it took and how many
+tokens they used, in `llm_info`.)
 
 ## The real catalog
 
@@ -293,8 +294,9 @@ Typical numbers on my laptop: planner 2-6 s, retrieval 50-300 ms, rerank 3-7 s.
 
 **Two providers, one protocol.** `complete_json(system, user, schema)` is the whole
 interface; Anthropic and OpenAI adapters implement it with their SDKs' structured output.
-No framework, about 70 lines each, easier to read then to configure. The default model per provider is in `.env.example`
-together with cheaper choices; the reranker runs fine on the small models.
+No framework, about 70 lines each, easier to read then to configure. The default model per
+provider is the one the evaluation ran on; `LLM_RERANK_MODEL` lets a cheaper model do the
+per-slot rerank calls, which is where most of the tokens go.
 
 ## Evaluation
 
@@ -335,8 +337,18 @@ demo index into the image**: the build downloads the raw metadata, ingests it an
 the 40K most rated listings (about 4 minutes on a cpu builder). The container then needs
 no volume and no external files. `--build-arg BAKE_INDEX_LIMIT=0` skips that; then give
 the container an index through a volume at `/app/data` or through `INDEX_URL` +
-`INDEX_SHA256` (a tarball from `make index-tar`; on boot it is downloaded, size capped,
-checksum verified, extracted with path checks and installed with an atomic rename).
+`INDEX_SHA256` (a tarball from `make index-tar`; on boot it is downloaded from a public
+https host, size capped, checksum verified, extracted with member and path checks,
+validated by the same loader the service uses, and swapped in under a lock).
+
+Limits and knobs that matter once it faces traffic (all environment variables, defaults
+in brackets): `RATE_LIMIT_PER_MINUTE` [60] per client with a burst of a sixth of it,
+`MAX_INFLIGHT_REQUESTS` [16], `MAX_BODY_BYTES` [16384], `LLM_CONCURRENCY` [8],
+`REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20],
+`TRUST_PROXY_HEADERS` [off; the container image sets it, so the client ip comes from the
+proxy's x-forwarded-for], `CORS_ALLOW_ORIGINS` [none], `STARTUP_FAIL_FAST` [off],
+`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizing
+numbers behind the defaults.
 
 `railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
 check, `PORT` picked up automatically. After the first deploy add `ANTHROPIC_API_KEY` or
@@ -362,7 +374,7 @@ in memory.
 ## Tests
 
 ```bash
-make test       # 200+ tests, no model download, no keys, ~10 s
+make test       # 380+ tests, no model download, no keys, ~20 s
 make test-all   # adds the real embedding model and, if keys are set, a live LLM round trip
 make lint
 ```
@@ -402,14 +414,18 @@ tests/            pytest suite + the 486 row fixture
 ## More documentation
 
 * `docs/prd.md`: the requirements, how each one is met, the success metrics.
-* `docs/adr/`: fourteen decision records (embeddings, hybrid retrieval, masks before
+* `docs/adr/`: sixteen decision records (embeddings, hybrid retrieval, masks before
   top-N, exact search, the default index, planner, reranker, price policy, variant
-  grouping, providers, deadlines, index artifacts, serving stack, evaluation approach).
+  grouping, providers, deadlines, index artifacts, serving stack, evaluation approach,
+  the type gate and brand handling, request limits and fail-closed loading).
 * `docs/design-notes.md`: the longer narrative behind the decisions.
 * `docs/exploration.md`: the notebook, the scripts, and the prompt experiments in order.
 * `docs/evaluation.md`: every number with its caveats.
+* `docs/production.md`: measured latency, throughput and cost, the economics at scale,
+  how to get under a second, the recommended production setup, guardrails and
+  observability, gaps with a dated plan, the tests still to run.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
-  data flow.
+  data flow (16 slides, agenda on the left).
 
 ## Limitations and what i would do next
 
