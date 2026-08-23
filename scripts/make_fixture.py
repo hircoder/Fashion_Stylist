@@ -4,7 +4,8 @@ Takes the raw Amazon Fashion metadata and writes ~500 rows: 400 stratified by au
 (seeded, so it is reproducible) plus ~100 rows picked by product keywords so the demo
 has something sensible to return for beach / winter / office style queries.
 
-usage: python scripts/make_fixture.py data/raw/meta_Amazon_Fashion.jsonl.gz tests/fixtures/sample_500.jsonl.gz
+usage: python scripts/make_fixture.py data/raw/meta_Amazon_Fashion.jsonl.gz \
+           tests/fixtures/sample_500.jsonl.gz
 """
 
 from __future__ import annotations
@@ -93,7 +94,7 @@ def main(raw: str, out: str) -> None:
                 picked_ids.add(rec["parent_asin"])
 
     total_strat = sum(len(v) for v in by_aud.values())
-    for aud, bucket in sorted(by_aud.items()):
+    for _aud, bucket in sorted(by_aud.items()):
         n = max(1, round(STRATIFIED * len(bucket) / total_strat))
         rng.shuffle(bucket)
         for rec in bucket[:n]:

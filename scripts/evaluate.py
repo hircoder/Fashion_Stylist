@@ -14,7 +14,8 @@ Configs compare retrieval channels (bm25 / dense / hybrid), the keyword boost, a
 LLM planner + reranker. Needs a built index (INDEX_DIR) and, for the llm configs, an
 LLM key in the environment.
 
-usage: uv run python scripts/evaluate.py [--index-dir data/index] [--configs hybrid,llm] [--out docs/eval_results.json]
+usage: uv run python scripts/evaluate.py [--index-dir data/index] [--configs hybrid,llm]
+           [--out docs/eval_results.json]
 """
 
 from __future__ import annotations
@@ -179,7 +180,8 @@ async def main_async(args):
         print(
             f"{name:16s} match@k={summary['keyword_match_at_k']:.3f} "
             f"empty={summary['empty_slots']}/{summary['total_slots']} "
-            f"price_bad={summary['price_violations']} p50={summary['p50_ms']}ms p95={summary['p95_ms']}ms",
+            f"price_bad={summary['price_violations']} "
+            f"p50={summary['p50_ms']}ms p95={summary['p95_ms']}ms",
             file=sys.stderr,
         )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)

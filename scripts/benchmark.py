@@ -1,6 +1,7 @@
 """Serving footprint of an index: memory after load, and retrieval latency (no LLM).
 
-usage: uv run python scripts/benchmark.py --index-dir data/index [--concurrency 1,2,4] [--requests 40]
+usage: uv run python scripts/benchmark.py --index-dir data/index \
+           [--concurrency 1,2,4] [--requests 40]
 """
 
 from __future__ import annotations
