@@ -70,7 +70,7 @@ class Settings:
     anthropic_base_url: str | None
     openai_api_key: str | None
     openai_base_url: str | None
-    llm_effort: str | None  # low | medium | high, passed to reasoning models, None = provider default
+    llm_effort: str | None  # low | medium | high for reasoning models, None = provider default
 
     # deadlines (seconds)
     request_deadline_s: float

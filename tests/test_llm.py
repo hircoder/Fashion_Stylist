@@ -94,7 +94,8 @@ async def test_anthropic_adapter_maps_refusal_and_truncation():
     llm = AnthropicLLM(api_key="k", model="m", client=_AnthropicRecorder(result=_Resp("refusal")))
     with pytest.raises(LLMRefusalError):
         await llm.complete_json(system="S", user="U", schema=Answer)
-    llm = AnthropicLLM(api_key="k", model="m", client=_AnthropicRecorder(result=_Resp("max_tokens")))
+    rec = _AnthropicRecorder(result=_Resp("max_tokens"))
+    llm = AnthropicLLM(api_key="k", model="m", client=rec)
     with pytest.raises(LLMTruncatedError):
         await llm.complete_json(system="S", user="U", schema=Answer)
 
