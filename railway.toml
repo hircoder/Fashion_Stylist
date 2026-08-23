@@ -1,0 +1,13 @@
+# railway: build from the Dockerfile, single worker, readiness on /ready.
+# set INDEX_URL + INDEX_SHA256 (or mount a volume at /app/data) and an LLM key in the
+# service variables. PORT is injected by railway and picked up by `stylist serve`.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "uv run stylist serve --host 0.0.0.0"
+healthcheckPath = "/ready"
+healthcheckTimeout = 600
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

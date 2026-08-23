@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.19"
+      - run: uv sync --extra dev
+      - run: uv run ruff check src tests scripts
+      - run: uv run ruff format --check src tests scripts
+      - run: uv run pytest -m "not slow and not live" -q
+        env:
+          EMBEDDER: hash
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t stylist:ci .
+      # build a tiny index inside the image (real embedding model, fixture data)
+      - run: |
+          mkdir -p "$PWD/ci-data"
+          docker run --rm -v "$PWD/ci-data:/app/data" stylist:ci \
+            uv run stylist ingest --raw tests/fixtures/sample_500.jsonl.gz --out /app/data/catalog.parquet
+          docker run --rm -v "$PWD/ci-data:/app/data" stylist:ci \
+            uv run stylist build-index --catalog /app/data/catalog.parquet --index-dir /app/data/index --sampling all
+      - run: |
+          docker run -d --name stylist -p 8000:8000 -v "$PWD/ci-data:/app/data" -e LLM_PROVIDER=none stylist:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8000/ready >/dev/null 2>&1; then break; fi; sleep 2;
+          done
+          curl -fsS http://localhost:8000/ready
+          curl -fsS -X POST http://localhost:8000/recommend -H 'content-type: application/json' \
+            -d '{"query":"warm boots for snow","k":2}' | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['slots'][0]['items'], d; print('ok', d['slots'][0]['items'][0]['title'])"
+      - if: always()
+        run: docker logs stylist || true

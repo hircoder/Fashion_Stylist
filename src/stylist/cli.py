@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
 import urllib.request
 from pathlib import Path
@@ -195,7 +196,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("serve", help="start the HTTP API")
     s.add_argument("--host", default="0.0.0.0")
-    s.add_argument("--port", type=int, default=8000)
+    s.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     s.add_argument("--reload", action="store_true")
     s.set_defaults(func=cmd_serve)
     return p
