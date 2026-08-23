@@ -294,26 +294,30 @@ def _unique_names(slots: list[Slot]) -> None:
 
 
 def _fit_allocation(allocs: list[float], total: float) -> tuple[list[float], list[str]]:
-    """Per-slot budget split that (a) gives no slot less than MIN_ALLOCATION_SHARE of the
-    total and (b) adds up to at most the total. Excess is taken from the slots with room."""
+    """Per-slot budget split that adds up to at most the total and gives no slot less than
+    MIN_ALLOCATION_SHARE of it. Overspend is scaled down proportionally first; a floor
+    raise is then paid for by the slots that have room above the floor."""
     notes: list[str] = []
     floor = total * MIN_ALLOCATION_SHARE
     fixed = list(allocs)
+    if sum(fixed) > total + 1e-6:
+        notes.append(
+            f"planner allocation {sum(allocs):.2f} exceeded total budget {total:.2f}, scaled down"
+        )
+        factor = total / sum(fixed)
+        fixed = [a * factor for a in fixed]
     if any(a < floor for a in fixed):
         notes.append(
             f"planner gave a slot less than {MIN_ALLOCATION_SHARE:.0%} of the total budget, "
             f"raised it to the floor"
         )
         fixed = [max(a, floor) for a in fixed]
-    excess = sum(fixed) - total
-    if excess > 1e-6:
-        notes.append(
-            f"planner allocation {sum(allocs):.2f} exceeded total budget {total:.2f}, scaled down"
-        )
-        room = [a - floor for a in fixed]
-        total_room = sum(room)
-        if total_room > 0:
-            fixed = [a - excess * (r / total_room) for a, r in zip(fixed, room, strict=True)]
+        excess = sum(fixed) - total
+        if excess > 1e-6:
+            room = [a - floor for a in fixed]
+            total_room = sum(room)
+            if total_room > 0:
+                fixed = [a - excess * (r / total_room) for a, r in zip(fixed, room, strict=True)]
     return [round(a, 2) for a in fixed], notes
 
 
