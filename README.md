@@ -74,17 +74,22 @@ Online, one request goes trough four stages:
 
 1. **Plan.** The LLM returns a structured `QueryPlan`: 1 to 5 slots (product types), each
    with a product-listing style search query and a few title keywords, plus audience,
-   occasion, season and budget. Structured output on both providers, so no json parsing
-   of free text. No key, a failure, or a timeout, and a regex planner takes over with one
-   slot.
+   occasion, season, budget and, when the shopper names one, a brand. Structured output
+   on both providers, so no json parsing of free text. No key, a failure, or a timeout,
+   and a regex planner takes over with one slot.
 2. **Retrieve.** All slot queries are embedded in one batch and scored against the whole
    index with a single matrix multiply; bm25 scores every row too. Audience and price
    constraints are applied as masks *before* top-N, the two channels are fused with
    reciprocal rank fusion, and size/colour variants of the same product collapse to one.
+   A named brand is ranked on its own first (a hard filter when it has enough rows of
+   the right type, a preference with a warning otherwise), and for LLM plans a type gate
+   keeps insoles out of a running shoes slot: once k candidates carry a type word in the
+   title, off-type rows are dropped.
 3. **Rerank.** One LLM call per slot, in parallel, with up to 10 candidates each. It
    returns ordered picks with a short reason and the fields it relied on. Everything it
-   says is validated against the candidate set; if a call fails the slot keeps retrieval
-   order, no exceptions.
+   says is validated against the candidate set and the product type; a slot is only ever
+   padded with type matches; if a call fails the slot keeps retrieval order, no
+   exceptions.
 4. **Select.** Top k per slot, a product can only fill one slot, warnings explain every
    fallback, timings per stage are in the response.
 
@@ -278,14 +283,27 @@ the blazer slot, i have seen it happen). `include_unpriced` overrides either way
 is split across slots by the planner, with a floor of 10% per slot and scaling so the
 parts never exceed the total.
 
+**Product type is a hard constraint, like price.** The first evaluation with whole-word
+rules showed "running shoes for flat feet" filled with insoles: every channel scores
+"arch support flat feet", and no boost lifts a shoe above twenty insoles. So for LLM
+plans (whose keywords are curated type synonyms) retrieval gates on type once k matches
+exist, the head noun of a keyword counts ("rain jacket" accepts any jacket), an accessory
+word before or right after the type word vetoes ("Shoe Insoles"), and the reranker's
+picks go through the same rule. A named brand gets its own ranking pass first; with fewer
+than k rows of the right type it degrades to a preference and the response says so.
+match@k on the 28 query set went from 0.83 to about 0.89, brand queries from 1 of 4
+on-brand to 3 or 4 of 4 where the catalog has the items (ADR-0015).
+
 **LLM reranker, one call per slot.** It sees compact json (title, price or null, rating,
 audience, material/colour/style when present, matched keywords) and is told type fit
 comes first, then occasion, then price, then ratings. Output tokens dominate latency, so
 the five slots of an outfit run as five parallel calls and a failing slot doesn't take the
-others down. Catalog text is labelled as untrusted data in the prompt, and every id the
-model returns is checked against the candidates, so the worst a hostile product title can
-do is pick a different candidate from the same slot. Why not a cross-encoder: it can't
-reason about "for my 6 year old" or "200 total", and it doesn't write the reasons.
+others down. Catalog text is labelled as untrusted data in the prompt, the request itself
+is passed as json data, every id the model returns is checked against the candidates and
+the product type, reasons are link-stripped and capped at 20 words, and the evidence
+fields are checked against what the candidate actually carried. Why not a cross-encoder
+in the hot path: it can't reason about "for my 6 year old" or "200 total", and it doesn't
+write the reasons; as the sub-second path in `docs/production.md` it is the right tool.
 
 **Deadlines.** One request deadline (40 s) covers everything, including retrieval. The
 planner gets at most 15 s, the reranker 20 s, and a stage is skipped when less than its
