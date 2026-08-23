@@ -25,7 +25,7 @@ one found. Everything here is reproducible from the repo.
 
 ## scripts/
 
-* `evaluate.py` + `eval_queries.json`: 20 queries with hand written slot rules, six
+* `evaluate.py` + `eval_queries.json`: 28 queries (20 conversational, 8 brand) with hand written slot rules, nine
   retrieval/LLM configurations, three indexes. Produces the json in `docs/eval_*.json`;
   `eval_report.py` turns them into the tables in `docs/evaluation.md`.
 * `benchmark.py`: serving RSS after load and retrieval latency at concurrency 1, 2, 4.

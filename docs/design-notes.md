@@ -142,7 +142,7 @@ underneath.
    check, not a relevance judgement.
 2. An ANN index (FAISS HNSW or a hosted vector db) once the catalog stops fitting in RAM.
    Exact search is fine at 100K-800K rows and i'd rather ship exact than tune recall.
-3. A cross-encoder stage between retrieval and the LLM to cut the 15 candidates to 8 and
+3. A cross-encoder stage between retrieval and the LLM to cut the 10 candidates to 8 and
    shave rerank latency.
 4. CLIP image embeddings. Every listing has an image and "something like this photo" is an
    obvious query type the current design can't serve.

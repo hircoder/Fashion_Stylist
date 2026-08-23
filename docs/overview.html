@@ -201,7 +201,7 @@
         </ul>
         <h3>scripts/</h3>
         <ul>
-          <li><code>evaluate.py</code> + <code>eval_queries.json</code>: 20 queries with hand written slot rules, 8 configurations, 3 indexes. <code>eval_report.py</code> makes the tables.</li>
+          <li><code>evaluate.py</code> + <code>eval_queries.json</code>: 28 queries (20 conversational, 8 brand) with hand written slot rules, 9 configurations, 3 indexes, paired plans, bootstrap intervals. <code>eval_report.py</code> makes the tables.</li>
           <li><code>benchmark.py</code>: RSS after load, retrieval p50/p95 at concurrency 1, 2, 4.</li>
           <li><code>make_fixture.py</code>: the 486 row sample that ships in the repo.</li>
         </ul>
@@ -278,8 +278,8 @@
       <tr><td>local embeddings, bge-small (ADR-001)</td><td>free, offline, reproducible, pinned revision; good enough on conversational queries</td><td>best lists of 3 models on 8 queries; 761 docs/s; 100K in 2.7 min</td><td>hosted embeddings, bge-base</td></tr>
       <tr><td>hybrid dense + bm25, RRF (ADR-002)</td><td>dense reads sentences, bm25 reads brands; RRF needs no calibration</td><td>brand hit 31/32 hybrid vs 25/32 dense; within 2 points on planner queries</td><td>dense only, weighted sums</td></tr>
       <tr><td>masks before top-N (ADR-003)</td><td>post-filtering empties slots when eligible items sit below rank N; a mask is microseconds</td><td>0 empty slots in 798 slot results</td><td>over-fetch then filter</td></tr>
-      <tr><td>exact search in RAM (ADR-004)</td><td>826K rows fit; one matmul per request; 100% recall keeps masks and eval simple</td><td>p50 32 ms at 100K, 113 ms at 826K</td><td>FAISS / vector db</td></tr>
-      <tr><td>popular-first 100K default (ADR-005)</td><td>builds in 3 min; popular rows carry 5x the price coverage; bias stated per response</td><td>0.915 vs 0.893 full vs 0.871 random, full pipeline</td><td>full by default, random</td></tr>
+      <tr><td>exact search in RAM (ADR-004)</td><td>826K rows fit; one matmul per request; 100% recall keeps masks and eval simple</td><td>p50 22 ms at 100K (cpu), 110 ms at 826K</td><td>FAISS / vector db</td></tr>
+      <tr><td>popular-first 100K default (ADR-005)</td><td>builds in 3 min; popular rows carry 5x the price coverage; bias stated per response</td><td>0.885 popular vs 0.935 full vs 0.885 random on the same plans; the subset loses brands and the tail, not type</td><td>full by default, random</td></tr>
       <tr><td>LLM planner, structured output (ADR-006)</td><td>the only way to split "outfit" into types without a taxonomy; schema + normaliser remove trust in free text</td><td>0.73 to 0.88 type-match from the query rewrite alone</td><td>rules, taxonomy classifier</td></tr>
       <tr><td>LLM rerank, one call per slot (ADR-007)</td><td>reads constraints a cross-encoder can't; output tokens dominate so parallel per slot</td><td>20 s to 3 to 7 s for five slots; +3 points on the default index</td><td>single call, cross-encoder, none</td></tr>
       <tr><td>strict explicit prices, flagged inferred (ADR-008)</td><td>explicit bounds are promises, sentence budgets are hints; 94% unpriced made one rule wrong</td><td>the wooden ring in the blazer slot, then Eddie Bauer blazer flagged</td><td>always strict, always relaxed</td></tr>
@@ -304,7 +304,7 @@
       <tr><td>bm25s, numpy, pandas, pyarrow</td><td>the lexical channel, exact cosine with one matrix multiply, boolean masks, a typed catalog on disk</td></tr>
       <tr><td>Anthropic and OpenAI SDKs</td><td>structured output on both behind <code>complete_json(system, user, schema)</code>; provider by env, <code>none</code> runs keyless</td></tr>
       <tr><td>React + Vite, plain CSS</td><td>one page with product cards; built bundle committed and served by the API</td></tr>
-      <tr><td>uv, pytest, ruff, Docker, GitHub Actions, Railway</td><td>244 tests, lint, a cpu-only image that bakes a demo index, <code>/ready</code> as health check</td></tr>
+      <tr><td>uv, pytest, ruff, Docker, GitHub Actions, Railway</td><td>392 tests, ruff, bandit, pip-audit, a ui drift check, a cpu-only image that bakes a demo index, <code>/ready</code> as health check</td></tr>
     </table>
     <p class="small">Why not a vector database or an orchestration framework: at this size they add operations without adding correctness, and a reviewer has to install them. Both are listed as the next step past a few million rows.</p>
   </div>
@@ -675,7 +675,7 @@ scripts/          evaluate, benchmark, fixture
 notebooks/        data exploration, executed
 docs/             prd, adr/ (14), design notes,
                   evaluation, exploration, diagram
-tests/            244 tests + 486 row fixture
+tests/            392 tests + 486 row fixture
 Dockerfile  railway.toml  Makefile  ci.yml</pre>
       </div>
       <div>
@@ -684,7 +684,7 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
         <h3>Served</h3>
         <p><code>make demo</code> builds a tiny index from the committed fixture in a minute, no download and no key. <code>make data</code>, <code>make ingest</code>, <code>make index</code> for the real catalog, <code>make serve</code> for the API with the page at <code>/</code> and this deck at <code>/overview</code>. The Docker image bakes a 40K item index at build time and runs on Railway with <code>/ready</code> as the health check; an LLM key as a service variable switches on the planner and reranker.</p>
         <h3>Next, with another week</h3>
-        <p>Human relevance labels on pooled results of the 20 queries. An ANN index with filtering past the in-memory range. A cross-encoder between retrieval and the LLM to cut candidates and latency. CLIP on the images every listing has. Streaming slots to the page as they finish. Embedding based near-duplicate detection.</p>
+        <p>Human relevance labels on pooled results of the 28 queries. An ANN index with filtering past the in-memory range. A cross-encoder between retrieval and the LLM to cut candidates and latency. CLIP on the images every listing has. Streaming slots to the page as they finish. Embedding based near-duplicate detection.</p>
       </div>
     </div>
     <p class="small">Data: Amazon Reviews 2023, fashion metadata, McAuley Lab (UCSD), research use.</p>

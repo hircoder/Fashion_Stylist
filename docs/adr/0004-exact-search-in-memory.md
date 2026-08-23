@@ -10,7 +10,7 @@ Keep L2-normalised float32 embeddings in memory and score all slot queries of a 
 with a single matrix multiply. No FAISS, no vector database.
 
 ## Why
-* Measured p50 retrieval: 32 ms at 100K rows, 113 ms at 826K, including bm25 and masks.
+* Measured p50 retrieval: 22 ms at 100K rows on cpu (28 ms on the laptop gpu), 110 ms at 826K, including bm25 and masks.
 * Exact results make the eval and the masks simple to reason about; recall is 100%.
 * One fewer moving part for a reviewer to install.
 

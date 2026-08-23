@@ -13,8 +13,8 @@ ratings vs 4.9% with 0 to 4, features 79% vs 50%, department 49% vs 12%.
 
 ## Why
 * Builds in 2.7 minutes; the LLM has better text to reason and explain with.
-* Measured with the full pipeline: 0.915 type-match on popular-100K vs 0.893 on the full
-  catalog and 0.871 on a random 100K, so the default is not hurting product type.
+* Measured with the full pipeline on the same plans: 0.885 type-match on popular-100K vs 0.935 on the full
+  catalog and 0.885 on a random 100K (28 queries). The subset loses specific brands and the long tail, not product type.
 
 ## Consequences
 * Long tail items are absent by default; priced items are fewer (about 11K of 100K).

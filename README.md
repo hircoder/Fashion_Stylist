@@ -408,12 +408,18 @@ make lint
 
 The fast suite uses a determinstic hashed-ngram embedder and a scripted fake LLM, and
 covers: price parsing and the audience heuristic, plan normalisation (slot caps, budget
-splits, keyword cleanup), masks and fusion, variant grouping, every LLM failure class
-falling back correctly, reranker output validation (unknown ids, duplicates, a slot that
-fails while the others succeed), cross-slot uniqueness, deadlines (a stuck planner, a
-retrieval that blows the deadline -> 504), the API contract and error bodies, index
-checksums and row alignment (tampered embeddings, swapped row ids, edited bm25 files),
-the tarball installer (bad checksum, path traversal, symlinks, size cap) and the CLI.
+splits, keyword cleanup, brand), masks and fusion, the type gate and the brand pass,
+variant grouping, every LLM failure class falling back correctly, reranker output
+validation (unknown ids, duplicates, off-type picks, a slot that fails while the others
+succeed, reasons stripped of links), cross-slot uniqueness, deadlines (a stuck planner, a
+waiter's own timeout, a retrieval that blows the deadline -> 504), the API contract and
+error bodies, the rate limit, in-flight cap, body cap and security headers, index
+checksums and row alignment (tampered embeddings, swapped row ids, edited bm25 files,
+missing columns, pickled arrays), artifact installs (archive bombs, private hosts, stale
+indexes, locks), the CLI, the evaluation scorer, and the regressions from two audit
+rounds. `make test-all` adds the real embedding model and, with a key, one live LLM round
+trip. CI runs the suite, ruff, bandit, pip-audit, a docker smoke test against the fixture
+data and a check that `ui/dist` matches the UI sources.
 
 ## Repository layout
 
@@ -457,7 +463,7 @@ tests/            pytest suite + the 486 row fixture
 ## Limitations and what i would do next
 
 * The eval has no human relevance labels. Keyword rules catch the wrong product type,
-  they don't catch an ugly one. Labelling the 20 queries is the first thing i'd do with
+  they don't catch an ugly one. Labelling the 28 queries is the first thing i'd do with
   another day, its the obvious gap.
 * No product taxonomy. The planner's keywords and the embeddings carry the type
   constraint; a cheap title-based type classifier would make the filters harder.

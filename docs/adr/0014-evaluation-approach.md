@@ -6,7 +6,7 @@ Status: accepted
 There are no relevance labels for this catalog and no time to create good ones.
 
 ## Decision
-20 human style queries with, per expected slot, a rule of title words that must and must
+28 human style queries (20 conversational, 8 brand) with, per expected slot, a rule of title words that must and must
 not appear, written before any output was seen. Report `keyword_match@k`, empty slots,
 price violations and latency across retrieval configurations and three indexes, plus a
 separate brand query check. State plainly that this measures product type, not taste.

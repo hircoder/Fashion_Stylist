@@ -51,7 +51,7 @@ for, how much, when) are lost completely.
 ## Non-functional requirements
 
 * Latency: under 15 s typical with the LLM, under 100 ms retrieval alone, a hard request
-  deadline (40 s) so the service never hangs. Measured: ~10 s p50 with the LLM, 32 ms
+  deadline (40 s) so the service never hangs. Measured: 11.5 s p50 cold and 5.5 s with a warm plan cache with the LLM, 22 ms
   retrieval p50 on the 100K index.
 * Footprint: the default index serves in ~1 GB RSS; the full catalog in 3.3 GB.
 * Cost: embeddings are local (free). Two LLM calls per slot-less query, 1 + slots for an
