@@ -21,14 +21,12 @@ assessing this: evaluation, then performance and cost, then the deck at `/overvi
 
 Catalog search stops at "t-shirt". People dont shop like that, they shop like "what
 should my husband wear to an outdoor wedding in june", and a keyword box returns nothing
-useful for it. The gap between how people ask and how catalogs index is where this
-service sits: it reads the sentence, works out the 1 to 5 product types behind it, finds
-real items per type inside the stated constraints, and says why each pick fits. The
-business case is simple enough: a query that today ends in an empty result page or a
-site-search bounce becomes 3 to 5 shoppable slots, and every answer carries its own
-audit trail (plan, warnings, timings, token counts) so a merchandising team can see what
-the model did and a finance team can see what it cost. Nothing here needs a GPU, a
-vector database or anyone's API except the one LLM key, and even that is optional.
+useful for it. This service sits in that gap: it reads the sentence, works out the 1 to 5
+product types behind it, finds real items per type inside the stated constraints, and
+says why each pick fits. A query that today ends on an empty result page becomes 3 to 5
+shoppable slots, and every answer carries its plan, warnings, timings and token counts,
+so you can see what the model did and what it cost. No GPU, no vector database, no
+external service except one optional LLM key.
 
 ## Quick start (2 minutes, no dataset download, no API key)
 
@@ -51,7 +49,7 @@ curl -s localhost:8000/recommend -H 'content-type: application/json' \
 ```
 
 Without a key the service uses a regex planner and returns items in retrieval order, which
-is fine for single product queries. To get the outfit decomposition and the explenations,
+is fine for single product queries. To get the outfit decomposition and the explanations,
 put a key in `.env` (copy `.env.example`):
 
 ```
@@ -60,7 +58,7 @@ LLM_MODEL=claude-sonnet-4-6       # optional. the default is the model every num
 LLM_RERANK_MODEL=claude-haiku-4-5-20251001   # optional, a cheaper model for the per-slot rerank calls
 ```
 
-(the response always tells you wich model ran, how many calls it took and how many
+(the response always tells you which model ran, how many calls it took and how many
 tokens they used, in `llm_info`.)
 
 ## The real catalog
@@ -388,7 +386,7 @@ word before or right after the type word vetoes ("Shoe Insoles"), and the rerank
 picks go through the same rule. A named brand gets its own ranking pass first; with fewer
 than k rows of the right type it degrades to a preference and the response says so.
 match@k on the 28 query set went from 0.83 to about 0.89, and the brand queries from 1 of 4
-on-brand to 3 or 4 of 4 where the catalog actualy has the items (ADR-0015).
+on-brand to 3 or 4 of 4 where the catalog actually has the items (ADR-0015).
 
 **LLM reranker, one call per slot.** It sees compact json (title, price or null, rating,
 audience, material/colour/style when present, matched keywords) and is told type fit
@@ -449,7 +447,7 @@ channels are within two points and hybrid is kept becuase bm25 is the channel th
 carries a brand token. The reranker adds about a point of type-match on the same plans;
 its job is the constraints, the reasons and keeping off-type items out. The full catalog
 beats the 100K subsets on the same plans (0.935 vs 0.885): the default index is not
-losing product type, it looses specific brands (no Levi's jeans, three Columbia fleeces)
+losing product type, it loses specific brands (no Levi's jeans, three Columbia fleeces)
 and the long tail, the trade it makes for a 3 minute build and 1 GB of memory.
 
 ## Performance and cost, measured
@@ -471,10 +469,11 @@ full one, and the index loads in 0.1 s including a sha256 of every file.
 Full pipeline with `claude-sonnet-4-6`, a 20 query live run made before the 8 brand
 queries were added (`docs/live_run_sonnet.json`, kept as the cold-latency sample): plan p50 5.2 s, retrieve 0.13 s, rerank 5.9 s, total
 11.5 s (p95 13.5 s), 3.9 LLM calls per request on average. A burst of 8 concurrent
-requests finished in 18.5 s with zero errors. Cost per request, from the token counts
-the response itself reports: mean $0.036 at Sonnet-class prices ($3/$15 per million),
-$0.012 on a Haiku-class model, roughly $36 a day at 10K requests with a 90% plan-cache
-hit rate and prompt caching. The provider's tokens-per-minute quota is the capacity
+requests finished in 18.5 s with zero errors. Cost per request, from the token counts the response itself reports (and the request log
+line prints): mean $0.036 at Sonnet-class prices ($3/$15 per million), $0.012 on a
+Haiku-class model. At 10K requests a day thats about $360 as measured, near $200 with a
+90% plan-cache hit rate plus prompt caching (the adapter marks the system prompts
+cacheable), under $100 with a Haiku-class reranker on top. The provider's tokens-per-minute quota is the capacity
 ceiling, not the CPU. `docs/production.md` works all of this through, including the path
 to a sub-second p50 (semantic plan cache, a distilled 1-3B planner, a cross-encoder
 rerank, the big model demoted to an async refinement) with the expected cost of each rung.
@@ -497,7 +496,7 @@ in brackets): `RATE_LIMIT_PER_MINUTE` [60] per client with a burst of a sixth of
 `REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20],
 `TRUST_PROXY_HEADERS` [off; the container image sets it, so the client ip comes from the
 proxy's x-forwarded-for], `CORS_ALLOW_ORIGINS` [none], `STARTUP_FAIL_FAST` [off],
-`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizeing
+`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizing
 numbers behind the defaults.
 
 `railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
@@ -531,8 +530,9 @@ an outage isnt retried per request); one rerank call fails -> that slot keeps re
 order, the others keep their picks; the reranker rejects everything -> type matches in
 retrieval order, or an honest empty slot; index missing at boot -> `/health` explains,
 `/ready` and `/recommend` say 503 (or the process exits, `STARTUP_FAIL_FAST=1`); no key
-at all -> the whole thing runs as plain search. Every one of those steps shows up in the
-response `warnings`, none of them is silent. Before real traffic i'd add the observability
+at all -> the whole thing runs as plain search. Degradations inside a served answer land
+in the response `warnings`; no-key mode shows in `llm_info` and the hard stops are http
+errors. Before real traffic i'd add the observability
 stack from `docs/production.md` (json logs, OpenTelemetry traces per stage, Prometheus
 histograms, alerts on p95 / fallback rate / 429s), a provider circuit breaker and an
 off-domain request filter, thats all listed there with tools and pass conditions.
@@ -594,7 +594,7 @@ tests/            pytest suite + the 486 row fixture
 * `docs/exploration.md`: the notebook, the scripts, and the prompt experiments in order.
 * `docs/evaluation.md`: every number with its caveats.
 * `docs/production.md`: measured latency, throughput and cost, what it costs at scale,
-  how to get under a second, the recomended production setup, guardrails and
+  how to get under a second, the recommended production setup, guardrails and
   observability, gaps with a dated plan, the tests still to run.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
   data flow (16 slides, agenda on the left).

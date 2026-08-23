@@ -3,7 +3,7 @@
 usage: uv run python scripts/benchmark.py --index-dir data/index \
            [--concurrency 1,2,4] [--requests 40] [--device cpu]
 
---device cpu makes the laptop numbers compareable with a CPU-only container.
+--device cpu makes the laptop numbers comparable with a CPU-only container.
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ async def run(svc: RecommendationService, concurrency: int, n_requests: int) -> 
         "concurrency": concurrency,
         "requests": n_requests,
         "p50_ms": round(statistics.median(lat), 1),
-        "p95_ms": round(lat[max(0, int(len(lat) * 0.95) - 1)], 1),
+        "p95_ms": round(lat[max(0, -(-len(lat) * 95 // 100) - 1)], 1),
         "throughput_rps": round(n_requests / wall, 1),
     }
 

@@ -83,7 +83,9 @@ async def test_anthropic_adapter_sends_schema_and_returns_parsed_output():
     out = await llm.complete_json(system="S", user="U", schema=Answer, max_tokens=321, timeout=9)
     assert out == Answer(colour="blue", count=1)
     assert rec.kwargs["model"] == "claude-opus-5"
-    assert rec.kwargs["system"] == "S"
+    assert rec.kwargs["system"] == [
+        {"type": "text", "text": "S", "cache_control": {"type": "ephemeral"}}
+    ]
     assert rec.kwargs["messages"] == [{"role": "user", "content": "U"}]
     assert rec.kwargs["output_format"] is Answer
     assert rec.kwargs["max_tokens"] == 321

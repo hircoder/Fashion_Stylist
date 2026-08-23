@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import math
 import random
 import re
 import statistics
@@ -302,7 +303,7 @@ async def _run_config_inner(name: str, queries: list[dict], svc, r_over: dict):
         "llm_calls": sum(r["llm_calls"] for r in rows),
         "tokens": [sum(r["tokens"][0] for r in rows), sum(r["tokens"][1] for r in rows)],
         "p50_ms": round(statistics.median(lat), 1) if lat else 0.0,
-        "p95_ms": round(sorted(lat)[max(0, int(len(lat) * 0.95) - 1)], 1) if lat else 0.0,
+        "p95_ms": round(sorted(lat)[max(0, math.ceil(len(lat) * 0.95) - 1)], 1) if lat else 0.0,
         "per_query_match": {r["id"]: round(v, 4) for r, v in zip(rows, per_query, strict=True)},
         "rows": rows,
     }

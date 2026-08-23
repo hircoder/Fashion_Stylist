@@ -61,7 +61,8 @@ for, how much, when) are lost completely.
 * Operability: `/health`, `/ready`, per stage timings, index checksums verified at startup,
   a self contained index that can be shipped as a tarball, a cpu-only container.
 * Privacy: queries are not logged unless LOG_QUERIES=1 (then at INFO); no catalog or
-  query data leaves the machine except the LLM calls (planner text and candidate titles).
+  query data leaves the machine except the LLM calls (the request text, and the candidate rows the reranker
+  sees: title, price, rating, audience, store, material/colour/style).
 
 ## Success metrics
 

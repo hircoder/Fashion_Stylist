@@ -73,7 +73,9 @@ class AnthropicLLM:
             resp = await self._client.messages.parse(
                 model=self.model,
                 max_tokens=max_tokens,
-                system=system,
+                # the system prompt is identical across calls: mark it cacheable so the
+                # provider bills the repeats at the cached rate
+                system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
                 messages=[{"role": "user", "content": user}],
                 output_format=schema,
                 timeout=timeout,

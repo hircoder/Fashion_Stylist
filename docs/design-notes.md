@@ -125,8 +125,9 @@ budget that came from the text keeps the unpriced items in the ranking, flagged
 in the response. `include_unpriced` (true/false) overrides the automatic choice either way.
 Per-slot allocations of a total budget get a 10% floor so the planner can't starve a slot.
 
-One more thing i do not do: cache planner failures. A persistently failing LLM gets
-retried on every request; the deadline bounds the damage and the fallback is instant.
+Planner failures do get a short negative cache (30 s, PLANNER_FAILURE_TTL_S) so an
+outage is not retried on every single request; a waiter whose own budget ran out never
+posions it for everyone else, only a real failure of the shared call does.
 
 ## Deadlines and failure
 

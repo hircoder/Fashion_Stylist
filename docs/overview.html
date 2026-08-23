@@ -149,13 +149,13 @@
     <table>
       <tr><th>requirement</th><th>how</th><th>evidence</th></tr>
       <tr><td>parse a sentence into product types and constraints</td><td>LLM planner, structured output, 1 to 5 slots; regex planner as fallback</td><td>type-match 0.73 raw sentence, 0.88 with the planner</td></tr>
-      <tr><td>find relevant products per type</td><td>hybrid retrieval, embeddings + bm25, reciprocal rank fusion</td><td>0.92 with rerank on the default index</td></tr>
-      <tr><td>respect audience and budget</td><td>boolean masks before top-N, budgets split per slot</td><td>0 price violations, 0 empty slots in 798 slot results</td></tr>
+      <tr><td>find relevant products per type</td><td>hybrid retrieval, embeddings + bm25, reciprocal rank fusion</td><td>0.885 with rerank on the default index, 0.935 on the full catalog</td></tr>
+      <tr><td>respect audience and budget</td><td>boolean masks before top-N, budgets split per slot</td><td>0 price violations, 0 empty slots across every configuration and index</td></tr>
       <tr><td>explain every pick</td><td>per slot LLM rerank, reason + evidence fields, ids validated</td><td>samples on slide 9</td></tr>
       <tr><td>be honest about prices (94% unknown)</td><td><code>price_known</code> flag, strict explicit bounds, flagged inferred ones</td><td>ADR-008</td></tr>
       <tr><td>API, CLI, page; works without a key</td><td>FastAPI + OpenAPI, argparse CLI, React page, <code>LLM_PROVIDER=none</code></td><td><code>make demo</code> in two minutes</td></tr>
     </table>
-    <p class="small">Non-goals: personalisation, image understanding, model training, auth. Success metrics: type-match above 0.85 with the planner (got 0.88 to 0.92), zero empty slots and price violations (got both), a reviewer running it in under five minutes without a download or a key (about two).</p>
+    <p class="small">Non-goals: personalisation, image understanding, model training, auth. Success metrics: type-match above 0.85 with the planner (got 0.885 to 0.935), zero empty slots and price violations (got both), a reviewer running it in under five minutes without a download or a key (about two).</p>
   </div>
 </section>
 
@@ -278,11 +278,11 @@
       <tr><th style="width:21%">decision</th><th>logic</th><th style="width:27%">evidence</th><th style="width:17%">rejected</th></tr>
       <tr><td>local embeddings, bge-small (ADR-001)</td><td>free, offline, reproducible, pinned revision; good enough on conversational queries</td><td>best lists of 3 models on 8 queries; 761 docs/s; 100K in 2.7 min</td><td>hosted embeddings, bge-base</td></tr>
       <tr><td>hybrid dense + bm25, RRF (ADR-002)</td><td>dense reads sentences, bm25 reads brands; RRF needs no calibration</td><td>brand hit 31/32 hybrid vs 25/32 dense; within 2 points on planner queries</td><td>dense only, weighted sums</td></tr>
-      <tr><td>masks before top-N (ADR-003)</td><td>post-filtering empties slots when eligible items sit below rank N; a mask is microseconds</td><td>0 empty slots in 798 slot results</td><td>over-fetch then filter</td></tr>
+      <tr><td>masks before top-N (ADR-003)</td><td>post-filtering empties slots when eligible items sit below rank N; a mask is microseconds</td><td>0 empty slots in every run</td><td>over-fetch then filter</td></tr>
       <tr><td>exact search in RAM (ADR-004)</td><td>826K rows fit; one matmul per request; 100% recall keeps masks and eval simple</td><td>p50 22 ms at 100K (cpu), 110 ms at 826K</td><td>FAISS / vector db</td></tr>
       <tr><td>popular-first 100K default (ADR-005)</td><td>builds in 3 min; popular rows carry 5x the price coverage; bias stated per response</td><td>0.885 popular vs 0.935 full vs 0.885 random on the same plans; the subset loses brands and the tail, not type</td><td>full by default, random</td></tr>
       <tr><td>LLM planner, structured output (ADR-006)</td><td>the only way to split "outfit" into types without a taxonomy; schema + normaliser remove trust in free text</td><td>0.73 to 0.88 type-match from the query rewrite alone</td><td>rules, taxonomy classifier</td></tr>
-      <tr><td>LLM rerank, one call per slot (ADR-007)</td><td>reads constraints a cross-encoder can't; output tokens dominate so parallel per slot</td><td>20 s to 3 to 7 s for five slots; +3 points on the default index</td><td>single call, cross-encoder, none</td></tr>
+      <tr><td>LLM rerank, one call per slot (ADR-007)</td><td>reads constraints a cross-encoder can't; output tokens dominate so parallel per slot</td><td>20 s to 3 to 7 s for five slots; about a point of type-match on paired plans, the value is constraints and reasons</td><td>single call, cross-encoder, none</td></tr>
       <tr><td>strict explicit prices, flagged inferred (ADR-008)</td><td>explicit bounds are promises, sentence budgets are hints; 94% unpriced made one rule wrong</td><td>the wooden ring in the blazer slot, then Eddie Bauer blazer flagged</td><td>always strict, always relaxed</td></tr>
       <tr><td>variant grouping at query time (ADR-009)</td><td>nothing deleted, identity is a heuristic, a fix must not cost a rebuild</td><td>56,720 duplicate titles; "(8 B(M) US, Silver)" cases</td><td>dedupe at ingest</td></tr>
       <tr><td>two providers, one method, no framework (ADR-010)</td><td>80 lines per adapter, contract tests, nothing to learn</td><td>both adapters live tested, all error classes mapped</td><td>LangChain / LlamaIndex</td></tr>
@@ -555,7 +555,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
           <tr><td class="r">8</td><td class="r">126 ms</td><td class="r">145 ms</td><td class="r">62</td></tr>
         </table>
         <p class="small">60 requests per setting, M4 laptop pinned to CPU (<code>scripts/benchmark.py --device cpu</code>, <code>docs/bench_cpu.json</code>). Throughput flattens at about 60 req/s per proces because the embedding call and the matmul hold the GIL; more capacity means more processes, not more threads. RSS after load: 1.0 GB (torch + model about 0.5 GB, index 0.25 GB, pandas catalog and bm25 the rest). Load time 0.1 s including sha256 of every file.</p>
-        <h3>Full pipeline with the LLM, 20 eval queries, claude-sonnet-4-6</h3>
+        <h3>Full pipeline with the LLM, a 20 query live run (pre brand queries), claude-sonnet-4-6</h3>
         <table>
           <tr><th>stage</th><th class="r">p50</th><th class="r">p95</th><th class="r">share</th></tr>
           <tr><td>plan (1 LLM call)</td><td class="r">5.2 s</td><td class="r">7.1 s</td><td class="r">45%</td></tr>
@@ -578,9 +578,9 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <p class="small">Token counts come strait from the SDK usage fields and are returned in every response (<code>llm_info.calls / input_tokens / output_tokens</code>), so cost per request is a number in the logs, not an estimate. Roughly 2,100 input and 195 output tokens per call: the system prompts and the 10 candidate rows dominate.</p>
         <h3>At 10,000 requests a day</h3>
         <ul>
-          <li>LLM: $360 / day on the Sonnet class, $120 on the Haiku class, $36 with a 90% plan cache hit rate plus prompt caching on the two system prompts (about 1,200 cached tokens per call, billed at 10%).</li>
-          <li>Compute: one 2 vCPU / 4 GB container serves 40K LLM-mode requests a day at LLM_CONCURRENCY=8 (0.45 req/s sustained) or 5M retrieval-only requests; the LLM provider's rate limit is the ceiling, not the CPU.</li>
-          <li>Ways to cut the bill, in order of payoff: cache plans across replicas (Redis), rerank with a smaller model (quality check first: the 20 query eval showed the reranker adds 3 points), cut candidate rows to 8, shorten system prompts, one rerank call for all slots when slots &lt;= 2.</li>
+          <li>LLM: about $360 / day on the Sonnet class as measured. The plan cache removes 1 of 3.9 calls, so a 90% hit rate plus prompt caching on the system prompts (marked cacheable in the adapter) lands near $200; a Haiku-class model on the rerank calls too takes it under $100.</li>
+          <li>Compute: one 2 vCPU / 4 GB container does about 0.43 req/s with the LLM (measured: 8 concurrent requests in 18.5 s), call it 35K a day per replica, or several million retrieval-only; the provider's rate limit is the ceiling, not the CPU.</li>
+          <li>Ways to cut the bill, in order of payoff: cache plans across replicas (Redis), rerank with a smaller model (the paired eval says the reranker adds about a point of type-match, so check the constraints and reasons survive), cut candidate rows to 8, shorten system prompts, one rerank call for all slots when slots &lt;= 2.</li>
         </ul>
       </div>
     </div>
@@ -715,7 +715,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <h3 style="margin-top:0">Gaps, by impact</h3>
         <table>
           <tr><th>gap</th><th>why it matters</th><th>plan</th></tr>
-          <tr><td>relevance is judged by 20 hand-written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job</td></tr>
+          <tr><td>relevance is judged by 28 hand written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job</td></tr>
           <tr><td>no online signal</td><td>offline metrics drift from what shoppers do</td><td>week 3: impression and click logging with request_id, a holdout, CTR and add-to-cart per configuration; A/B switch on prompt version and reranker model</td></tr>
           <tr><td>latency is LLM-bound (97%)</td><td>11 s median is fine for a stylist page, way too slow for type-ahead</td><td>week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s</td></tr>
           <tr><td>no outfit coherence</td><td>slots are ranked independently; a floral shirt and a striped blazer can both win</td><td>week 4-5: a coherence pass over the top 3 per slot (colour and style fields, one LLM call on the cross product), evaluated on the labelled set</td></tr>
@@ -928,7 +928,7 @@ Dockerfile  railway.toml  Makefile  ci.yml</pre>
       tech: 'retrieval.py _rank_distinct() -> diversify_by_group() -> _hydrate()  |  catalog.py group_key()  |  SlotCandidates{slot, window, candidates[], n_eligible, warnings}',
       nodes: ['n-retr','n-cat'], wires: ['retr-cat','cat-retr'], pkts: [{ e: 'retr-cat', l: 'row ids' }, { e: 'cat-retr', l: 'rows', d: 1800 }] },
     { step: 'step 5 / 7, rerank (one LLM call per slot, in parallel)',
-      text: 'For every slot one call runs concurrently under asyncio.wait with the rerank budget (at most 20 s) and a global cap of 8 LLM calls in flight. Each prompt carries the request, a plan summary, the slot, and its top 10 candidates as compact json (row_id, title <= 140 chars, price or null, price_known, rating, ratings, audience, store, material / colour / style, matched_keywords, off_type_hint) labelled as untrusted catalog data. The schema SlotRerankOutput has picks [{row_id, reason <= 15 words, evidence fields}], no_good_match and a 20 word note. Picks are validated: offered ids only, unique, at most k; no_good_match empties the slot; a slot whose call fails or runs late keeps retrieval order, the others keep their result; urls and emails are stripped from model prose. 3 to 7 s.',
+      text: 'For every slot one call runs concurrently under asyncio.wait with the rerank budget (at most 20 s) and a global cap of 8 LLM calls in flight. Each prompt carries the request, a plan summary, the slot, and its top 10 candidates as compact json (row_id, title <= 140 chars, price or null, price_known, rating, ratings, audience, store, material / colour / style, matched_keywords, off_type_hint) labelled as untrusted catalog data. The schema SlotRerankOutput has picks [{row_id, reason <= 15 words, evidence fields}], no_good_match and a 20 word note. Picks are validated: offered ids only, unique, at most k; no_good_match with no picks falls back to type matches, else the slot stays empty; a slot whose call fails or runs late keeps retrieval order, the others keep their result; urls and emails are stripped from model prose. 3 to 7 s.',
       tech: 'reranker.py LLMReranker.rerank() -> _rerank_slot() x slots -> apply_slot_rerank(out, sc, k) -> RankedSlot{ordered, reasons}  |  prompts.py RERANK_SYSTEM  |  llm/__init__.py ThrottledLLM(Semaphore(LLM_CONCURRENCY))',
       nodes: ['n-retr','n-rerank','n-llm'], wires: ['h2','rerank-llm','llm-rerank'], pkts: [{ e: 'h2', l: 'pools' }, { e: 'rerank-llm', l: 's1', d: 1200 }, { e: 'rerank-llm', l: 's2', d: 1400 }, { e: 'rerank-llm', l: 's3', d: 1600 }, { e: 'rerank-llm', l: 's4', d: 1800 }, { e: 'rerank-llm', l: 's5', d: 2000 }, { e: 'llm-rerank', l: 'picks', d: 4200 }, { e: 'llm-rerank', l: 'picks', d: 4450 }, { e: 'llm-rerank', l: 'picks', d: 4700 }] },
     { step: 'step 6 / 7, select',

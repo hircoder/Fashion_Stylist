@@ -10,8 +10,8 @@ only ships this folder:
     meta.json        versions, counts, checksums, how the subset was picked
 
 `SearchIndex.load` refuses to serve anything whose counts, row order or checksums do
-not line up. Silent misalignment between an embedding row and a product row is the
-worst kind of bug in a retrieval system, so we pay the hashing cost at startup.
+not line up: a misaligned embedding row serves wrong products with no error anywhere,
+so the second of hashing at startup is a cheap insurance.
 """
 
 from __future__ import annotations

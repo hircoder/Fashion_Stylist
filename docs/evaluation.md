@@ -1,9 +1,8 @@
 # Evaluation
 
-What this measures, honestly: whether the service returns the *right kind of product*
-(and, for brand queries, the right brand) for each slot of 28 human style queries. Thats
-it. It does
-not measure taste and it has no human relevance labels. Treat every number below as a
+What this measures: whether the service returns the *right kind of product* (and, for
+brand queries, the right brand) for each slot of 28 human style queries. It does not
+measure taste and it has no human relevance labels. Treat every number below as a
 regression diagnostic, not as accuracy.
 
 ## Setup
@@ -30,14 +29,15 @@ regression diagnostic, not as accuracy.
     to. The regex planner returns one slot called "items", so its recall is zero by
     construction; compare it on `match@k` only.
   * `query success`: every expected slot came back, none is empty, and every returned
-    slot has at least one passing item. Strict on purpose.
+    slot has at least one passing item, deliberately the harshest of the metrics.
   * `empty slots`, `price violations` (a known price outside an explicit min/max), wall
     clock p50/p95 per request.
   * Paired deltas: the mean of per-query differences between two configurations on the
     same queries, with a bootstrap interval. An interval that excludes zero is a real
     difference on this set; most are not.
 * Configurations: `bm25` / `dense` / `hybrid` use the regex planner (one slot = the raw
-  sentence); `hybrid_nokw` and `hybrid_noquality` switch off the keyword boost and the
+  sentence, so their empty-slot column counts 28 returned slots and their recall is 0
+  by construction); `hybrid_nokw` and `hybrid_noquality` switch off the keyword boost and the
   rating prior one at a time; `llm_plan` is the LLM planner with hybrid retrieval and no
   rerank; `llm_plan_dense` / `llm_plan_bm25` the LLM planner with one channel; and
   `llm_plan_rerank` the full pipeline. Every llm configuration on every index uses the
@@ -50,6 +50,9 @@ regression diagnostic, not as accuracy.
   the popular index's `llm_plan` row and `docs/live_run_sonnet.json`.
 * Three indexes: the default popular-100K, a seeded random 100K, and the full 826,108
   rows, all built with pipeline version 3 and the pinned model revision.
+
+The popular table was produced at 9791db9 and the other two at fe7cd5d; the commits
+between those and HEAD touch docs and the http layer, not retrieval or ranking.
 
 Re-run with `make eval` (or `python scripts/evaluate.py --index-dir ... --configs ...
 --plan-cache docs/eval_plans.json`); the tables come from `scripts/eval_report.py`.
@@ -142,18 +145,18 @@ paired differences on the same queries (mean of per-query match rate, 95% bootst
 
 ## What the numbers say
 
-* The planner is the feature here. The raw sentence gets 0.63 to 0.75 on hybrid retrieval;
+* The planner is what actually moves the number. The raw sentence gets 0.63 to 0.75 on hybrid retrieval;
   the planner's listing-style queries lift every index to 0.88 to 0.94 and give the
-  outfit queries their slots (recall 0.88: the planner skips one expected slot in about
-  one query in eight, typically "sunglasses" for "beach bag").
-* Dense beats bm25 on sentences on every index (bm25 - hybrid is -0.12 to -0.13 with the
-  regex planner). Under the LLM planner the two channels are within 2 points and the
+  outfit queries their slots (it covered 88% of the expected slots overall; the misses
+  are swaps like "beach bag" where the rules expected "sunglasses").
+* Dense beats bm25 on sentences on every index (bm25 - hybrid runs -0.10 to -0.13 with
+  the regex planner). Under the LLM planner the two channels are within 2 points and the
   intervals include zero; hybrid is kept for brand and exact-phrase queries, where bm25
   is the channel that carries the brand token.
 * The reranker adds about 1 point of match@k on the same plans (+0.009, interval
-  -0.00 to +0.03). Its value is elsewhere: it reads the constraints (audience, budget,
-  occasion), writes the reasons, and it is what keeps an off-type item out of a slot
-  when retrieval order would have shown it (the admissibility rule, ADR-0015).
+  -0.00 to +0.03). What it actually buys: it reads the constraints, writes the reasons,
+  and keeps off-type items out of a slot when retrieval order wouldve shown them (the
+  admissibility rule, ADR-0015).
 * The keyword boost and the rating prior do nothing measurable on this metric (deltas of
   0.00 to +0.03 with intervals through zero). They stay for the ordering inside a slot,
   which the metric cannot see.
@@ -198,6 +201,6 @@ response says so in a warning and shows the product type from other brands.
 * Everything was measured on one machine (M4 laptop) against one provider endpoint;
   latency columns describe that setup only. `docs/production.md` has the throughput and
   cost measurements.
-* Theres no human judgement anywhere in this. The next step in `docs/production.md`
-  (200 labelled queries, nDCG, a calibrated LLM judge) is the step that turns these into
-  relevance numbers.
+* No human judgement anywhere in this. The next step in `docs/production.md`
+  (200 labelled queries, nDCG, a calibrated LLM judge) turns these into relevance
+  numbers.

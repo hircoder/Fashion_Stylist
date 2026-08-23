@@ -25,4 +25,4 @@ is validated against the slot's candidates; a failing slot keeps retrieval order
 
 ## Alternatives considered
 Single call for all slots (slow), cross-encoder rerank (no constraint reasoning, no
-explanations), no rerank (retrieval order, measured 3 points worse on the default index).
+explanations), no rerank (retrieval order; on paired plans it only costs about a point of type-match, what you actually lose is the constraint reading, the reasons and the off-type rejection).

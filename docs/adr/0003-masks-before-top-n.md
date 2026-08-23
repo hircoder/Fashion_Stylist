@@ -18,7 +18,7 @@ a second retrieval.
 
 ## Consequences
 * Exact search is required (or an ANN index that supports filtering).
-* The eval shows zero empty slots across 798 slot results.
+* The eval shows zero empty slots across every configuration and index (docs/evaluation.md).
 
 ## Alternatives considered
 Post-filter with over-fetch (still fails for rare constraints), pre-filtered sub-indexes

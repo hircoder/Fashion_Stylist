@@ -132,13 +132,14 @@ class RecommendationService:
         cached = self._cache_get(key)
         if cached is not None:
             return cached.model_copy(deep=True), mode, True
+        self._last_plan_shared = False
         if use_llm:
             if time.monotonic() < self._plan_failed_until.get(key, 0.0):
                 warnings.append("planner fell back to regex rules (recent planner failure)")
             else:
                 plan = await self._plan_with_llm(req.query, key, deadline, warnings)
                 if plan is not None:
-                    return plan.model_copy(deep=True), "llm", False
+                    return plan.model_copy(deep=True), "llm", self._last_plan_shared
         plan = self.heuristic.plan(req.query)
         self._cache_put(self._cache_key(req.query, "heuristic"), plan)
         return plan.model_copy(deep=True), "heuristic", False
@@ -161,6 +162,7 @@ class RecommendationService:
             warnings.append("planner fell back to regex rules (request deadline)")
             return None
         inflight = self._plan_inflight.get(key)
+        joined_existing = inflight is not None
         if inflight is None:
             inflight = asyncio.ensure_future(
                 self.llm_planner.plan(query, timeout=budget)  # type: ignore[union-attr]
@@ -172,6 +174,10 @@ class RecommendationService:
             inflight.add_done_callback(lambda f: self._cache_shared_result(key, f))
         try:
             plan = await asyncio.wait_for(asyncio.shield(inflight), timeout=budget)
+            if joined_existing:
+                # the call and its tokens belong to the request that started it; for this
+                # request the plan effectively came from a (very fresh) cache
+                self._last_plan_shared = True
         except (LLMError, TimeoutError) as exc:
             warnings.append(f"planner fell back to regex rules ({type(exc).__name__})")
             log.warning("planner failed: %s: %s", type(exc).__name__, exc)
@@ -372,11 +378,15 @@ class RecommendationService:
         timings["total_ms"] = round((time.monotonic() - t0) * 1000, 1)
         meta = self.index.meta
         log.info(
-            "request %s: slots=%d planner=%s rerank=%s timings=%s warnings=%d",
+            "request %s: slots=%d planner=%s rerank=%s llm_calls=%d tokens=%d/%d "
+            "timings=%s warnings=%d",
             request_id,
             len(slots_out),
             planner_used,
             rerank_used,
+            usage.calls,
+            usage.input_tokens,
+            usage.output_tokens,
             timings,
             len(warnings),
         )

@@ -395,6 +395,6 @@ async def test_total_budget_overspend_and_unpriced_items_are_warned(fixture_inde
         RecommendRequest(query="beach stuff, 10 dollars total", k=3, rerank=False)
     )
     assert any("unknown price" in w for w in res.warnings)
-    priced = sum(i.price for s in res.slots for i in s.items if i.price_known)
+    priced = sum(s.items[0].price for s in res.slots if s.items and s.items[0].price_known)
     if priced > 10.0:
         assert any("add up to" in w for w in res.warnings)

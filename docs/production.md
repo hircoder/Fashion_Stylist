@@ -23,8 +23,9 @@ threads. RSS after load is 1.0 GB (torch and the model about 0.5 GB, the float32
 0.25 GB, the pandas catalog and bm25 the rest); the index loads in 0.1 s including a
 sha256 of every file.
 
-Full pipeline with the LLM, the 20 eval queries run one after another with a cold plan
-cache, `claude-sonnet-4-6` through an Azure endpoint:
+Full pipeline with the LLM, a 20 query live run (the set before the 8 brand queries were
+added; kept as the cold-latency sample, indicative rather than versioned) with a cold
+plan cache, `claude-sonnet-4-6` through an Azure endpoint:
 
 | stage | p50 | p95 | share of total |
 |---|---|---|---|
@@ -39,9 +40,9 @@ in 18.5 s with no errors (p50 8.7 s, slowest 18.5 s) under `LLM_CONCURRENCY=8`.
 
 ## Economics
 
-Token counts come from the SDK usage fields and are returned in every response
-(`llm_info.calls`, `input_tokens`, `output_tokens`), so cost per request is a number in
-the logs rather than an estimate.
+Token counts come from the SDK usage fields, are returned in every response
+(`llm_info.calls`, `input_tokens`, `output_tokens`) and are printed on the per-request
+log line, so cost per request is a number you can read off, not an estimate.
 
 | per request | mean | min | max |
 |---|---|---|---|
@@ -52,19 +53,21 @@ the logs rather than an estimate.
 | compute, 2 vCPU container at $20 a month, 40K requests a day | $0.00002 | | |
 
 About 2,100 input and 195 output tokens per call. The two system prompts and the ten
-candidate rows are most of the input, wich is why prompt caching pays.
+candidate rows are most of the input, which is why prompt caching pays.
 
-At 10,000 requests a day: $360 a day on the Sonnet class, $120 on the Haiku class, about
-$36 with a 90% plan-cache hit rate plus prompt caching on the system prompts (roughly
-1,200 cacheable tokens per call, billed at 10%). One 2 vCPU / 4 GB container serves about
-40K LLM-mode requests a day at `LLM_CONCURRENCY=8` (0.45 req/s sustained) or several
-million retrieval-only requests; the provider's tokens-per-minute quota is the ceiling,
-not the CPU (8,200 input tokens x 0.7 req/s is already 350K TPM per replica).
+At 10,000 requests a day: about $360 on the Sonnet class as measured. The plan cache
+only removes the planner call (1 of 3.9 calls), so a 90% hit rate plus prompt caching on
+the system prompts (now marked cacheable in the adapter) lands around $200 a day; put a
+Haiku-class model on the rerank calls too and its under $100. Capacity per replica,
+measured not derived: the burst of 8 concurrent requests took 18.5 s, about 0.43 req/s
+sustained at `LLM_CONCURRENCY=8`, call it 35K LLM-mode requests a day per replica (or
+several million retrieval-only ones); the provider's tokens-per-minute quota is the
+ceiling before the CPU is.
 
-Ways to cut the bill, in order of payoff: cache plans across replicas (Redis); rerank with a smaller
-model (the eval says the reranker adds about 3 points, check that it survives); cut
-candidate rows to 8; shorten the system prompts; one rerank call for all slots when there
-are at most 2.
+Ways to cut the bill, in order of payoff: cache plans across replicas (Redis); rerank
+with a smaller model (the paired eval says the reranker adds about a point of type-match,
+its real value is constraints and reasons, so check those survive); cut candidate rows
+to 8; one rerank call for all slots when there are at most 2.
 
 ## Getting the total under one second
 
@@ -72,8 +75,9 @@ are at most 2.
 to one second, removing them from the synchronous path does. The ladder, each step with
 what it buys:
 
-1. Plan cache and prompt caching (in the code today). A repeated query costs 0 ms to plan;
-   the total is then the rerank, 5.9 s. Not enough alone.
+1. Plan cache (in the code) and prompt caching (the anthropic adapter marks the system
+   prompts cacheable). A repeated query costs 0 ms to plan; the total is then the
+   rerank, 5.9 s. Not enough alone.
 2. Semantic plan cache. Embed the query (5 ms, the model is already loaded), reuse the
    plan of the nearest cached query when cosine similarity is at least 0.92. Real traffic
    is Zipf shaped; 60 to 80% of requests would hit. Misses still pay the full plan.
@@ -98,9 +102,9 @@ Budget after the ladder: plan 10 to 300 ms, retrieval 40 to 130 ms, rerank 60 to
 selection 1 ms: p50 around 250 to 600 ms, p95 under a second, cost per request near
 $0.001 with the GPU amortised. What gets lost: the large model's judgement on unusual
 requests and its written reasons. Keep that path as a background refinement ("better
-picks in 8 s") and as the source of training data. Independently of all this, streaming
-per-slot results over SSE gets the first products on screen in about 200 ms without
-changing the ranking.
+picks in 8 s") and as the source of training data. Independently of all this, streaming per-slot results over SSE gets the retrieval-order
+products on screen in a couple hundred ms once the plan is cached or distilled, with the
+reranked order swapping in as the calls land.
 
 ## Recommended production setup
 
@@ -116,8 +120,8 @@ changing the ranking.
 | secrets | platform secret store or Vault, rotated keys, nothing in images or logs | the settings repr hides keys, errors are scrubbed, queries are not logged unless LOG_QUERIES=1 |
 
 Sizing: retrieval-only traffic scales at about 60 req/s per vCPU pair; LLM traffic at
-replicas x LLM_CONCURRENCY / mean LLM seconds per request (about 11 s with 4 calls), so
-0.7 req/s per replica at 8. Memory is index bytes x 2 (float16 on disk, float32 in memory)
+about 0.43 req/s per replica (measured with a burst at LLM_CONCURRENCY=8, not derived
+from a formula, the calls overlap too much for one). Memory is index bytes x 2 (float16 on disk, float32 in memory)
 plus about 600 MB fixed. Startup is 10 to 20 s with the index download; readiness on `/ready`
 with a 60 s initial delay, liveness on `/health`.
 
@@ -141,7 +145,9 @@ INDEX_SHA256=...`.
   errors or logs. Residual: the host check is a resolve-then-connect pair, so DNS
   rebinding between the two is not caught; INDEX_URL is operator configuration.
 
-Fallback ladder, every step reported in `warnings`: planner error or timeout -> regex
+Fallback ladder (a degradation inside a served answer lands in `warnings`; no-key mode
+shows in `llm_info`, a missing index or a tripped limit is an http error): planner error
+or timeout -> regex
 planner (with a 30 s negative cache against stampedes); one rerank call fails or is late
 -> that slot keeps retrieval order; reranker rejects everything -> type matches in
 retrieval order, or an empty slot; a slot below k in the price window -> flagged unpriced
