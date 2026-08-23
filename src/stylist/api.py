@@ -28,6 +28,7 @@ from stylist.service import RecommendationService, RequestTimeout
 log = logging.getLogger(__name__)
 
 UI_DIST = Path(__file__).resolve().parents[2] / "ui" / "dist"
+OVERVIEW_PAGE = Path(__file__).resolve().parents[2] / "docs" / "overview.html"
 
 DESCRIPTION = """Semantic product recommendations for a fashion catalog.
 
@@ -188,6 +189,13 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
 
     if (UI_DIST / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=UI_DIST / "assets"), name="assets")
+
+    @app.get("/overview", include_in_schema=False)
+    async def overview():
+        """The walkthrough deck (docs/overview.html): scope, data, architecture, samples."""
+        if OVERVIEW_PAGE.exists():
+            return FileResponse(OVERVIEW_PAGE)
+        return HTMLResponse("<p>overview page not found (docs/overview.html)</p>", status_code=404)
 
     @app.get("/", include_in_schema=False)
     async def root():

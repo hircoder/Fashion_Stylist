@@ -28,7 +28,7 @@ INDEX_DIR=data/demo/index make serve
 ```
 
 Then open http://localhost:8000 for the UI, http://localhost:8000/docs for the OpenAPI
-page, or:
+page, http://localhost:8000/overview for a short walkthrough deck of the whole thing, or:
 
 ```bash
 curl -s localhost:8000/recommend -H 'content-type: application/json' \

@@ -168,6 +168,7 @@ export default function App() {
             <div className="subtitle">ask for an outfit like you would ask a friend</div>
           </div>
           <div className="header-right">
+            <a className="ghost-link" href="/overview">how it works</a>
             <StatusPill health={health} error={healthError} />
             <button className="ghost" onClick={toggleTheme} aria-label="toggle theme">
               {theme === "light" ? "dark mode" : "light mode"}

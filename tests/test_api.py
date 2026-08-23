@@ -158,3 +158,10 @@ def test_embedder_dimension_mismatch_is_rejected_at_startup(tmp_path, fixture_ca
     with TestClient(create_app(settings)) as c:  # HashEmbedder() default dim is 256
         assert c.get("/ready").status_code == 503
         assert "dim" in c.get("/health").json()["load_error"]
+
+
+def test_overview_deck_is_served(client):
+    r = client.get("/overview")
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    assert "how it works" in r.text.lower()
