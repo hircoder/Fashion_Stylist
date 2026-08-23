@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>fashion stylist, notes on what i built</title>
+<title>Fashion Stylist: technical overview</title>
 <style>
   * { box-sizing: border-box; }
   html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
@@ -98,28 +98,28 @@
 <div id="pos">1 / 11</div>
 <button id="agenda-toggle" type="button" aria-controls="agenda" aria-expanded="false">agenda</button>
 <nav id="agenda" aria-label="agenda">
-  <a class="ttl" href="#s1">agenda <span id="ag-pos">1 / 11</span></a>
+  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 11</span></a>
   <div class="bar"><i id="ag-bar"></i></div>
   <table>
-    <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">what this is</a></td></tr>
-    <tr data-s="1"><td class="n">2</td><td><a class="row" href="#s2">scope and business case</a></td></tr>
-    <tr data-s="2"><td class="n">3</td><td><a class="row" href="#s3">data</a></td></tr>
-    <tr data-s="3"><td class="n">4</td><td><a class="row" href="#s4">exploration</a></td></tr>
-    <tr data-s="4"><td class="n">5</td><td><a class="row" href="#s5">the live data flow</a></td></tr>
-    <tr data-s="5"><td class="n">6</td><td><a class="row" href="#s6">the decisions and why</a></td></tr>
-    <tr data-s="6"><td class="n">7</td><td><a class="row" href="#s7">stack</a></td></tr>
-    <tr data-s="7"><td class="n">8</td><td><a class="row" href="#s8">capabilities</a></td></tr>
-    <tr data-s="8"><td class="n">9</td><td><a class="row" href="#s9">samples</a></td></tr>
-    <tr data-s="9"><td class="n">10</td><td><a class="row" href="#s10">test results</a></td></tr>
-    <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">where things live</a></td></tr>
+    <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">Overview</a></td></tr>
+    <tr data-s="1"><td class="n">2</td><td><a class="row" href="#s2">Scope and business case</a></td></tr>
+    <tr data-s="2"><td class="n">3</td><td><a class="row" href="#s3">Data</a></td></tr>
+    <tr data-s="3"><td class="n">4</td><td><a class="row" href="#s4">Exploration</a></td></tr>
+    <tr data-s="4"><td class="n">5</td><td><a class="row" href="#s5">Architecture and data flow</a></td></tr>
+    <tr data-s="5"><td class="n">6</td><td><a class="row" href="#s6">Design decisions</a></td></tr>
+    <tr data-s="6"><td class="n">7</td><td><a class="row" href="#s7">Technology stack</a></td></tr>
+    <tr data-s="7"><td class="n">8</td><td><a class="row" href="#s8">Capabilities</a></td></tr>
+    <tr data-s="8"><td class="n">9</td><td><a class="row" href="#s9">Sample results</a></td></tr>
+    <tr data-s="9"><td class="n">10</td><td><a class="row" href="#s10">Evaluation</a></td></tr>
+    <tr data-s="10"><td class="n">11</td><td><a class="row" href="#s11">Files and deployment</a></td></tr>
   </table>
-  <div class="hint">arrow keys or scroll. on slide 5, left / right step the flow.</div>
+  <div class="hint">Arrow keys or scroll. On slide 5, left / right step the flow.</div>
 </nav>
 
 <section class="slide" id="s1">
   <div class="inner fade">
-    <div class="no">take-home notes</div>
-    <h1><a class="tl" href="#s1">Fashion stylist: what i built, why, and how it holds up</a></h1>
+    <div class="no">1 / 11 &middot; Take-home project</div>
+    <h1><a class="tl" href="#s1">Fashion Stylist: a semantic recommendation service</a></h1>
     <p>The brief: a small service that takes a sentence like the one below, works out what the person actually needs, and finds it in the Amazon Fashion catalog (826,108 listings) using semantic search and an LLM. Exposed as an API. This page is the short version; the README, the PRD, the decision records and the evaluation doc in <code>docs/</code> have the long one.</p>
     <p class="small">shopper types:</p>
     <div class="q mono"><span id="typed"></span><span class="cur"></span></div>
@@ -136,8 +136,8 @@
 
 <section class="slide" id="s2">
   <div class="inner fade">
-    <div class="no">2 / 11 &middot; scope, business case, requirements</div>
-    <h2><a class="tl" href="#s1">Keyword search stops at "t-shirt". People ask for "something for the beach".</a></h2>
+    <div class="no">2 / 11 &middot; Scope and business case</div>
+    <h2><a class="tl" href="#s2">Scope and business case</a></h2>
     <p>A catalog search box understands product words. "I need an outfit to go to the beach this summer" has none, and the budget, the audience or the occasion hiding in a sentence get dropped by keyword search. The business value of fixing that: one search box that accepts situations, bundles instead of single items, and answers that explain themselves so the product team can trust and debug them.</p>
     <p>I wrote a short PRD first (<code>docs/prd.md</code>) and kept it honest as the data pushed back. The requirements and how each one is met:</p>
     <table>
@@ -155,8 +155,8 @@
 
 <section class="slide" id="s3">
   <div class="inner fade">
-    <div class="no">3 / 11 &middot; data exploration</div>
-    <h2><a class="tl" href="#s3">The data decided the design before any code did.</a></h2>
+    <div class="no">3 / 11 &middot; Data</div>
+    <h2><a class="tl" href="#s3">Data: what the catalog contains and what it lacks</a></h2>
     <p>I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (<code>categories</code>, <code>bought_together</code>): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.</p>
     <div class="two">
       <div><table>
@@ -182,8 +182,8 @@
 
 <section class="slide" id="s4">
   <div class="inner fade">
-    <div class="no">4 / 11 &middot; notebooks, scripts, prompt experiments</div>
-    <h2><a class="tl" href="#s4">What i used to explore, and what each thing found</a></h2>
+    <div class="no">4 / 11 &middot; Exploration</div>
+    <h2><a class="tl" href="#s4">Exploration: scripts, notebooks and prompt experiments</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">notebooks/01_explore_data.ipynb (executed)</h3>
@@ -221,8 +221,8 @@
 
 <section class="slide" id="s5">
   <div class="inner wide fade">
-    <div class="no">5 / 11 &middot; architecture, watch one request flow</div>
-    <h2><a class="tl" href="#s5">How the system is designed and how the data moves</a></h2>
+    <div class="no">5 / 11 &middot; Architecture, one request animated</div>
+    <h2><a class="tl" href="#s5">Architecture and data flow</a></h2>
     <div class="stage" id="stage">
       <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -265,8 +265,8 @@
 
 <section class="slide" id="s6">
   <div class="inner wide fade">
-    <div class="no">6 / 11 &middot; design decisions, and the logic behind each</div>
-    <h2><a class="tl" href="#s6">Every major choice, what it was up against, and the evidence</a></h2>
+    <div class="no">6 / 11 &middot; Design decisions</div>
+    <h2><a class="tl" href="#s6">Design decisions and their rationale</a></h2>
     <p class="small">One line each here; each has a full record in <code>docs/adr/</code> (context, decision, why, consequences, alternatives).</p>
     <table>
       <tr><th style="width:21%">decision</th><th>logic</th><th style="width:27%">evidence</th><th style="width:17%">rejected</th></tr>
@@ -289,8 +289,8 @@
 
 <section class="slide" id="s7">
   <div class="inner fade">
-    <div class="no">7 / 11 &middot; stack</div>
-    <h2><a class="tl" href="#s7">Common open source pieces and no framework in the middle</a></h2>
+    <div class="no">7 / 11 &middot; Technology stack</div>
+    <h2><a class="tl" href="#s7">Technology stack</a></h2>
     <table>
       <tr><td>Python 3.12, FastAPI, pydantic</td><td>typed request and response models, OpenAPI at <code>/docs</code> for free, async pipeline, <code>/health</code> and <code>/ready</code></td></tr>
       <tr><td>sentence-transformers, bge-small-en-v1.5</td><td>384-d embeddings, local on cpu or gpu, same model offline and online, no per-query cost</td></tr>
@@ -305,8 +305,8 @@
 
 <section class="slide" id="s8">
   <div class="inner fade">
-    <div class="no">8 / 11 &middot; features and capabilities</div>
-    <h2><a class="tl" href="#s8">What it can do</a></h2>
+    <div class="no">8 / 11 &middot; Capabilities</div>
+    <h2><a class="tl" href="#s8">Features and capabilities</a></h2>
     <ul>
       <li>Outfit decomposition: "what to wear to an outdoor wedding" becomes shirt, pants, blazer, shoes, tie. A single item request stays one slot.</li>
       <li>Constraints from the sentence: audience ("my husband", "my 6 year old daughter"), occasion, season, per item or total budget. A total is split across slots with a 10% floor and never exceeds the total.</li>
@@ -323,8 +323,8 @@
 
 <section class="slide" id="s9">
   <div class="inner fade">
-    <div class="no">9 / 11 &middot; samples</div>
-    <h2><a class="tl" href="#s9">Samples from real runs</a></h2>
+    <div class="no">9 / 11 &middot; Sample results</div>
+    <h2><a class="tl" href="#s9">Sample results</a></h2>
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
       <button class="on" data-pane="p1">beach outfit, CLI</button>
@@ -403,8 +403,8 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s10">
   <div class="inner wide fade">
-    <div class="no">10 / 11 &middot; test results and quality</div>
-    <h2><a class="tl" href="#s10">The numbers, with their caveats</a></h2>
+    <div class="no">10 / 11 &middot; Evaluation</div>
+    <h2><a class="tl" href="#s10">Evaluation and quality</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Evaluation: 20 human style queries, type-match at k=4</h3>
@@ -438,8 +438,8 @@ timings: {&#x27;plan_ms&#x27;: 6914.9, &#x27;retrieve_ms&#x27;: 211.3, &#x27;rer
 
 <section class="slide" id="s11">
   <div class="inner fade">
-    <div class="no">11 / 11 &middot; structure, documentation, serving, next</div>
-    <h2><a class="tl" href="#s11">Where things are, how it's documented and served</a></h2>
+    <div class="no">11 / 11 &middot; Files and deployment</div>
+    <h2><a class="tl" href="#s11">Repository structure, documentation and deployment</a></h2>
     <div class="two">
       <div>
 <pre>src/stylist/
