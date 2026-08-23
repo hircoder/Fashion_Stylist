@@ -29,10 +29,37 @@ def test_ensure_index_is_noop_without_url(tmp_path):
     assert not (tmp_path / "index").exists()
 
 
-def test_ensure_index_is_noop_when_index_present(tmp_path, index_tar):
+def test_ensure_index_is_noop_when_a_valid_index_is_present(tmp_path, index_tar):
+    tar_path, sha = index_tar
+    s = _settings(tmp_path, INDEX_URL=tar_path.as_uri(), INDEX_SHA256=sha)
+    ensure_index(s)
+    s2 = _settings(tmp_path, INDEX_URL="file:///does/not/exist", INDEX_SHA256="x")
+    ensure_index(s2)  # valid index already there: the bad url is never touched
+
+
+def test_ensure_index_reinstalls_over_a_broken_index(tmp_path, index_tar):
+    tar_path, sha = index_tar
     (tmp_path / "index").mkdir()
-    (tmp_path / "index" / "meta.json").write_text("{}")
-    ensure_index(_settings(tmp_path, INDEX_URL="file:///does/not/exist", INDEX_SHA256="x"))
+    (tmp_path / "index" / "meta.json").write_text("{}")  # interrupted install
+    ensure_index(_settings(tmp_path, INDEX_URL=tar_path.as_uri(), INDEX_SHA256=sha))
+    assert SearchIndex.load(tmp_path / "index").n_rows == 40
+
+
+def test_extraction_cap_counts_bytes_actually_written(tmp_path):
+    # member declares size 1 byte but the cap must be enforced on real bytes: build an
+    # archive whose members total more than max_bytes
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for i in range(3):
+            info = tarfile.TarInfo(f"index/f{i}")
+            data = b"x" * 5000
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    tar_path = tmp_path / "big.tar.gz"
+    tar_path.write_bytes(buf.getvalue())
+    with pytest.raises(ArtifactError, match="bytes"):
+        safe_extract(tar_path, tmp_path / "out", max_bytes=12_000)
+    assert not (tmp_path / "out").exists()
 
 
 def test_ensure_index_requires_sha256(tmp_path, index_tar):

@@ -11,7 +11,11 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from pydantic import ValidationError
+
+from stylist.artifacts import ArtifactError
 from stylist.config import ConfigError, Settings
+from stylist.index import IndexValidationError
 
 RAW_URL = (
     "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/"
@@ -118,7 +122,6 @@ def _format_pretty(res) -> str:
 
 def cmd_recommend(args, settings: Settings) -> int:
     from stylist.api import build_service
-    from stylist.index import IndexValidationError
     from stylist.schemas import RecommendRequest
 
     try:
@@ -214,7 +217,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"config error: {exc}", file=sys.stderr)
         return 2
     logging.basicConfig(level=settings.log_level, format="%(levelname)s %(name)s: %(message)s")
-    return args.func(args, settings)
+    try:
+        return args.func(args, settings)
+    except ValidationError as exc:
+        first = exc.errors()[0] if exc.errors() else {}
+        print(f"invalid request: {first.get('msg', exc)}", file=sys.stderr)
+        return 2
+    except (IndexValidationError, ArtifactError, ConfigError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

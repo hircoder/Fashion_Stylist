@@ -163,3 +163,52 @@ async def test_twenty_concurrent_requests_all_succeed(fixture_index, hash_embedd
     reqs = [RecommendRequest(query=q) for q in ["boots", "sandals", "hat", "dress"] * 5]
     results = await asyncio.gather(*(svc.recommend(r) for r in reqs))
     assert len(results) == 20 and all(r.slots for r in results)
+
+
+async def test_request_rejects_unknown_fields_and_non_finite_prices():
+    with pytest.raises(ValueError):
+        RecommendRequest(query="x", use_lm=False)  # typo must not be silently ignored
+    with pytest.raises(ValueError):
+        RecommendRequest(query="x", max_price=float("inf"))
+
+
+async def test_retrieval_past_the_deadline_raises_request_timeout(fixture_index, hash_embedder):
+    import time
+
+    from stylist.service import RequestTimeout
+
+    svc = RecommendationService(
+        fixture_index, hash_embedder, _settings(REQUEST_DEADLINE_S="0.5"), llm=None
+    )
+    real = svc.retriever.retrieve
+
+    def slow(*a, **kw):
+        time.sleep(1.2)
+        return real(*a, **kw)
+
+    svc.retriever.retrieve = slow
+    with pytest.raises(RequestTimeout):
+        await svc.recommend(RecommendRequest(query="boots"))
+
+
+async def test_planner_timeout_path_is_really_exercised(fixture_index, hash_embedder):
+    class StuckLLM(FakeLLM):
+        async def complete_json(self, **kw):
+            await asyncio.sleep(5)
+            return None
+
+    settings = _settings(REQUEST_DEADLINE_S="3.0", PLANNER_BUDGET_S="0.6")
+    svc = RecommendationService(fixture_index, hash_embedder, settings, llm=StuckLLM())
+    t = asyncio.get_event_loop().time()
+    res = await svc.recommend(RecommendRequest(query="sandals"))
+    elapsed = asyncio.get_event_loop().time() - t
+    assert res.llm_info.planner_used == "heuristic"
+    assert 0.6 <= elapsed < 2.5
+    assert any("TimeoutError" in w for w in res.warnings)
+
+
+async def test_no_rerank_path_fetches_a_deep_enough_pool(fixture_index, hash_embedder):
+    llm = _stylist_llm(_plan_out(("a", "women dress", ["dress"]), ("b", "women dress", ["dress"])))
+    svc = RecommendationService(fixture_index, hash_embedder, _settings(), llm=llm)
+    res = await svc.recommend(RecommendRequest(query="dresses", k=5, rerank=False))
+    assert len(res.slots[0].items) == 5 and len(res.slots[1].items) == 5

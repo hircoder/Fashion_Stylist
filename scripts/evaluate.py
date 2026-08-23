@@ -42,8 +42,8 @@ from stylist.service import RecommendationService  # noqa: E402
 
 CONFIGS = {
     # name: (settings overrides, request overrides)
-    "bm25": ({"dense_weight": 0.0}, {"use_llm": False}),
-    "dense": ({"bm25_weight": 0.0}, {"use_llm": False}),
+    "bm25": ({"channels": ("bm25",)}, {"use_llm": False}),
+    "dense": ({"channels": ("dense",)}, {"use_llm": False}),
     "hybrid": ({}, {"use_llm": False}),
     "hybrid_noboost": ({"keyword_boost": 0.0, "quality_weight": 0.0}, {"use_llm": False}),
     "llm_plan": ({}, {"use_llm": True, "rerank": False}),
@@ -70,13 +70,8 @@ def _match_slot_rule(slot_name: str, rules: dict) -> dict | None:
 
 async def run_config(name: str, queries: list[dict], index, embedder, base: Settings, llm):
     s_over, r_over = CONFIGS[name]
-    settings = replace(base, **{k: v for k, v in s_over.items() if hasattr(base, k)})
+    settings = replace(base, **s_over)
     svc = RecommendationService(index, embedder, settings, llm if r_over.get("use_llm") else None)
-    # channel ablations: monkeypatch the index scorers
-    if s_over.get("dense_weight") == 0.0:
-        svc.retriever.index = _ZeroDense(index)
-    if s_over.get("bm25_weight") == 0.0:
-        svc.retriever.index = _ZeroBM25(index)
 
     rows = []
     for q in queries:
@@ -125,29 +120,6 @@ async def run_config(name: str, queries: list[dict], index, embedder, base: Sett
         "rows": rows,
     }
     return summary
-
-
-class _ZeroDense:
-    def __init__(self, index):
-        self._i = index
-
-    def __getattr__(self, name):
-        return getattr(self._i, name)
-
-    def dense_scores(self, q):
-        import numpy as np
-
-        return np.zeros((q.shape[0], self._i.n_rows), dtype=np.float32)
-
-
-class _ZeroBM25(_ZeroDense):
-    def dense_scores(self, q):
-        return self._i.dense_scores(q)
-
-    def bm25_scores(self, query):
-        import numpy as np
-
-        return np.zeros(self._i.n_rows, dtype=np.float32)
 
 
 async def main_async(args):

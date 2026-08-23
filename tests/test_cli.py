@@ -78,3 +78,17 @@ def test_recommend_fails_cleanly_without_index(capsys, monkeypatch_module, tmp_p
 
 def test_no_command_prints_help_and_returns_nonzero(capsys):
     assert main([]) == 1
+
+
+def test_cli_config_error_is_a_clean_exit(capsys, monkeypatch_module):
+    monkeypatch_module.setenv("LLM_PROVIDER", "gemini")
+    assert main(["recommend", "x"]) == 2
+    assert "config error" in capsys.readouterr().err
+
+
+def test_cli_invalid_request_is_a_clean_exit(built, capsys, monkeypatch_module):
+    _, index_dir = built
+    monkeypatch_module.setenv("INDEX_DIR", str(index_dir))
+    monkeypatch_module.setenv("LLM_PROVIDER", "none")
+    assert main(["recommend", "x", "--min-price", "50", "--max-price", "10"]) == 2
+    assert "min_price" in capsys.readouterr().err

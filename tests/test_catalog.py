@@ -220,3 +220,22 @@ def test_load_catalog_subset_matches_select_rows(fixture_catalog, fixture_catalo
     expected = select_rows(fixture_catalog_df, limit=25, sampling="popular")
     assert list(sub["row_id"]) == list(expected["row_id"])
     assert list(sub.columns) == list(fixture_catalog_df.columns)
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("1,299", (1299.0, "string")),
+        ("$1,299.50", (1299.5, "string")),
+        ("12,99", (12.99, "string")),
+        (float("inf"), (None, "unparsed")),
+    ],
+)
+def test_parse_price_thousands_and_non_finite(raw, expected):
+    assert parse_price(raw) == expected
+
+
+def test_normalize_record_guards_non_finite_rating():
+    raw = {"title": "x", "average_rating": float("nan"), "rating_number": 3, "parent_asin": "A"}
+    row = normalize_record(raw, row_id=1)
+    assert row["average_rating"] == 0.0

@@ -14,6 +14,7 @@ price/audience window per slot. Request fields win over inferred ones, field by 
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Literal
@@ -276,9 +277,19 @@ def _clean_keywords(raw: list[str]) -> list[str]:
 
 
 def _nonneg(v: float | None) -> float | None:
-    if v is None or v < 0:
+    """Budgets must be finite and non-negative, anything else counts as 'not given'."""
+    if v is None or not math.isfinite(v) or v < 0:
         return None
     return float(v)
+
+
+def _unique_names(slots: list[Slot]) -> None:
+    seen: dict[str, int] = {}
+    for s in slots:
+        base = s.name.strip().lower() or "items"
+        n = seen.get(base, 0) + 1
+        seen[base] = n
+        s.name = base if n == 1 else f"{base} {n}"
 
 
 def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
@@ -300,6 +311,7 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
     if len(slots) > MAX_SLOTS:
         warnings.append(f"planner returned {len(slots)} slots, keeping the first {MAX_SLOTS}")
         slots = slots[:MAX_SLOTS]
+    _unique_names(slots)
     if not slots:
         warnings.append("planner returned no usable slot, searching the raw query")
         slots = [

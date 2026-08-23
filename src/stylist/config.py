@@ -6,6 +6,7 @@ every knob is listed here once with its default so it is easy to see what can be
 
 from __future__ import annotations
 
+import math
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -78,6 +79,7 @@ class Settings:
     rerank_budget_s: float
 
     # ranking knobs
+    channels: tuple[str, ...]  # which retrieval channels fuse: ("dense", "bm25")
     top_n_per_channel: int
     rrf_k: int
     keyword_boost: float  # in units of RRF(rank 1) = 1/(rrf_k+1)
@@ -145,7 +147,7 @@ class Settings:
         if embedder not in ("sentence-transformers", "hash"):
             raise ConfigError("EMBEDDER must be 'sentence-transformers' or 'hash'")
 
-        return cls(
+        settings = cls(
             data_dir=data_dir,
             raw_path=raw_path,
             processed_path=processed_path,
@@ -162,9 +164,14 @@ class Settings:
             openai_api_key=openai_key,
             openai_base_url=_get_str(env, "OPENAI_BASE_URL"),
             llm_effort=_get_str(env, "LLM_EFFORT", "low"),
-            request_deadline_s=_get_float(env, "REQUEST_DEADLINE_S", 25.0),
-            planner_budget_s=_get_float(env, "PLANNER_BUDGET_S", 10.0),
-            rerank_budget_s=_get_float(env, "RERANK_BUDGET_S", 12.0),
+            request_deadline_s=_get_float(env, "REQUEST_DEADLINE_S", 40.0),
+            planner_budget_s=_get_float(env, "PLANNER_BUDGET_S", 15.0),
+            rerank_budget_s=_get_float(env, "RERANK_BUDGET_S", 20.0),
+            channels=tuple(
+                c.strip().lower()
+                for c in (_get_str(env, "CHANNELS", "dense,bm25") or "").split(",")
+                if c.strip()
+            ),
             top_n_per_channel=_get_int(env, "TOP_N_PER_CHANNEL", 100),
             rrf_k=_get_int(env, "RRF_K", 60),
             keyword_boost=_get_float(env, "KEYWORD_BOOST", 0.5),
@@ -177,3 +184,33 @@ class Settings:
             index_max_bytes=_get_int(env, "INDEX_MAX_BYTES", 4 * 1024**3),
             log_level=(_get_str(env, "LOG_LEVEL", "INFO") or "INFO").upper(),
         )
+        settings.validate()
+        return settings
+
+    def validate(self) -> None:
+        """Range checks; a bad knob should fail at startup, not divide by zero at request time."""
+        positive = {
+            "request_deadline_s": self.request_deadline_s,
+            "planner_budget_s": self.planner_budget_s,
+            "rerank_budget_s": self.rerank_budget_s,
+            "top_n_per_channel": self.top_n_per_channel,
+            "rrf_k": self.rrf_k,
+            "rerank_candidates": self.rerank_candidates,
+            "retrieval_concurrency": self.retrieval_concurrency,
+            "max_seq_length": self.max_seq_length,
+            "index_max_bytes": self.index_max_bytes,
+        }
+        for name, value in positive.items():
+            if not math.isfinite(value) or value <= 0:
+                raise ConfigError(f"{name.upper()} must be a positive finite number, got {value}")
+        for name, value in {
+            "keyword_boost": self.keyword_boost,
+            "quality_weight": self.quality_weight,
+            "plan_cache_size": self.plan_cache_size,
+        }.items():
+            if not math.isfinite(value) or value < 0:
+                raise ConfigError(f"{name.upper()} must be finite and >= 0, got {value}")
+        if not self.channels or any(c not in ("dense", "bm25") for c in self.channels):
+            raise ConfigError("CHANNELS must be a comma list drawn from: dense, bm25")
+        if self.llm_effort and self.llm_effort not in ("low", "medium", "high"):
+            raise ConfigError("LLM_EFFORT must be low, medium or high")

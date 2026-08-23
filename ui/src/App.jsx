@@ -240,8 +240,8 @@ export default function App() {
           <section className="results">
             <PlanSummary plan={result.plan} llmInfo={result.llm_info} />
             {result.note ? <p className="note">{result.note}</p> : null}
-            {result.slots.map((slot) => (
-              <div className="slot" key={slot.name}>
+            {result.slots.map((slot, i) => (
+              <div className="slot" key={`${i}-${slot.name}`}>
                 <h2>
                   {slot.name} <span className="muted small">searched: {slot.search_query}</span>
                 </h2>

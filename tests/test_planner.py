@@ -212,3 +212,20 @@ def test_merge_drops_inferred_bound_that_conflicts_with_request():
     windows, warnings = merge_constraints(plan, max_price=50.0)
     assert windows[0].min_price is None and windows[0].max_price == 50.0
     assert warnings
+
+
+def test_normalize_makes_slot_names_unique():
+    out = _out(
+        slots=[
+            {"name": "top", "search_query": "a", "keywords": []},
+            {"name": "Top", "search_query": "b", "keywords": []},
+            {"name": "top", "search_query": "c", "keywords": []},
+        ]
+    )
+    plan = normalize_plan(out, "q")
+    assert [s.name for s in plan.slots] == ["top", "top 2", "top 3"]
+
+
+def test_normalize_drops_non_finite_budgets():
+    plan = normalize_plan(_out(budget_max=float("inf"), budget_scope="per_item"), "q")
+    assert plan.budget_max is None and plan.budget_scope == "unknown"

@@ -12,7 +12,7 @@ def test_defaults_without_env_use_data_dir_and_no_llm():
     assert s.index_dir == Path("data/index")
     assert s.raw_path == Path("data/raw/meta_Amazon_Fashion.jsonl.gz")
     assert s.embedding_model == "BAAI/bge-small-en-v1.5"
-    assert s.request_deadline_s == 25.0
+    assert s.request_deadline_s == 40.0
 
 
 def test_provider_precedence_anthropic_wins_when_both_keys_present():
@@ -67,3 +67,25 @@ def test_data_dir_moves_all_paths():
 def test_embedding_name_follows_embedder_choice():
     assert Settings.from_env({}).embedding_name == "BAAI/bge-small-en-v1.5"
     assert Settings.from_env({"EMBEDDER": "hash"}).embedding_name == "hash"
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"RRF_K": "0"},
+        {"TOP_N_PER_CHANNEL": "0"},
+        {"REQUEST_DEADLINE_S": "-1"},
+        {"RERANK_CANDIDATES": "-3"},
+        {"KEYWORD_BOOST": "nan"},
+        {"RETRIEVAL_CONCURRENCY": "0"},
+        {"PLANNER_BUDGET_S": "inf"},
+    ],
+)
+def test_out_of_range_numeric_settings_are_config_errors(env):
+    with pytest.raises(ConfigError):
+        Settings.from_env(env)
+
+
+def test_default_budgets_fit_inside_the_deadline():
+    s = Settings.from_env({})
+    assert s.planner_budget_s + s.rerank_budget_s <= s.request_deadline_s

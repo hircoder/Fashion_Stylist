@@ -149,3 +149,43 @@ def test_retriever_batches_all_slots_in_one_call(fixture_index, hash_embedder, m
     plan = _plan(Slot(name="a", search_query="boots"), Slot(name="b", search_query="hat"))
     out = r.retrieve(plan, [SlotWindow(None, None, None, False)] * 2, n_candidates=5, k=3)
     assert len(out) == 2 and calls == [(2, hash_embedder.dim)]
+
+
+def test_rrf_disabled_channel_contributes_nothing():
+    dense = np.array([0.9, 0.8, 0.7], dtype=np.float32)
+    bm25 = np.array([1.0, 5.0, 4.0], dtype=np.float32)
+    mask = np.ones(3, dtype=bool)
+    only_bm25 = rrf_fuse(None, bm25, mask, top_n=10, k=60)
+    assert [c.idx for c in only_bm25] == [1, 2, 0]
+    assert all(c.dense_rank is None for c in only_bm25)
+    only_dense = rrf_fuse(dense, None, mask, top_n=10, k=60)
+    assert [c.idx for c in only_dense] == [0, 1, 2]
+
+
+def test_channels_setting_disables_dense(fixture_index, hash_embedder, monkeypatch):
+    r = _retriever(fixture_index, hash_embedder, CHANNELS="bm25")
+    calls = []
+    monkeypatch.setattr(fixture_index, "dense_scores", lambda q: calls.append(1))
+    plan = _plan(Slot(name="boots", search_query="snow boots", keywords=["boot"]))
+    [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=5, k=3)
+    assert calls == [] and res.candidates and all(c.dense_rank is None for c in res.candidates)
+
+
+def test_retriever_expands_depth_when_top_n_is_full_of_variants(fixture_index, hash_embedder):
+    # with a tiny per-channel top-n, variants of one product can fill the whole window;
+    # the retriever must keep digging until it has k distinct groups
+    r = _retriever(fixture_index, hash_embedder, TOP_N_PER_CHANNEL="2")
+    plan = _plan(Slot(name="x", search_query="women dress", keywords=["dress"]))
+    [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=6)
+    assert len(res.candidates) == 6
+    assert len({c.group_key for c in res.candidates}) == 6
+
+
+def test_hydrate_turns_nan_rating_into_zero(fixture_index, hash_embedder):
+    r = _retriever(fixture_index, hash_embedder)
+    fixture_index.catalog.loc[0, "average_rating"] = float("nan")
+    try:
+        c = r._hydrate(__import__("stylist.retrieval", fromlist=["Candidate"]).Candidate(0, 0, 0.0))
+        assert c.average_rating == 0.0
+    finally:
+        fixture_index.catalog.loc[0, "average_rating"] = 4.0

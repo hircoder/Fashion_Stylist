@@ -10,11 +10,12 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from stylist import __version__
 from stylist.config import Settings
@@ -22,7 +23,7 @@ from stylist.embeddings import make_embedder
 from stylist.index import IndexValidationError, SearchIndex
 from stylist.llm import make_llm_client
 from stylist.schemas import ErrorBody, RecommendRequest, RecommendResponse
-from stylist.service import RecommendationService
+from stylist.service import RecommendationService, RequestTimeout
 
 log = logging.getLogger(__name__)
 
@@ -37,9 +38,21 @@ per slot inside the price/audience constraints, and the LLM reranks and explains
 """
 
 
+def _public_error(exc: Exception) -> str:
+    """Error text safe to show to any client: class name + message without local paths."""
+    import re
+
+    text = re.sub(r"(/[\w.\-]+)+", "<path>", str(exc))
+    return f"{type(exc).__name__}: {text}"[:300]
+
+
 def _error(status: int, code: str, message: str) -> JSONResponse:
     body = ErrorBody(error={"code": code, "message": message})  # type: ignore[arg-type]
     return JSONResponse(status_code=status, content=body.model_dump())
+
+
+class IndexNotLoaded(Exception):
+    pass
 
 
 def build_service(settings: Settings) -> RecommendationService:
@@ -49,6 +62,15 @@ def build_service(settings: Settings) -> RecommendationService:
     ensure_index(settings)
     index = SearchIndex.load(settings.index_dir, expected_model=settings.embedding_name)
     embedder = make_embedder(settings)
+    if embedder.dim != index.meta.dim:
+        raise IndexValidationError(
+            f"embedder dim {embedder.dim} != index dim {index.meta.dim}, rebuild the index"
+        )
+    revision = getattr(embedder, "revision", None)
+    if revision and index.meta.embedding_revision and revision != index.meta.embedding_revision:
+        raise IndexValidationError(
+            f"embedding revision {revision} != index revision {index.meta.embedding_revision}"
+        )
     llm = make_llm_client(settings)
     log.info(
         "service ready: %d rows (%s), embedder=%s, llm=%s/%s",
@@ -65,7 +87,7 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
     settings = settings or Settings.from_env()
     logging.basicConfig(
         level=settings.log_level,
-        format='{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":%(message)r}',
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
     @asynccontextmanager
@@ -75,9 +97,9 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
         if app.state.service is None:
             try:
                 app.state.service = build_service(settings)
-            except (IndexValidationError, OSError, ValueError, RuntimeError) as exc:
-                app.state.load_error = f"{type(exc).__name__}: {exc}"
-                log.error("index not loaded: %s", app.state.load_error)
+            except Exception as exc:  # noqa: BLE001 - anything here must keep /health alive
+                log.exception("service failed to start")
+                app.state.load_error = _public_error(exc)
         yield
 
     app = FastAPI(
@@ -98,10 +120,17 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
         msg = msg.removeprefix("Value error, ")
         return _error(422, "validation_error", f"{loc}: {msg}" if loc else msg)
 
-    @app.exception_handler(HTTPException)
-    async def _http(_: Request, exc: HTTPException):
-        code = "index_not_loaded" if exc.status_code == 503 else f"http_{exc.status_code}"
-        return _error(exc.status_code, code, str(exc.detail))
+    @app.exception_handler(StarletteHTTPException)
+    async def _http(_: Request, exc: StarletteHTTPException):
+        return _error(exc.status_code, f"http_{exc.status_code}", str(exc.detail))
+
+    @app.exception_handler(IndexNotLoaded)
+    async def _not_loaded(_: Request, exc: IndexNotLoaded):
+        return _error(503, "index_not_loaded", str(exc))
+
+    @app.exception_handler(RequestTimeout)
+    async def _timeout(_: Request, exc: RequestTimeout):
+        return _error(504, "deadline_exceeded", str(exc))
 
     @app.exception_handler(Exception)
     async def _unhandled(_: Request, exc: Exception):
@@ -111,7 +140,7 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
     def _service(request: Request) -> RecommendationService:
         svc = request.app.state.service
         if svc is None:
-            raise HTTPException(503, request.app.state.load_error or "index not loaded")
+            raise IndexNotLoaded(request.app.state.load_error or "index not loaded")
         return svc
 
     @app.post(
@@ -119,7 +148,11 @@ def create_app(settings: Settings | None = None, *, service: RecommendationServi
         response_model=RecommendResponse,
         tags=["recommend"],
         summary="Recommend products for a natural-language request",
-        responses={422: {"model": ErrorBody}, 503: {"model": ErrorBody}},
+        responses={
+            422: {"model": ErrorBody},
+            503: {"model": ErrorBody},
+            504: {"model": ErrorBody},
+        },
     )
     async def recommend(body: RecommendRequest, request: Request) -> RecommendResponse:
         return await _service(request).recommend(body)

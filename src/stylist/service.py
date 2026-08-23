@@ -47,6 +47,10 @@ MIN_RERANK_SECONDS = 2.0  # do not start a rerank call with less than this left
 MIN_PLAN_SECONDS = 0.5
 
 
+class RequestTimeout(Exception):
+    """The request deadline passed before retrieval finished (the API maps this to 504)."""
+
+
 class RecommendationService:
     def __init__(
         self,
@@ -137,6 +141,10 @@ class RecommendationService:
             out.append(picked)
         return out
 
+    async def _retrieve(self, plan, windows, n_candidates: int, k: int):
+        async with self._retrieval_sem:
+            return await asyncio.to_thread(self.retriever.retrieve, plan, windows, n_candidates, k)
+
     # ------------------------------------------------------------------ main entry
 
     async def recommend(self, req: RecommendRequest) -> RecommendResponse:
@@ -160,12 +168,17 @@ class RecommendationService:
         warnings.extend(merge_warnings)
 
         do_rerank = req.use_llm and req.rerank and self.reranker is not None
-        n_candidates = self.settings.rerank_candidates if do_rerank else max(req.k * 2, req.k)
+        # a deep enough pool that cross-slot de-duplication can still fill every slot
+        n_candidates = max(self.settings.rerank_candidates, 3 * req.k)
         t1 = time.monotonic()
-        async with self._retrieval_sem:
-            slot_cands = await asyncio.to_thread(
-                self.retriever.retrieve, plan, windows, n_candidates, req.k
+        try:
+            slot_cands = await asyncio.wait_for(
+                self._retrieve(plan, windows, n_candidates, req.k),
+                timeout=max(deadline - time.monotonic(), 0.01),
             )
+        except TimeoutError as exc:
+            log.warning("request %s: retrieval exceeded the deadline", request_id)
+            raise RequestTimeout("retrieval did not finish before the request deadline") from exc
         for sc in slot_cands:
             warnings.extend(sc.warnings)
         timings["retrieve_ms"] = round((time.monotonic() - t1) * 1000, 1)

@@ -28,7 +28,8 @@ from stylist.embeddings import Embedder
 from stylist.index import SearchIndex
 from stylist.planner import QueryPlan, Slot, SlotWindow
 
-RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating, roughly the p75 of rating_number
+RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_number is 10; 20 = a
+# deliberately stronger pull toward the mean for thinly rated items)
 
 
 @dataclass
@@ -105,30 +106,36 @@ def eligibility_masks(index, window: SlotWindow) -> tuple[np.ndarray, np.ndarray
 
 
 def rrf_fuse(
-    dense: np.ndarray, bm25: np.ndarray, mask: np.ndarray, top_n: int, k: int
+    dense: np.ndarray | None,
+    bm25: np.ndarray | None,
+    mask: np.ndarray,
+    top_n: int,
+    k: int,
 ) -> list[Candidate]:
-    """Reciprocal rank fusion of the two channels over masked rows only."""
+    """Reciprocal rank fusion over masked rows. A channel passed as None is switched off
+    (it earns no rank points at all, which matters for clean ablations)."""
     if not mask.any():
         return []
     idxs = np.flatnonzero(mask)
     top_n = min(top_n, len(idxs))
-
-    d = dense[idxs]
-    d_order = idxs[np.argsort(-d, kind="stable")[:top_n]]
-    b = bm25[idxs]
-    b_nonzero = b > 0
-    b_idxs = idxs[b_nonzero]
-    b_order = b_idxs[np.argsort(-b[b_nonzero], kind="stable")[:top_n]]
-
     scores: dict[int, Candidate] = {}
-    for rank, i in enumerate(d_order.tolist()):
-        c = scores.setdefault(i, Candidate(idx=i, row_id=-1, score=0.0))
-        c.dense_rank = rank
-        c.score += 1.0 / (k + rank + 1)
-    for rank, i in enumerate(b_order.tolist()):
-        c = scores.setdefault(i, Candidate(idx=i, row_id=-1, score=0.0))
-        c.bm25_rank = rank
-        c.score += 1.0 / (k + rank + 1)
+
+    if dense is not None:
+        d = dense[idxs]
+        d_order = idxs[np.argsort(-d, kind="stable")[:top_n]]
+        for rank, i in enumerate(d_order.tolist()):
+            c = scores.setdefault(i, Candidate(idx=i, row_id=-1, score=0.0))
+            c.dense_rank = rank
+            c.score += 1.0 / (k + rank + 1)
+    if bm25 is not None:
+        b = bm25[idxs]
+        b_nonzero = b > 0  # zero means "no query term in the doc", not a rank
+        b_idxs = idxs[b_nonzero]
+        b_order = b_idxs[np.argsort(-b[b_nonzero], kind="stable")[:top_n]]
+        for rank, i in enumerate(b_order.tolist()):
+            c = scores.setdefault(i, Candidate(idx=i, row_id=-1, score=0.0))
+            c.bm25_rank = rank
+            c.score += 1.0 / (k + rank + 1)
     return sorted(scores.values(), key=lambda c: (-c.score, c.idx))
 
 
@@ -207,8 +214,9 @@ class Retriever:
         c.row_id = int(row["row_id"])
         c.parent_asin = str(row["parent_asin"])
         c.title = str(row["title"])
-        c.average_rating = float(row["average_rating"] or 0.0)
-        c.rating_number = int(row["rating_number"] or 0)
+        rating = _none_if_nan(row["average_rating"])
+        c.average_rating = float(rating) if rating is not None else 0.0
+        c.rating_number = int(_none_if_nan(row["rating_number"]) or 0)
         price = _none_if_nan(row["price"])
         c.price = float(price) if price is not None else None
         c.store = _none_if_nan(row["store"])
@@ -224,8 +232,15 @@ class Retriever:
         c.description = str(_none_if_nan(row["description"]) or "")
         return c
 
-    def _rank(self, dense: np.ndarray, bm25: np.ndarray, mask: np.ndarray, slot: Slot):
-        fused = rrf_fuse(dense, bm25, mask, top_n=self.s.top_n_per_channel, k=self.s.rrf_k)
+    def _rank(
+        self,
+        dense: np.ndarray | None,
+        bm25: np.ndarray | None,
+        mask: np.ndarray,
+        slot: Slot,
+        top_n: int,
+    ) -> list[Candidate]:
+        fused = rrf_fuse(dense, bm25, mask, top_n=top_n, k=self.s.rrf_k)
         for c in fused:
             self._hydrate(c)
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
@@ -236,6 +251,27 @@ class Retriever:
         fused.sort(key=lambda c: (-c.score, c.idx))
         return fused
 
+    def _rank_distinct(
+        self,
+        dense: np.ndarray | None,
+        bm25: np.ndarray | None,
+        mask: np.ndarray,
+        slot: Slot,
+        needed: int,
+        seen: set[str],
+    ) -> list[Candidate]:
+        """Rank and collapse variants; widen the per-channel window (x4 each time) while
+        the masked pool still has rows and we have fewer than `needed` distinct groups."""
+        n_masked = int(mask.sum())
+        top_n = self.s.top_n_per_channel
+        while True:
+            fused = self._rank(dense, bm25, mask, slot, top_n)
+            distinct = diversify_by_group(fused, set(seen))
+            if len(distinct) >= needed or top_n >= n_masked:
+                seen.update(c.group_key or f"__{c.idx}" for c in distinct)
+                return distinct
+            top_n = min(top_n * 4, n_masked)
+
     def retrieve(
         self,
         plan: QueryPlan,
@@ -245,19 +281,24 @@ class Retriever:
     ) -> list[SlotCandidates]:
         """Up to n_candidates eligible rows per slot, plus up to k unpriced backfill rows
         when the window allows it. All slot queries are embedded and scored at once."""
+        use_dense = "dense" in self.s.channels
+        use_bm25 = "bm25" in self.s.channels
         queries = [s.search_query for s in plan.slots]
-        dense_all = self.index.dense_scores(self.embedder.encode_queries(queries))
+        dense_all = (
+            self.index.dense_scores(self.embedder.encode_queries(queries)) if use_dense else None
+        )
         out: list[SlotCandidates] = []
         for i, (slot, window) in enumerate(zip(plan.slots, windows, strict=True)):
             warnings: list[str] = []
             eligible, pool = eligibility_masks(self.index, window)
-            bm25 = self.index.bm25_scores(slot.search_query)
+            dense = dense_all[i] if dense_all is not None else None
+            bm25 = self.index.bm25_scores(slot.search_query) if use_bm25 else None
             seen: set[str] = set()
-            ranked = diversify_by_group(self._rank(dense_all[i], bm25, eligible, slot), seen)
+            ranked = self._rank_distinct(dense, bm25, eligible, slot, n_candidates, seen)
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if n_eligible < k and pool.any():
-                extra = diversify_by_group(self._rank(dense_all[i], bm25, pool, slot), seen)
+                extra = self._rank_distinct(dense, bm25, pool, slot, k - n_eligible, seen)
                 for c in extra[: max(k - n_eligible, 0)]:
                     c.in_window = False
                     ranked.append(c)

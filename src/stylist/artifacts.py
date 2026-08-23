@@ -25,7 +25,7 @@ import urllib.request
 from pathlib import Path
 
 from stylist.config import Settings
-from stylist.index import CHECKSUMMED, IndexMeta, sha256_file
+from stylist.index import IndexMeta, IndexValidationError, sha256_file, verify_checksums
 
 log = logging.getLogger(__name__)
 
@@ -73,19 +73,39 @@ def _check_member(member: tarfile.TarInfo) -> None:
 
 
 def safe_extract(tar_path: Path, dest: Path, max_bytes: int) -> None:
-    """Extract into `dest` (created fresh). Rejects links, devices, abs paths, `..`, size."""
+    """Extract into `dest` (created fresh). Only regular files and directories with safe
+    relative paths; the size cap counts bytes actually written, not declared sizes."""
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
-    total = 0
+    written = 0
     try:
         with tarfile.open(tar_path, "r:*") as tar:
             for member in tar:
                 _check_member(member)
-                total += max(member.size, 0)
-                if total > max_bytes:
-                    raise ArtifactError(f"extracted size exceeds INDEX_MAX_BYTES ({max_bytes})")
-                tar.extract(member, path=dest, filter="data")
+                target = (dest / member.name).resolve()
+                if dest.resolve() not in target.parents and target != dest.resolve():
+                    raise ArtifactError(
+                        f"archive member escapes the target directory: {member.name}"
+                    )
+                if member.isdir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                src = tar.extractfile(member)
+                if src is None:
+                    raise ArtifactError(f"cannot read archive member {member.name}")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with src, open(target, "wb") as out:
+                    while True:
+                        chunk = src.read(1 << 20)
+                        if not chunk:
+                            break
+                        written += len(chunk)
+                        if written > max_bytes:
+                            raise ArtifactError(
+                                f"extracted size exceeds INDEX_MAX_BYTES ({max_bytes} bytes)"
+                            )
+                        out.write(chunk)
     except (tarfile.TarError, OSError) as exc:
         shutil.rmtree(dest, ignore_errors=True)
         raise ArtifactError(f"cannot extract {tar_path.name}: {exc}") from exc
@@ -102,15 +122,22 @@ def _find_index_root(extracted: Path) -> Path:
 
 
 def verify_index_files(index_dir: Path) -> None:
-    meta = IndexMeta.from_json((index_dir / "meta.json").read_text())
-    for name in CHECKSUMMED:
-        path = index_dir / name
-        if not path.exists():
-            raise ArtifactError(f"downloaded index is missing {name}")
-        if sha256_file(path) != meta.checksums.get(name):
-            raise ArtifactError(f"downloaded index has a bad checksum for {name}")
-    if not (index_dir / "bm25").is_dir():
-        raise ArtifactError("downloaded index is missing the bm25 directory")
+    try:
+        meta = IndexMeta.from_json((index_dir / "meta.json").read_text())
+        verify_checksums(index_dir, meta)
+    except (OSError, ValueError, TypeError, KeyError, IndexValidationError) as exc:
+        raise ArtifactError(f"index at {index_dir} is not valid: {exc}") from exc
+
+
+def index_is_valid(index_dir: Path) -> bool:
+    if not (index_dir / "meta.json").exists():
+        return False
+    try:
+        verify_index_files(index_dir)
+    except ArtifactError as exc:
+        log.warning("%s", exc)
+        return False
+    return True
 
 
 def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> None:
@@ -118,9 +145,15 @@ def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> Non
     parent.mkdir(parents=True, exist_ok=True)
     lock = parent / f".{index_dir.name}.lock"
     with _file_lock(lock):
-        if (index_dir / "meta.json").exists():
-            log.info("index appeared while waiting for the lock, nothing to do")
+        if index_is_valid(index_dir):
+            log.info("a valid index appeared while waiting for the lock, nothing to do")
             return
+        if index_dir.exists():
+            broken = parent / f".{index_dir.name}.broken"
+            shutil.rmtree(broken, ignore_errors=True)
+            os.replace(index_dir, broken)
+            log.warning("moved an incomplete index aside to %s", broken)
+            shutil.rmtree(broken, ignore_errors=True)
         pid = os.getpid()
         tmp_tar = parent / f".{index_dir.name}.{pid}.download"
         tmp_dir = parent / f".{index_dir.name}.{pid}.extract"
@@ -144,9 +177,9 @@ def install_index(url: str, sha256: str, index_dir: Path, max_bytes: int) -> Non
 def ensure_index(settings: Settings) -> None:
     """Install the index from INDEX_URL when it is missing locally. No-op otherwise."""
     index_dir = Path(settings.index_dir)
-    if (index_dir / "meta.json").exists():
-        return
     if not settings.index_url:
+        return  # nothing to fetch from; the loader reports a missing/broken index itself
+    if index_is_valid(index_dir):
         return
     if not settings.index_sha256:
         raise ArtifactError("INDEX_SHA256 must be set together with INDEX_URL")

@@ -25,6 +25,10 @@ ENV EMBEDDING_REVISION=${EMBEDDING_REVISION}
 RUN uv run python -c "from sentence_transformers import SentenceTransformer; \
 SentenceTransformer('BAAI/bge-small-en-v1.5', revision='${EMBEDDING_REVISION}', device='cpu')"
 
+# run as a normal user; only the data dir and the model cache need to be writable
+RUN useradd --create-home --uid 10001 app && mkdir -p /app/data && chown -R app:app /app
+USER app
+
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready').status==200 else 1)"

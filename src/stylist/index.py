@@ -19,7 +19,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import platform
+import shutil
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -55,6 +57,16 @@ SERVING_COLUMNS = [
     "group_key",
 ]
 CHECKSUMMED = ("embeddings.npy", "row_ids.npy", "catalog.parquet")
+BM25_DIR = "bm25"
+
+
+def index_files(index_dir: Path) -> list[str]:
+    """Every artifact that gets a checksum: the three big files plus all bm25 files."""
+    names = list(CHECKSUMMED)
+    bm25_dir = index_dir / BM25_DIR
+    if bm25_dir.is_dir():
+        names += sorted(f"{BM25_DIR}/{p.name}" for p in bm25_dir.iterdir() if p.is_file())
+    return names
 
 
 class IndexValidationError(RuntimeError):
@@ -119,8 +131,13 @@ def build_index(
 ) -> IndexMeta:
     """Select rows from the catalog, embed them, build BM25, write the index directory."""
     t0 = time.time()
-    index_dir = Path(index_dir)
-    index_dir.mkdir(parents=True, exist_ok=True)
+    final_dir = Path(index_dir)
+    final_dir.parent.mkdir(parents=True, exist_ok=True)
+    # build next to the target, swap in at the end: a crash never leaves a half index
+    index_dir = final_dir.parent / f".{final_dir.name}.building"
+    if index_dir.exists():
+        shutil.rmtree(index_dir)
+    index_dir.mkdir()
 
     df = load_catalog_subset(catalog_path, limit=limit, sampling=sampling, seed=seed)
     texts = df["doc_text"].fillna("").astype(str).tolist()
@@ -165,7 +182,7 @@ def build_index(
         seed=seed,
         source_catalog=str(catalog_path),
         row_ids_sha256=_sha256_bytes(row_ids.tobytes()),
-        checksums={name: sha256_file(index_dir / name) for name in CHECKSUMMED},
+        checksums={name: sha256_file(index_dir / name) for name in index_files(index_dir)},
         versions={
             "python": platform.python_version(),
             "numpy": np.__version__,
@@ -178,8 +195,31 @@ def build_index(
         truncated_docs_in_sample=truncated,
     )
     (index_dir / "meta.json").write_text(meta.to_json())
+    if final_dir.exists():
+        old_dir = final_dir.parent / f".{final_dir.name}.old"
+        if old_dir.exists():
+            shutil.rmtree(old_dir)
+        os.replace(final_dir, old_dir)
+        os.replace(index_dir, final_dir)
+        shutil.rmtree(old_dir, ignore_errors=True)
+    else:
+        os.replace(index_dir, final_dir)
     log.info("index built in %.1fs", meta.build_seconds)
     return meta
+
+
+def verify_checksums(index_dir: Path, meta: IndexMeta) -> None:
+    """Every file listed in meta must exist and match; extra/missing bm25 files fail too."""
+    expected = set(meta.checksums)
+    present = set(index_files(index_dir))
+    if expected != present:
+        raise IndexValidationError(
+            f"index files do not match meta.json (missing {sorted(expected - present)}, "
+            f"unexpected {sorted(present - expected)})"
+        )
+    for name in sorted(expected):
+        if sha256_file(index_dir / name) != meta.checksums[name]:
+            raise IndexValidationError(f"checksum mismatch for {name}")
 
 
 class SearchIndex:
@@ -216,13 +256,7 @@ class SearchIndex:
             raise IndexValidationError(
                 f"index embedding model {meta.embedding_model!r} != configured {expected_model!r}"
             )
-        for name in CHECKSUMMED:
-            path = index_dir / name
-            if not path.exists():
-                raise IndexValidationError(f"{name} missing from {index_dir}")
-            got = sha256_file(path)
-            if got != meta.checksums.get(name):
-                raise IndexValidationError(f"checksum mismatch for {name}")
+        verify_checksums(index_dir, meta)
 
         embeddings = np.load(index_dir / "embeddings.npy").astype(np.float32)
         row_ids = np.load(index_dir / "row_ids.npy")

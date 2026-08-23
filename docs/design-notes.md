@@ -120,7 +120,7 @@ one, the relaxed mode is opt-in.
 
 ## Deadlines and failure
 
-One request deadline (25 s). Planner gets at most 10 s, reranker at most 12 s, and neither
+One request deadline (40 s). Planner gets at most 15 s, reranker at most 20 s, and neither
 is started if less than its minimum remains. Every provider error is mapped to a typed
 error (auth, rate limit, timeout, refusal, truncation, validation, transport) and every one
 of them has a fallback path with a test. The service does not know or care which SDK is

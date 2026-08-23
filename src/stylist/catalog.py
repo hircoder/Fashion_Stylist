@@ -71,7 +71,7 @@ _RX_BOYS = re.compile(r"\b(boy|boys|boys')\b", re.I)
 _RX_BABY = re.compile(r"\b(baby|babies|toddler|toddlers|infant|infants|newborn)\b", re.I)
 _RX_UNISEX = re.compile(r"\bunisex\b", re.I)
 
-_RX_PRICE_NUM = re.compile(r"^\$?\s*(\d+(?:[.,]\d+)?)\s*$")
+_RX_PRICE_NUM = re.compile(r"^\$?\s*(\d[\d,]*(?:[.,]\d+)?)\s*$")
 _RX_PRICE_RANGE = re.compile(r"\d.*[-–].*\d")
 
 _RX_PAREN_TAIL = re.compile(r"\s*[\(\[][^\(\)\[\]]*[\)\]]\s*$")
@@ -164,7 +164,7 @@ def parse_price(value: object) -> tuple[float | None, str]:
     if isinstance(value, int | float):
         if isinstance(value, float) and math.isnan(value):
             return None, "none"
-        if value < 0:
+        if not math.isfinite(value) or value < 0:
             return None, "unparsed"
         return float(value), "float"
     if isinstance(value, str):
@@ -173,11 +173,18 @@ def parse_price(value: object) -> tuple[float | None, str]:
             return None, "none"
         m = _RX_PRICE_NUM.match(text)
         if m:
-            return float(m.group(1).replace(",", ".")), "string"
+            return _number_from_string(m.group(1)), "string"
         if _RX_PRICE_RANGE.search(text):
             return None, "range"
         return None, "unparsed"
     return None, "unparsed"
+
+
+def _number_from_string(num: str) -> float:
+    """'1,299' -> 1299, '1,299.50' -> 1299.5, '12,99' -> 12.99 (comma as decimal)."""
+    if "," in num and "." not in num and re.fullmatch(r"\d+,\d{1,2}", num):
+        return float(num.replace(",", "."))
+    return float(num.replace(",", ""))
 
 
 def _audience_from_department(department: str | None) -> str | None:
@@ -246,6 +253,14 @@ def group_key(title: str) -> str:
     return t
 
 
+def _finite(value: object) -> float:
+    try:
+        f = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.0
+    return f if math.isfinite(f) and f >= 0 else 0.0
+
+
 def _first_image_url(images: object) -> str | None:
     if not isinstance(images, list) or not images:
         return None
@@ -309,7 +324,7 @@ def normalize_record(raw: dict, row_id: int) -> dict:
         "row_id": int(row_id),
         "parent_asin": str(raw.get("parent_asin") or ""),
         "title": title,
-        "average_rating": float(raw.get("average_rating") or 0.0),
+        "average_rating": _finite(raw.get("average_rating")),
         "rating_number": int(raw.get("rating_number") or 0),
         "price": price,
         "price_status": status,

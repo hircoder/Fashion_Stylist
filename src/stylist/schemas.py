@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stylist.planner import Audience, QueryPlan
 
@@ -10,6 +10,8 @@ AMAZON_URL = "https://www.amazon.com/dp/{asin}"
 
 
 class RecommendRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     query: str = Field(
         ...,
         min_length=1,
@@ -18,8 +20,12 @@ class RecommendRequest(BaseModel):
         examples=["I need an outfit to go to the beach this summer"],
     )
     k: int = Field(4, ge=1, le=10, description="Items to return per slot.")
-    max_price: float | None = Field(None, ge=0, description="Per-item maximum price in USD.")
-    min_price: float | None = Field(None, ge=0, description="Per-item minimum price in USD.")
+    max_price: float | None = Field(
+        None, ge=0, allow_inf_nan=False, description="Per-item maximum price in USD."
+    )
+    min_price: float | None = Field(
+        None, ge=0, allow_inf_nan=False, description="Per-item minimum price in USD."
+    )
     audience: Audience | None = Field(
         None, description="Override the audience guessed from the query."
     )

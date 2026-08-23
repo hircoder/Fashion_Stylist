@@ -22,7 +22,8 @@ def test_build_writes_all_artifacts_and_meta(built_index, fixture_catalog_df):
     assert meta.embedding_model == "hash"
     saved = json.loads((index_dir / "meta.json").read_text())
     assert saved["n_rows"] == meta.n_rows
-    assert set(saved["checksums"]) == {"embeddings.npy", "row_ids.npy", "catalog.parquet"}
+    assert {"embeddings.npy", "row_ids.npy", "catalog.parquet"} <= set(saved["checksums"])
+    assert any(name.startswith("bm25/") for name in saved["checksums"])
 
 
 def test_build_with_popular_limit_keeps_row_order(tmp_path, fixture_catalog, hash_embedder):
@@ -89,3 +90,22 @@ def test_load_rejects_row_id_misalignment(tmp_path, fixture_catalog, hash_embedd
 def test_load_rejects_missing_directory(tmp_path):
     with pytest.raises(IndexValidationError):
         SearchIndex.load(tmp_path / "nope")
+
+
+def test_load_rejects_tampered_bm25(tmp_path, fixture_catalog, hash_embedder):
+    index_dir = tmp_path / "idx"
+    build_index(fixture_catalog, index_dir, hash_embedder, limit=30, sampling="popular")
+    vocab = index_dir / "bm25" / "vocab.index.json"
+    vocab.write_text(vocab.read_text() + "\n")  # any byte change must be caught
+    with pytest.raises(IndexValidationError, match="bm25"):
+        SearchIndex.load(index_dir)
+
+
+def test_build_replaces_an_existing_index_atomically(tmp_path, fixture_catalog, hash_embedder):
+    index_dir = tmp_path / "idx"
+    build_index(fixture_catalog, index_dir, hash_embedder, limit=30, sampling="popular")
+    (index_dir / "stale.txt").write_text("old file that must not survive a rebuild")
+    build_index(fixture_catalog, index_dir, hash_embedder, limit=20, sampling="popular")
+    assert SearchIndex.load(index_dir).n_rows == 20
+    assert not (index_dir / "stale.txt").exists()
+    assert [p.name for p in tmp_path.iterdir()] == ["idx"]  # no temp dirs left behind

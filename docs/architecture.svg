@@ -76,7 +76,7 @@
 
   <!-- ===================== ONLINE LANE ===================== -->
   <rect x="40" y="390" width="1320" height="560" class="lane"/>
-  <text x="60" y="418" class="lanetitle">2. Online: one request (POST /recommend), one deadline (25 s)</text>
+  <text x="60" y="418" class="lanetitle">2. Online: one request (POST /recommend), one deadline (40 s)</text>
 
   <!-- client -->
   <rect x="60" y="450" width="180" height="90" class="box"/>
