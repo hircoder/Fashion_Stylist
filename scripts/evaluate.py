@@ -160,9 +160,15 @@ async def main_async(args):
     if args.limit:
         queries = queries[: args.limit]
     names = [c.strip() for c in args.configs.split(",") if c.strip()]
-    out = {"index": {"dir": str(base.index_dir), "rows": index.n_rows, "sampling": index.meta.sampling},
-           "llm": {"provider": llm.provider if llm else None, "model": llm.model if llm else None},
-           "results": []}
+    out = {
+        "index": {
+            "dir": str(base.index_dir),
+            "rows": index.n_rows,
+            "sampling": index.meta.sampling,
+        },
+        "llm": {"provider": llm.provider if llm else None, "model": llm.model if llm else None},
+        "results": [],
+    }
     for name in names:
         if name.startswith("llm") and llm is None:
             print(f"skip {name}: no llm configured", file=sys.stderr)
