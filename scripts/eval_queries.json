@@ -1,5 +1,5 @@
 {
- "_note": "20 human style queries plus 8 brand queries. Each slot has keyword rules written by hand before looking at any planner output: `any` = at least one must appear in the title (whole words, plural tolerant), `all` = every entry must appear (brand rules: `all` = the brand, `any` = the product type, so a branded sock never passes a jeans slot), `none` = must not appear. They check product TYPE and brand only, they are a regression diagnostic, not relevance ground truth. `max_price` is sent as the explicit API field; `budget_in_text` records a budget that is only in the sentence. Coverage on the popular 100K index is thin for some brands (one Levi's jeans row, three Columbia jackets): those queries measure how the brand fallback behaves, not the brand itself.",
+ "_note": "20 human style queries plus 8 brand queries. Each slot has keyword rules written by hand before looking at any planner output: `any` = at least one must appear in the title (whole words, plural tolerant), `all` = at least one of these must appear, on top of `any` (brand rules: `all` = the brand's spellings, `any` = the product type, so a branded sock never passes a jeans slot), `none` = must not appear. They check product TYPE and brand only, they are a regression diagnostic, not relevance ground truth. `max_price` is sent as the explicit API field; `budget_in_text` records a budget that is only in the sentence. Coverage on the popular 100K index is thin for some brands (one Levi's jeans row, three Columbia jackets): those queries measure how the brand fallback behaves, not the brand itself.",
  "queries": [
   {
    "id": "beach_outfit",
@@ -123,8 +123,7 @@
       "shoe",
       "sneaker",
       "running",
-      "trainer",
-      "insole"
+      "trainer"
      ],
      "none": [
       "flip flop",

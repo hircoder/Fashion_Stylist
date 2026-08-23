@@ -33,15 +33,16 @@ for, how much, when) are lost completely.
 * Personalisation or session history.
 * Image understanding (CLIP), even though every listing has an image.
 * Training or fine tuning any model.
-* Authentication, rate limiting, multi tenant deployment.
+* Authentication and multi tenant deployment. (A per client rate limit, an in-flight cap
+  and a body cap did get built along the way, ADR-016; auth stayed out.)
 
 ## Functional requirements and how they are met
 
 | requirement | how | evidence |
 |---|---|---|
 | parse a sentence into product types + constraints | LLM planner with structured output (1 to 5 slots, audience, occasion, season, budget and scope, keywords, exclude words), regex planner as fallback | `planner.py`, 34 planner tests, sample plans in the README |
-| find relevant products per type | hybrid retrieval: bge-small embeddings + bm25, fused with RRF | eval: 0.88 type-match with the LLM planner vs 0.46 bm25 only |
-| respect audience and price constraints | boolean masks on the full score vectors before top-N | 0 price violations, 0 empty slots in 798 slot results |
+| find relevant products per type | hybrid retrieval: bge-small embeddings + bm25, fused with RRF, type gate and brand pass for LLM plans | eval: 0.89 to 0.94 type-match with the LLM planner vs 0.50 to 0.65 bm25 only |
+| respect audience and price constraints | boolean masks on the full score vectors before top-N | 0 price violations, 0 empty slots across every configuration and index in `docs/evaluation.md` |
 | explain picks | LLM reranker returns reason + evidence fields per item, validated against the candidate set | `reranker.py`, samples in the README |
 | honest prices | `price_known` on every item, strict explicit bounds, flagged unpriced items for inferred budgets | ADR-008 |
 | no duplicates across slots | a product fills at most one slot (round robin by rank), total budgets split across slots with a 10% floor; style coherence between slots is not scored (see production notes) | `service.py` selection, tests |
@@ -59,13 +60,13 @@ for, how much, when) are lost completely.
 * Reliability: every provider failure has a typed fallback; the response states what ran.
 * Operability: `/health`, `/ready`, per stage timings, index checksums verified at startup,
   a self contained index that can be shipped as a tarball, a cpu-only container.
-* Privacy: queries are logged only at DEBUG level; no catalog or query data leaves the
-  machine except the LLM calls (planner text and candidate titles).
+* Privacy: queries are not logged unless LOG_QUERIES=1 (then at INFO); no catalog or
+  query data leaves the machine except the LLM calls (planner text and candidate titles).
 
 ## Success metrics
 
-* Product type correctness on a fixed query set (`keyword_match@k`): target above 0.85
-  with the LLM planner. Achieved 0.88 to 0.92 across three indexes.
+* Product type correctness on a fixed query set (`match@k`): target above 0.85 with the
+  LLM planner. Achieved 0.885 to 0.935 across three indexes (28 queries, paired plans).
 * Zero empty slots and zero price violations on the eval set. Achieved.
 * A reviewer can run the demo in under five minutes without a dataset download or a key.
   `make setup && make demo` does it in about two.

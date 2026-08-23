@@ -173,11 +173,6 @@ def cmd_recommend(args, settings: Settings) -> int:
     from stylist.api import build_service
     from stylist.schemas import RecommendRequest
 
-    try:
-        svc = build_service(settings)
-    except IndexValidationError as exc:
-        print(f"cannot load index: {exc}", file=sys.stderr)
-        return 2
     req = RecommendRequest(
         query=args.query,
         k=args.k,
@@ -188,6 +183,11 @@ def cmd_recommend(args, settings: Settings) -> int:
         use_llm=not args.no_llm,
         rerank=not args.no_rerank,
     )
+    try:
+        svc = build_service(settings)
+    except IndexValidationError as exc:
+        print(f"cannot load index: {exc}", file=sys.stderr)
+        return 2
     try:
         res = asyncio.run(svc.recommend(req))
     finally:

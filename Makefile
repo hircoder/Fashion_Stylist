@@ -26,7 +26,7 @@ ingest: ## raw jsonl.gz -> data/processed/catalog.parquet (826K rows, ~30 s)
 index: ## embed + index the top $(LIMIT) items by rating count (~3-6 min)
 	$(PY) stylist build-index --limit $(LIMIT) --sampling popular --index-dir $(INDEX_DIR)
 
-index-full: ## embed + index the whole catalog (~20-45 min, ~1.2 GB RAM to serve)
+index-full: ## embed + index the whole catalog (~20-45 min, ~3.3 GB RSS to serve)
 	$(PY) stylist build-index --sampling all --index-dir data/index_full
 
 serve: ## start the api + ui on :8000
@@ -44,10 +44,13 @@ lint: ## ruff
 ui: ## rebuild the react bundle (needs node)
 	cd ui && npm install && npm run build
 
-eval: ## run the offline evaluation against $(INDEX_DIR)
-	INDEX_DIR=$(INDEX_DIR) $(PY) python scripts/evaluate.py
+eval: ## run the offline evaluation against $(INDEX_DIR) (the configs behind docs/evaluation.md)
+	INDEX_DIR=$(INDEX_DIR) $(PY) python scripts/evaluate.py \
+		--configs bm25,dense,hybrid,hybrid_nokw,hybrid_noquality,llm_plan,llm_plan_dense,llm_plan_bm25,llm_plan_rerank \
+		--plan-cache docs/eval_plans.json
 
-diagram: ## docs/architecture.svg -> pdf + jpg (needs rsvg-convert, pillow)
+diagram: ## regenerate docs/architecture.svg from the script, then pdf + jpg (needs rsvg-convert, pillow)
+	$(PY) python scripts/architecture_svg.py
 	rsvg-convert -f pdf -o docs/architecture.pdf docs/architecture.svg
 	rsvg-convert -f png -z 2 -o docs/architecture.png docs/architecture.svg
 	$(PY) python -c "from PIL import Image; Image.open('docs/architecture.png').convert('RGB').save('docs/architecture.jpg', quality=92)"

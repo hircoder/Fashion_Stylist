@@ -68,7 +68,7 @@ def test_reasons_are_link_stripped_word_capped_and_evidence_checked():
     ranked, _ = apply_slot_rerank(out, _sc(cands), k=1)
     reason = ranked.reasons[1]
     assert "http" not in reason.reason and "evil" not in reason.reason
-    assert len(reason.reason.split()) <= 20
+    assert len(reason.reason.split()) <= 15
     assert reason.evidence == ["title"]  # no rating, no price on this candidate
 
 

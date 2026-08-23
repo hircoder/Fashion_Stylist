@@ -1,6 +1,6 @@
 """Offline evaluation of the recommendation pipeline.
 
-Runs the 20 queries in scripts/eval_queries.json through several configurations and
+Runs the 28 queries in scripts/eval_queries.json through several configurations and
 reports:
 
   keyword_match@k   share of returned items whose title passes the hand written type
@@ -193,7 +193,13 @@ async def run_config(
         llm if r_over.get("use_llm") else None,
         plan_cache=plan_cache if r_over.get("use_llm") else None,
     )
+    try:
+        return await _run_config_inner(name, queries, svc, r_over)
+    finally:
+        svc.close()  # each configuration gets its own thread pool, give it back
 
+
+async def _run_config_inner(name: str, queries: list[dict], svc, r_over: dict):
     rows = []
     failures = []
     for q in queries:
@@ -376,9 +382,9 @@ async def main_async(args):
     # retrieval-only config against hybrid
     by_name = {r["config"]: r["per_query_match"] for r in out["results"]}
     for name, per in by_name.items():
-        base = "llm_plan" if name.startswith("llm") else "hybrid"
-        if base in by_name and base != name:
-            out["paired_deltas"][f"{name} - {base}"] = paired_delta(per, by_name[base])
+        baseline = "llm_plan" if name.startswith("llm") else "hybrid"
+        if baseline in by_name and baseline != name:
+            out["paired_deltas"][f"{name} - {baseline}"] = paired_delta(per, by_name[baseline])
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2))
     print(f"wrote {args.out}", file=sys.stderr)

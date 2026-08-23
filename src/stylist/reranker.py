@@ -81,7 +81,7 @@ def sanitize(text: object, max_len: int) -> str:
 
 
 _LINKISH = re.compile(r"(https?://\S+|www\.\S+|\S+@\S+\.\S+)", re.I)
-MAX_REASON_WORDS = 20  # the prompt asks for 15; a little slack, never a paragraph
+MAX_REASON_WORDS = 15  # same limit the prompt states; anything longer gets cut
 
 
 def clean_reason(text: object) -> str:
@@ -304,6 +304,9 @@ class LLMReranker:
         done, pending = await asyncio.wait(tasks, timeout=timeout)
         for task in pending:
             task.cancel()
+            # reap them later without ever awaiting here: swallow the CancelledError so
+            # the loop does not log 'exception was never retrieved' during shutdown
+            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
             name = slots[tasks[task]].slot.name
             warnings.append(f"rerank of '{name}' ran out of time, retrieval order kept")
         used = False

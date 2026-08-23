@@ -196,9 +196,9 @@ y = 0
 svg.append(
     f'<text x="{M}" y="44" class="title">Fashion stylist: how the service is built and how a request moves through it</text>'
 )
-svg.append(
-    f'<text x="{M}" y="66" class="sub">POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM, retrieves per slot with dense + BM25 search over 100,000 indexed listings, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls, grey boxes are files.</text>'
-)
+_SUBTITLE = 'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM (brand and all), retrieves per slot with dense + BM25 search over 100,000 indexed listings behind a type gate, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, the dotted box is the only external service.'
+for _i, _line in enumerate(wrap(_SUBTITLE, 12.5, WIDTH - 2 * M)):
+    svg.append(f'<text x="{M}" y="{62 + _i * 16}" class="sub">{escape(_line)}</text>')
 
 # ---- offline lane
 lane1_y = 92
@@ -268,7 +268,7 @@ off.append(
         lane1_y + 46,
         BW,
         kind="store",
-        small="Railway: INDEX_URL + INDEX_SHA256, verifed and unpacked at boot",
+        small="Railway: INDEX_URL + INDEX_SHA256, verified and unpacked at boot",
     )
 )
 h1 = max(b.h for b in off)
@@ -321,7 +321,7 @@ on["api"] = Box(
 on["plan"] = Box(
     "plan",
     "1. Planner (planner.py)",
-    "LLM structured output -> PlannerOutput: intent, audience, occasion, season, budget + scope (per item / total), style words, 1 to 5 slots: name, listing-style search query, 2 to 6 type keywords, up to 4 exclude words, budget share\nnormalize_plan: caps, dedupe, 10% floor per slot, never above the total",
+    "LLM structured output -> PlannerOutput: intent, audience, occasion, season, budget + scope (per item / total), style words, a named brand, 1 to 5 slots: name, listing-style search query, 2 to 6 type keywords, up to 4 exclude words, budget share\nnormalize_plan: caps, dedupe, 10% floor per slot, never above the total",
     colx(2),
     r1,
     BW,
@@ -338,7 +338,7 @@ on["merge"] = Box(
 on["retr"] = Box(
     "retr",
     "3. Retriever (retrieval.py)",
-    "all slot queries embedded in one batch, ONE matmul Q (5 x 384) against E (384 x 100K)\nBM25 score for every row\naudience + price masks applied before top-100\nreciprocal rank fusion (k = 60), + keyword boost, - exclude penalty, + Bayesian rating prior, + audience match\none row per variant group (group_key from the title)",
+    "all slot queries embedded in one batch, ONE matmul Q (5 x 384) against E (384 x 100K)\nBM25 score for every row\naudience + price masks applied before top-100\nreciprocal rank fusion (k = 60), + keyword boost, - exclude penalty, + Bayesian rating prior, + audience match\ntype gate for LLM plans (only title type matches once k exist); a named brand ranked first, other brands follow with a warning\none row per variant group (group_key from the title)",
     colx(4),
     r1,
     BW,
@@ -386,7 +386,7 @@ on["sel"] = Box(
 on["rerank"] = Box(
     "rerank",
     "4. Reranker (reranker.py)",
-    "one LLM call per slot, all slots in parallel (asyncio.wait, rerank budget)\nprompt: request, plan summary, slot, top 10 candidates as compact json labelled untrusted\noutput: picks[] (row_id, reason <= 15 words, evidence), no_good_match, note\nids validated (offered, unique, <= k); a failed or late slot keeps retrieval order; urls stripped from prose",
+    "one LLM call per slot, all slots in parallel (asyncio.wait, rerank budget)\nprompt: request, plan summary, slot, top 10 candidates as compact json labelled untrusted\noutput: picks[] (row_id, reason capped at 15 words, evidence), no_good_match, note\nids validated (offered, unique, <= k); a failed or late slot keeps retrieval order; urls stripped from prose",
     colx(4),
     r2,
     BW,
@@ -512,16 +512,6 @@ head = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIG
   </defs>
   <rect x="0" y="0" width="{WIDTH}" height="{HEIGHT}" fill="#fff"/>
 '''
-# subtitle is long: wrap it into two lines
-sub_lines = wrap(
-    'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM, retrieves per slot with dense + BM25 search over 100,000 indexed listings, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, the dotted box is the only external service.',
-    12.5,
-    WIDTH - 2 * M,
-)
-svg[1] = "\n".join(
-    f'<text x="{M}" y="{62 + i * 16}" class="sub">{escape(line)}</text>'
-    for i, line in enumerate(sub_lines)
-)
 body = "\n".join(svg)
 open(OUT, "w").write(head + body + "\n</svg>\n")
 print("svg", WIDTH, HEIGHT)

@@ -165,6 +165,7 @@ class FakeLLM:
         try:
             return schema.model_validate(item)
         except ValidationError as exc:
+            record_failure()
             raise LLMValidationError(str(exc)) from exc
 
 

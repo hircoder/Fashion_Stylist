@@ -1,4 +1,4 @@
-# Fashion stylist, a semantic recomendation microservice
+# Fashion stylist, a semantic recommendation microservice
 
 Ask it for clothes the way you would ask a friend. "I need an outfit to go to the beach
 this summer" comes back as a swimsuit, a cover-up, sandals, a sun hat and sunglasses, each
@@ -396,7 +396,7 @@ comes first, then occasion, then price, then ratings. Output tokens dominate lat
 the five slots of an outfit run as five parallel calls and a failing slot doesn't take the
 others down. Catalog text is labelled as untrusted data in the prompt, the request itself
 is passed as json data, every id the model returns is checked against the candidates and
-the product type, reasons are link-striped and capped at 20 words, and the evidence
+the product type, reasons are link-striped and capped at 15 words, and the evidence
 fields are checked against what the candidate actually carried. Why not a cross-encoder
 in the hot path: it can't reason about "for my 6 year old" or "200 total", and it doesn't
 write the reasons; as the sub-second path in `docs/production.md` it is the right tool.
@@ -464,12 +464,12 @@ setting (`scripts/benchmark.py`, raw numbers in `docs/bench_cpu.json`):
 | 4 | 65 ms | 82 ms | 62 |
 | 8 | 126 ms | 145 ms | 62 |
 
-It flattens around 60 req/s per process (embedding call and matmul hold the GIL, more
-capacity = more replicas). RSS after load is 1.0 GB for the 100K index, 3.3 GB for the
+It flattens around 60 req/s per process (numpy and torch already spread across the
+cores, so past that point more replicas beat more threads). RSS after load is 1.0 GB for the 100K index, 3.3 GB for the
 full one, and the index loads in 0.1 s including a sha256 of every file.
 
-Full pipeline with `claude-sonnet-4-6`, the 20 eval queries cold
-(`docs/live_run_sonnet.json`): plan p50 5.2 s, retrieve 0.13 s, rerank 5.9 s, total
+Full pipeline with `claude-sonnet-4-6`, a 20 query live run made before the 8 brand
+queries were added (`docs/live_run_sonnet.json`, kept as the cold-latency sample): plan p50 5.2 s, retrieve 0.13 s, rerank 5.9 s, total
 11.5 s (p95 13.5 s), 3.9 LLM calls per request on average. A burst of 8 concurrent
 requests finished in 18.5 s with zero errors. Cost per request, from the token counts
 the response itself reports: mean $0.036 at Sonnet-class prices ($3/$15 per million),
@@ -540,7 +540,7 @@ off-domain request filter, thats all listed there with tools and pass conditions
 ## Tests
 
 ```bash
-make test       # 380+ tests, no model download, no keys, ~20 s
+make test       # the whole fast suite, no model download, no keys, ~20 s
 make test-all   # adds the real embedding model and, if keys are set, a live LLM round trip
 make lint
 ```
