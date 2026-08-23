@@ -82,7 +82,7 @@ def test_brand_with_too_few_rows_boosts_instead_and_warns(fixture_index, hash_em
             c.idx for c in res.candidates[:2]
         ) == set(rows)
         assert len(res.candidates) > 2
-        assert any("zebrabrand" in w and "2" in w for w in res.warnings)
+        assert any("zebrabrand" in w and "only 2" in w for w in res.warnings)
     finally:
         cat.loc[rows, "store"] = saved
         getattr(fixture_index, "_column_cache", {}).clear()
@@ -195,7 +195,8 @@ def test_brand_filter_relaxes_when_the_brand_has_no_item_of_that_type(fixture_in
         )
         [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=6, k=4)
         assert any("boot" in c.title.lower() for c in res.candidates)
-        assert any("zebrabrand" in w and "other brands" in w for w in res.warnings)
+        assert any("zebrabrand" in w and "other brands follow" in w for w in res.warnings)
+        assert res.candidates[0].store != "Zebrabrand" or "boot" in res.candidates[0].title.lower()
     finally:
         cat.loc[rows, "store"] = saved
         getattr(fixture_index, "_column_cache", {}).clear()

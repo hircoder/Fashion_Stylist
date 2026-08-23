@@ -40,8 +40,6 @@ RATING_PRIOR_M = 20  # pseudo-count for the Bayesian rating (p75 of rating_numbe
 # deliberately stronger pull toward the mean for thinly rated items)
 AUDIENCE_MATCH_BONUS = 0.15  # x unit: a row whose audience equals the requested one edges
 # out unisex / unknown rows on otherwise equal relevance (they stay eligible)
-BRAND_BOOST = 2.0  # x unit: when a named brand has too few rows to filter on, its rows still
-# come first; 2 rank-1 contributions beats any fusion score
 
 
 @dataclass
@@ -320,15 +318,12 @@ class Retriever:
         slot: Slot,
         top_n: int,
         audience: str | None = None,
-        bonus: np.ndarray | None = None,
     ) -> list[Candidate]:
         fused = rrf_fuse(dense, bm25, mask, top_n=top_n, k=self.s.rrf_k)
         for c in fused:
             self._hydrate(c)
             if audience and c.audience == audience:
                 c.score += AUDIENCE_MATCH_BONUS * self._unit
-            if bonus is not None and bonus[c.idx]:
-                c.score += BRAND_BOOST * self._unit
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
             if c.matched_keywords:
                 c.score += self.s.keyword_boost * self._unit
@@ -351,7 +346,6 @@ class Retriever:
         needed: int,
         seen: set[str],
         audience: str | None = None,
-        bonus: np.ndarray | None = None,
         type_gate: bool = False,
     ) -> list[Candidate]:
         """Rank and collapse variants; widen the per-channel window (x4 each time) while
@@ -364,7 +358,7 @@ class Retriever:
         n_masked = int(mask.sum())
         top_n = self.s.top_n_per_channel
         while True:
-            fused = self._rank(dense, bm25, mask, slot, top_n, audience, bonus)
+            fused = self._rank(dense, bm25, mask, slot, top_n, audience)
             distinct = diversify_by_group(fused, set(seen))
             typed = [c for c in distinct if c.matched_keywords] if type_gate else distinct
             if len(typed) >= needed:
@@ -400,49 +394,41 @@ class Retriever:
             # LLM plans carry curated type synonyms, so a title without any of them is
             # almost never the product asked for; heuristic keywords are just query words
             gate = plan.source == "llm" and bool(slot.keywords)
-            bonus = None
-            brand_filtered = False
-            if brand_mask is not None:
-                n_brand = int((eligible & brand_mask).sum())
-                if n_brand >= k:  # enough of the brand: the brand becomes a hard filter
-                    eligible &= brand_mask
-                    pool &= brand_mask
-                    brand_filtered = True
-                else:  # too few: they come first, the rest fills up, and the client is told
-                    bonus = brand_mask
-                    warnings.append(
-                        f"slot '{slot.name}': only {n_brand} items of brand '{plan.brand}' match "
-                        f"the constraints, other brands follow"
-                    )
             dense = dense_all[i] if dense_all is not None else None
             bm25 = self.index.bm25_scores(slot.search_query) if use_bm25 else None
             seen: set[str] = set()
             aud = window.audience
-            ranked = self._rank_distinct(
-                dense, bm25, eligible, slot, n_candidates, seen, aud, bonus, gate
-            )
-            if brand_filtered and gate and sum(1 for c in ranked if c.matched_keywords) < k:
-                # the brand is in the catalog but not this product type: widen to every
-                # brand, keep the named one first, and say so
-                warnings.append(
-                    f"slot '{slot.name}': no '{plan.brand}' item of this type in the catalog, "
-                    f"showing other brands"
-                )
-                eligible, pool = eligibility_masks(self.index, window)
-                bonus = brand_mask
-                seen = set()
+            if brand_mask is None:
                 ranked = self._rank_distinct(
-                    dense, bm25, eligible, slot, n_candidates, seen, aud, bonus, gate
+                    dense, bm25, eligible, slot, n_candidates, seen, aud, gate
                 )
+            else:
+                # the named brand is ranked on its own first (a bonus applied after the
+                # top-N cut would never reach rows outside it), type matches only when the
+                # plan has type keywords; other brands fill up whatever is left, flagged
+                own = self._rank_distinct(
+                    dense, bm25, eligible & brand_mask, slot, n_candidates, seen, aud, gate
+                )
+                if gate:
+                    own = [c for c in own if c.matched_keywords]
+                if len(own) >= k:
+                    ranked = own
+                else:
+                    warnings.append(
+                        f"slot '{slot.name}': only {len(own)} '{plan.brand}' items of this type "
+                        f"match the constraints, other brands follow"
+                    )
+                    rest = self._rank_distinct(
+                        dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate
+                    )
+                    ranked = own + rest
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():
                 # unpriced pool, same depth, flagged. Merged into ONE score order: a known
                 # in-budget price earns a small bonus, it does not trump relevance (a priced
                 # wooden ring must not outrank an unpriced blazer in a blazer slot)
-                extra = self._rank_distinct(
-                    dense, bm25, pool, slot, n_candidates, seen, aud, bonus, gate
-                )
+                extra = self._rank_distinct(dense, bm25, pool, slot, n_candidates, seen, aud, gate)
                 for c in ranked:
                     c.score += IN_WINDOW_BONUS * self._unit
                 for c in extra[:n_candidates]:
