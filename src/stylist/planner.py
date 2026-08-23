@@ -27,6 +27,7 @@ from stylist.llm.prompts import PLANNER_SYSTEM, planner_user
 
 HEURISTIC_VERSION = "1"
 MAX_SLOTS = 5
+MIN_ALLOCATION_SHARE = 0.10  # no slot of a total budget gets less than this share
 MAX_KEYWORDS = 6
 MAX_QUERY_CHARS = 500  # same limit as the API request
 
@@ -292,6 +293,30 @@ def _unique_names(slots: list[Slot]) -> None:
         s.name = base if n == 1 else f"{base} {n}"
 
 
+def _fit_allocation(allocs: list[float], total: float) -> tuple[list[float], list[str]]:
+    """Per-slot budget split that (a) gives no slot less than MIN_ALLOCATION_SHARE of the
+    total and (b) adds up to at most the total. Excess is taken from the slots with room."""
+    notes: list[str] = []
+    floor = total * MIN_ALLOCATION_SHARE
+    fixed = list(allocs)
+    if any(a < floor for a in fixed):
+        notes.append(
+            f"planner gave a slot less than {MIN_ALLOCATION_SHARE:.0%} of the total budget, "
+            f"raised it to the floor"
+        )
+        fixed = [max(a, floor) for a in fixed]
+    excess = sum(fixed) - total
+    if excess > 1e-6:
+        notes.append(
+            f"planner allocation {sum(allocs):.2f} exceeded total budget {total:.2f}, scaled down"
+        )
+        room = [a - floor for a in fixed]
+        total_room = sum(room)
+        if total_room > 0:
+            fixed = [a - excess * (r / total_room) for a, r in zip(fixed, room, strict=True)]
+    return [round(a, 2) for a in fixed], notes
+
+
 def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
     """Enforce every invariant on an LLM plan and return a QueryPlan (source=llm)."""
     warnings: list[str] = []
@@ -345,15 +370,10 @@ def normalize_plan(out: PlannerOutput, query: str) -> QueryPlan:
                 for s in slots:
                     s.budget_max = round(budget_max / len(slots), 2)
             else:
-                total = sum(a for a in allocs if a is not None)
-                if total > budget_max + 1e-6:
-                    factor = budget_max / total
-                    warnings.append(
-                        f"planner allocation {total:.2f} exceeded total budget "
-                        f"{budget_max:.2f}, scaled down"
-                    )
-                    for s in slots:
-                        s.budget_max = round((s.budget_max or 0.0) * factor, 2)
+                fixed, notes = _fit_allocation([a or 0.0 for a in allocs], budget_max)
+                warnings.extend(notes)
+                for s, a in zip(slots, fixed, strict=True):
+                    s.budget_max = a
     else:
         for s in slots:
             s.budget_max = None

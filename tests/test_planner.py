@@ -242,3 +242,20 @@ def test_merge_unpriced_policy_is_strict_for_explicit_bounds_and_relaxed_for_inf
     assert all(w.include_unpriced for w in windows)
     windows, _ = merge_constraints(inferred, include_unpriced=False)
     assert not any(w.include_unpriced for w in windows)
+
+
+def test_normalize_total_budget_floors_tiny_allocations():
+    out = _out(
+        budget_max=200.0,
+        budget_scope="total",
+        slots=[
+            {"name": "pants", "search_query": "a", "keywords": [], "budget_max": 120.0},
+            {"name": "shirt", "search_query": "b", "keywords": [], "budget_max": 70.0},
+            {"name": "blazer", "search_query": "c", "keywords": [], "budget_max": 10.0},
+        ],
+    )
+    plan = normalize_plan(out, "q")
+    allocs = [s.budget_max for s in plan.slots]
+    assert min(allocs) >= 20.0  # 10% of the total
+    assert sum(allocs) <= 200.0 + 1e-6
+    assert any("floor" in w for w in plan.warnings)
