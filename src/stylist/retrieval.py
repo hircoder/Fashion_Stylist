@@ -423,7 +423,8 @@ class Retriever:
                     rest = self._rank_distinct(
                         dense, bm25, eligible & ~brand_mask, slot, n_candidates, seen, aud, gate
                     )
-                    ranked = own + rest
+                    untyped_own = [c for c in own if c not in typed_own][:k]  # leave room
+                    ranked = typed_own + untyped_own + rest
             ranked = ranked[:n_candidates]
             n_eligible = len(ranked)
             if pool.any():

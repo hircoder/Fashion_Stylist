@@ -220,3 +220,28 @@ def test_brand_mask_tolerates_apostrophe_spellings(fixture_index, hash_embedder)
     finally:
         cat.loc[rows, "title"] = saved
         r._brand_masks.clear()
+
+
+def test_untyped_brand_rows_cannot_crowd_out_typed_rows_of_other_brands(
+    fixture_index, hash_embedder
+):
+    cat = fixture_index.catalog
+    r = _retriever(fixture_index, hash_embedder)
+    rows = [i for i in cat.index if "boot" not in str(cat.loc[i, "title"]).lower()][:30]
+    saved = cat.loc[rows, "store"].copy()
+    try:
+        cat.loc[rows, "store"] = "Zebrabrand"
+        getattr(fixture_index, "_column_cache", {}).clear()
+        plan = QueryPlan(
+            intent="t",
+            brand="zebrabrand",
+            slots=[Slot(name="boots", search_query="boots", keywords=["boot", "boots"])],
+            source="llm",
+        )
+        [res] = r.retrieve(plan, [SlotWindow(None, None, None, False)], n_candidates=10, k=4)
+        assert sum(1 for c in res.candidates if c.store == "Zebrabrand") <= 4
+        assert sum(1 for c in res.candidates if c.matched_keywords) >= 4
+    finally:
+        cat.loc[rows, "store"] = saved
+        getattr(fixture_index, "_column_cache", {}).clear()
+        r._brand_masks.clear()

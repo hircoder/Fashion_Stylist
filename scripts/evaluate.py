@@ -265,6 +265,13 @@ async def main_async(args):
         "results": [],
     }
     plan_cache: OrderedDict = OrderedDict()  # shared by every llm config: paired plans
+    cache_path = Path(args.plan_cache) if args.plan_cache else None
+    if cache_path and cache_path.exists():
+        from stylist.planner import QueryPlan
+
+        for key, plan in json.loads(cache_path.read_text()):
+            plan_cache[tuple(key)] = QueryPlan.model_validate(plan)
+        print(f"loaded {len(plan_cache)} cached plans from {cache_path}", file=sys.stderr)
     for name in names:
         if name.startswith("llm") and llm is None:
             print(f"skip {name}: no llm configured", file=sys.stderr)
@@ -284,6 +291,11 @@ async def main_async(args):
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2))
     print(f"wrote {args.out}", file=sys.stderr)
+    if cache_path:
+        cache_path.write_text(
+            json.dumps([[list(k), p.model_dump(mode="json")] for k, p in plan_cache.items()])
+        )
+        print(f"saved {len(plan_cache)} plans to {cache_path}", file=sys.stderr)
 
 
 def main():
@@ -295,6 +307,11 @@ def main():
     )
     p.add_argument("--out", default="docs/eval_results.json")
     p.add_argument("--limit", type=int, default=None)
+    p.add_argument(
+        "--plan-cache",
+        default=None,
+        help="json file to load/save LLM plans, so runs on different indexes use the same plans",
+    )
     asyncio.run(main_async(p.parse_args()))
 
 
