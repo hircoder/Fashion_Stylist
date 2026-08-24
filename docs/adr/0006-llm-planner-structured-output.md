@@ -1,7 +1,5 @@
 # ADR-0006: LLM query planner with structured output and a regex fallback
 
-Status: accepted
-
 ## Context
 A sentence like "outfit for the beach" must become product types plus constraints before
 retrieval can do anything useful. The catalog has no taxonomy to map to.

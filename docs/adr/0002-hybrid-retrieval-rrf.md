@@ -1,7 +1,5 @@
 # ADR-0002: Hybrid retrieval: dense + bm25 fused with reciprocal rank fusion
 
-Status: accepted
-
 ## Context
 Dense retrieval handles conversational phrasing; bm25 handles brand names and exact
 phrases. The eval queries are conversational, real shop traffic has both.

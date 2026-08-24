@@ -1,7 +1,5 @@
 # ADR-0003: Apply constraints as masks before top-N
 
-Status: accepted
-
 ## Context
 Requests carry constraints (audience, price window). The usual shortcut is to retrieve
 top-N and filter afterwards.

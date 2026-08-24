@@ -1,7 +1,5 @@
 # ADR-0012: Self-contained index directory with checksums; demo index baked into the container image
 
-Status: accepted
-
 ## Context
 Serving needs embeddings, bm25, the covered rows and metadata to agree exactly. Deploying
 to a container host needs the index available at boot.

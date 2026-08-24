@@ -1,7 +1,5 @@
 # ADR-0005: Default index = the 100K most rated listings
 
-Status: accepted
-
 ## Context
 Embedding all 826K rows takes 19 minutes on a laptop gpu, 40+ on cpu, and 3.3 GB to
 serve. Metadata coverage rises with popularity: price known for 26% of listings with 100+

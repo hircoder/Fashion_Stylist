@@ -1,7 +1,5 @@
 # ADR-0011: One request deadline, stage budgets, typed failures with fallbacks
 
-Status: accepted
-
 ## Context
 Two LLM stages plus retrieval can hang a request on a slow provider. The service must
 degrade, not fail, and say what happened.

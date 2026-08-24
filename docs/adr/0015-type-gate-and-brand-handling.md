@@ -1,7 +1,5 @@
 # ADR-0015: A type gate on LLM plans, and a named brand as a first pass
 
-Status: accepted
-
 ## Context
 Two failure modes showed up in the evaluation once the rules matched whole words (they
 didnt before, substring matching hid both). A query

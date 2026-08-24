@@ -1,7 +1,5 @@
 # ADR-0016: Request limits in the app, and an index that fails closed
 
-Status: accepted
-
 ## Context
 The service is meant to sit behind a proxy on a container host with one worker per
 replica. Each request can cost several LLM calls, the index is fetched from a url at

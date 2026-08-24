@@ -1,7 +1,5 @@
 # ADR-0014: Evaluation with hand written type rules and ablations, not human labels
 
-Status: accepted
-
 ## Context
 There are no relevance labels for this catalog and no time to create good ones.
 

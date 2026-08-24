@@ -1,7 +1,5 @@
 # ADR-0001: Local embeddings with bge-small-en-v1.5
 
-Status: accepted
-
 ## Context
 Semantic retrieval needs an embedding model. Options: a hosted API (OpenAI
 text-embedding-3-small/large, Voyage) or a local sentence-transformers model. The catalog

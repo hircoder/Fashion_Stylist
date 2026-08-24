@@ -1,7 +1,5 @@
 # ADR-0010: Two LLM providers behind one async method, no framework
 
-Status: accepted
-
 ## Context
 The service needs an LLM for planning and reranking. The reviewer may have an Anthropic
 or an OpenAI key, or neither.

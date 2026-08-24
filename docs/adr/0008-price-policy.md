@@ -1,7 +1,5 @@
 # ADR-0008: Price handling: strict explicit bounds, flagged unpriced items for inferred budgets
 
-Status: accepted
-
 ## Context
 94% of listings have no price. A strict filter on a budget read from the sentence left
 slots with the only priced items that vaguely matched (a $13 wooden ring in a blazer
