@@ -65,7 +65,7 @@ I profiled every row before writing code. Two of the fourteen fields in the brie
 | 20 to 99 | 85,025 | 11% | 68% | 25% |
 | 100+ | 16,483 | 26% | 79% | 49% |
 
-* Popular listings are better documented (right) -> default index = 100K most rated rows. 3 min build, and the LLM has something to explain.
+* Popular listings carry far better metadata (the chart on the right), so the default index is the 100K most rated rows: it builds in 3 minutes and gives the reranker real fields to cite.
 * A stated bias: in every response, measured against random and full (slide 10).
 * 56,720 titles repeat under different ids; size and colour variants everywhere.
 * Dense retrieval leaks gender ("men's chinos" -> a women's office suit): audience became a mask, not a hope.
