@@ -1,40 +1,29 @@
 # Fashion stylist, a semantic recommendation microservice
 
-Ask it for clothes the way you would ask a friend. "I need an outfit to go to the beach
-this summer" comes back as a swimsuit, a cover-up, sandals, a sun hat and sunglasses, each
-with a couple of real products from the Amazon Fashion catalog and a one line reason. A
-plain request like "warm waterproof boots for hiking in the snow, under $80" comes back as
-one slot with boots in it.
+Natural-language shopping over the Amazon Fashion catalog.
 
-Under the hood its basicaly three steps: an LLM turns the sentence into a small retrieval plan
-(which product types, for who, what budget), hybrid search (local text embeddings + bm25)
-pulls candidates per product type out of an index of the catalog, and the LLM picks and
-explains the final items. Exposed as a FastAPI endpoint (`POST /recommend`), a CLI, and a
-small React page. Runs without any API key too, just with less magic (and less slots).
+* Input: a sentence. "I need an outfit to go to the beach this summer".
+* Output: 1 to 5 product slots (swimsuit, cover-up, sandals, sun hat, sunglasses), real
+  items per slot, a one-line reason each.
+* Pipeline: LLM query plan -> hybrid retrieval (bge-small embeddings + bm25) -> LLM
+  rerank -> select. FastAPI `POST /recommend`, CLI, React page.
+* Runs with no API key (regex planner, retrieval order, fewer slots).
+* This branch adds a live AWS deployment: 57 ms steady p50 from Japan. Section below.
 
-Table of contents is the headings below, i didnt bother with a real one. If you only have
-five minutes: quick start, then the sample output, then design decisions. If you are
-assessing this: evaluation, then performance and cost, then the deck at `/overview`
-(`docs/overview.html`), wich walks all of it with an animated request flow. On this
-branch there is also a live AWS deployment with its own section below, measured to a
-57 ms steady p50 from Japan.
+Five minutes: quick start -> sample output -> design decisions. Assessing: evaluation ->
+performance -> the deck at `/overview` (`docs/overview.html`, animated request flow).
 
 ## Why this exists
 
-Catalog search stops at "t-shirt". People dont shop like that, they shop like "what
-should my husband wear to an outdoor wedding in june", and a keyword box returns nothing
-useful for it. This service sits in that gap: it reads the sentence, works out the 1 to 5
-product types behind it, finds real items per type inside the stated constraints, and
-says why each pick fits. A query that today ends on an empty result page becomes 3 to 5
-shoppable slots, and every answer carries its plan, warnings, timings and token counts,
-so you can see what the model did and what it cost. No GPU, no vector database, no
-external service except one optional LLM key.
+* Keyword search dies on "what should my husband wear to an outdoor wedding in june".
+* This turns that sentence into 3 to 5 shoppable slots with constraints applied.
+* Every answer carries its plan, warnings, per-stage timings and token counts.
+* No GPU, no vector database, no external service except one optional LLM key.
 
 ## Quick start (2 minutes, no dataset download, no API key)
 
-You need python 3.12 and [uv](https://docs.astral.sh/uv/). The demo uses a 486 row sample
-of the real data that ships in the repo, and downloads the embedding model from hugging
-face once (~130 MB), after that its all offline.
+Needs python 3.12 and [uv](https://docs.astral.sh/uv/). Uses the 486 row sample shipped
+in the repo; one ~130 MB model download, offline after that.
 
 ```bash
 make setup      # creates .venv and installs everything
@@ -42,17 +31,15 @@ make demo       # ingest the sample + build a tiny index, about a minute
 INDEX_DIR=data/demo/index make serve
 ```
 
-Then open http://localhost:8000 for the UI, http://localhost:8000/docs for the OpenAPI
-page, http://localhost:8000/overview for a short walkthrough deck of the whole thing, or:
+UI at http://localhost:8000, OpenAPI at `/docs`, walkthrough deck at `/overview`. Or:
 
 ```bash
 curl -s localhost:8000/recommend -H 'content-type: application/json' \
   -d '{"query": "warm boots for snow", "k": 2}' | python -m json.tool
 ```
 
-Without a key the service uses a regex planner and returns items in retrieval order, which
-is fine for single product queries. To get the outfit decomposition and the explanations,
-put a key in `.env` (copy `.env.example`):
+No key: regex planner, retrieval order, fine for single-product queries. For outfit
+decomposition and reasons, put a key in `.env` (copy `.env.example`):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...      # or OPENAI_API_KEY=sk-...
@@ -60,8 +47,7 @@ LLM_MODEL=claude-sonnet-4-6       # optional. the default is the model every num
 LLM_RERANK_MODEL=claude-haiku-4-5-20251001   # optional, a cheaper model for the per-slot rerank calls
 ```
 
-(the response always tells you which model ran, how many calls it took and how many
-tokens they used, in `llm_info`.)
+`llm_info` in every response reports the model, call count and token usage.
 
 ## The real catalog
 
@@ -73,45 +59,37 @@ make index      # embeds + indexes the 100K most rated products, ~3 min on an M-
 make serve
 ```
 
-`make index-full` does all 826K rows (19 min on the laptop gpu, 40+ min on cpu, ~3.3 GB RSS to
-serve vs ~1 GB for the 100K one).
-`stylist build-index --sampling random --limit 100000` gives a seeded long tail sample
-instead of the popular one. See "design decisions" for why popular is the default, its not an accident.
+* `make index-full`: all 826K rows. 19 min on laptop gpu, 40+ min cpu, 3.3 GB RSS to
+  serve (vs 1 GB for 100K).
+* `--sampling random`: seeded long-tail sample. Popular is the default on purpose; see
+  design decisions.
 
 ## How it works
 
 ![architecture](docs/architecture.jpg)
 
-(`docs/architecture.pdf` is the same picture.) Offline, `ingest` flattens the raw json
-into a typed parquet file and `build-index` embeds a subset of it with
-`BAAI/bge-small-en-v1.5` (384-d, runs locally) and builds a bm25 index over the same text.
-Online, one request goes trough four stages:
+(`docs/architecture.pdf` is the same picture.) Offline: `ingest` -> typed parquet;
+`build-index` -> bge-small-en-v1.5 embeddings (384-d, local) + bm25 over the same text.
+Online, four stages:
 
-1. **Plan.** The LLM returns a structured `QueryPlan`: 1 to 5 slots (product types), each
-   with a product-listing style search query and a few title keywords, plus audience,
-   occasion, season, budget and, when the shopper names one, a brand. Structured output
-   on both providers, so no json parsing of free text. No key, a failure, or a timeout,
-   and a regex planner takes over with one slot.
-2. **Retrieve.** All slot queries are embedded in one batch and scored against the whole
-   index with a single matrix multiply; bm25 scores every row too. Audience and price
-   constraints are applied as masks *before* top-N, the two channels are fused with
-   reciprocal rank fusion, and size/colour variants of the same product collapse to one.
-   A named brand is ranked on its own first (a hard filter when it has enough rows of
-   the right type, a preference with a warning otherwise), and for LLM plans a type gate
-   keeps insoles out of a running shoes slot: once k candidates carry a type word in the
-   title, off-type rows get dropped.
-3. **Rerank.** One LLM call per slot, in parallel, with up to 10 candidates each. It
-   returns ordered picks with a short reason and the fields it relied on. Everything it
-   says is validated against the candidate set and the product type; a slot is only ever
-   padded with type matches; if a call fails the slot keeps retrieval order, no
-   exceptions.
-4. **Select.** Top k per slot, a product can only fill one slot, warnings explain every
-   fallback, timings per stage are in the response.
+1. **Plan.** Structured `QueryPlan`: 1 to 5 slots, each with a listing-style search
+   query + title keywords; audience, occasion, season, budget, brand. Structured output
+   on both providers, no free-text parsing. No key / failure / timeout -> regex planner,
+   one slot.
+2. **Retrieve.** All slot queries embedded in one batch, one matmul against the index;
+   bm25 scores every row. Masks (audience, price) apply *before* top-N. RRF fusion.
+   Variants collapse to one row. Named brand ranks first (hard filter with enough typed
+   rows, else preference + warning). Type gate for LLM plans: once k typed candidates
+   exist, off-type rows drop.
+3. **Rerank.** One LLM call per slot, parallel, up to 10 candidates each. Picks
+   validated against the candidate set and product type; failed slot keeps retrieval
+   order.
+4. **Select.** Top k per slot; a product fills one slot only; warnings name every
+   fallback; per-stage timings in the response.
 
 ## Sample usage
 
-The beach example from the brief, via the CLI (`uv run stylist recommend "..." --k 2`),
-against the 100K index with `claude-sonnet-4-6`:
+Beach query via CLI (`uv run stylist recommend "..." --k 2`), 100K index, Sonnet:
 
 ```
 query: I need an outfit to go to the beach this summer
@@ -162,8 +140,7 @@ note: Here are two lovely cover-ups to keep you stylish and sun-protected at the
 timings: {'plan_ms': 6698.5, 'retrieve_ms': 234.9, 'rerank_ms': 4623.6, 'total_ms': 11557.3}  (planner=llm, rerank=True, index rows=100000)
 ```
 
-A single-item request over HTTP with an explicit per-item bound (so only items with a
-known price inside it are eligible), trimmed to two items:
+HTTP, explicit per-item bound (only known prices inside it are eligible), trimmed:
 
 ```bash
 curl -s localhost:8000/recommend -H 'content-type: application/json' -d '{
@@ -303,10 +280,9 @@ curl -s localhost:8000/recommend -H 'content-type: application/json' -d '{
 }
 ```
 
-Fields worth knowing about: `price_known` tells you if the price in the response is real or
-missing, `matched_keywords` and `evidence` are the receipts behind `reason`, `warnings`
-lists every fallback that happened, `llm_info.planner_used` says whether the LLM or the
-regex planner made the plan. The full request schema (with every knob) is at `/docs`.
+Fields to know: `price_known` (real vs missing price), `matched_keywords` + `evidence`
+(receipts behind `reason`), `warnings` (every fallback), `llm_info.planner_used` (llm or
+regex). Full request schema at `/docs`.
 
 The UI is the same call with product cards:
 
@@ -314,117 +290,109 @@ The UI is the same call with product cards:
 
 ## What i explored before writing code
 
-The data decided most of the design, so day one was scripts, not code. The short
-version (`docs/exploration.md` has the long one):
+Day one was scripts, not code. Short version (`docs/exploration.md` has the long one):
 
-* Profiling all 826,108 rows: `categories` is an empty list on every single row,
-  `bought_together` always null, price a float on 6.1%, description on 7%. Every row has
-  a title (median 89 chars, stuffed with brand, gender, type, colour, size), a rating
-  and an image. Conclusion: the title carries the system.
-* Embedding shootout on 8 probe queries (bge-small vs bge-base vs minilm): bge-small won
-  on speed at basicaly the same quality for this kind of text, 761 docs/s on the laptop.
-* Price strings: floats, "$12.99", ranges, junk. `parse_price` keeps floats and clean
-  strings, everything else becomes null with a status, nothing gets guessed.
-* Audience: `details.Department` covers about half the rows, title words most of the
-  rest; ~13% stay unknown and are treated as wildcards so they never get filtered out.
-* Prompt experiments, in the order they happened: listing-style search queries instead of
-  shortened sentences (type match 0.73 to 0.88 on the same retrieval), keywords limited
-  to type synonyms, one rerank call per slot instead of one big call (20 s down to 3-7 s),
-  "type before price" after a priced wooden ring beat an unpriced blazer, exclude words
-  with a penalty equal to the boost, budget splits floored at 10% after the blazer got
-  $10 of $200, reasons capped at 15 words. Dead ends included a hand built taxonomy
-  (too much upkeep for the gain) and baking the variant key into the index (a one line
-  regex fix wouldve cost a 20 minute rebuild).
+* Profiled all 826,108 rows: `categories` empty on every row, `bought_together` always
+  null, price a float on 6.1%, description on 7%. Every row: title (median 89 chars,
+  packed with brand, gender, type, colour, size), rating, image. The title carries the
+  system.
+* Embedding shootout (bge-small vs bge-base vs minilm, 8 probe queries): bge-small,
+  same quality, 761 docs/s on the laptop.
+* Prices: floats and clean strings kept by `parse_price`; ranges and junk -> null with
+  a status. Nothing guessed.
+* Audience: `details.Department` covers ~half, title words most of the rest, ~13%
+  unknown = wildcard (never filtered out).
+* Prompt experiments, in order: listing-style search queries (type match 0.73 -> 0.88),
+  keywords = type synonyms only, one rerank call per slot (20 s -> 3-7 s), type before
+  price, exclude penalty = boost, budget floor 10% per slot, reasons capped at 15 words.
+* Dead ends: hand-built taxonomy (upkeep beats gain), variant key baked into the index
+  (a regex fix wouldve cost a 20 min rebuild).
 
 ## Design decisions and trade-offs
 
-**What the data actually contains.** I profiled all 826,108 rows before writing code and
-it changed the design quite alot. `categories` is an empty list on every row and `bought_together`
-is always null, so there is no taxonomy and no bundle signal. `price` is a float for 6.1%
-of rows. `description` exists for 7%. What every row has is a title (median 89 chars,
-packed with brand, gender, type, colour, size), a rating and an image. So the title
-carries retrieval and the other fields are extras, nice to have but not neccessary.
+**What the data contains.**
 
-**Popular-first subset by default.** Embedding everything takes 19 minutes on a laptop
-gpu, more like 45 on cpu, and 3.3 GB RSS to serve (1.2 GB of that is the float32 matrix). Metadata quality also rises sharply
-with popularity (price known for 26% of items with 100+ ratings vs 5% of items with 0-4
-ratings, features 79% vs 50%, department 49% vs 12%). So `make index` takes the 100K most
-rated rows, wich builds in ~3 minutes and gives the LLM something to explain. The cost is
-the long tail. `--sampling random` and `--sampling all` exist, every response carries
-`index_info.sampling`, and the evaluation below runs all three so the bias is visible.
+* No taxonomy (`categories` empty everywhere), no bundle signal (`bought_together` null).
+* Price on 6.1% of rows, description on 7%. Title, rating, image on 100%.
+* So: the title carries retrieval; everything else is extras.
 
-**Hybrid retrieval, masks before top-N.** Dense (bge-small) beats bm25 on conversational
-phrasing by a mile, bm25 wins on brand names and exact phrases, RRF (k=60) fuses them
-without score calibration. The detail i'd defend hardest: constraints are boolean masks on
-the full score vectors, applied before taking top-N. Filtering *after* retrieval quietly
-returns empty slots when the eligible items sit at rank 61+; with masks, if one women's
-sandal under $30 exists anywhere in the index, the slot gets it. Two small additive terms
-on top: a keyword boost when a planner keyword appears in the title, and a Bayesian
-rating prior so a 4.8 from 500 ratings beats a 5.0 from 1.
+**Popular-first subset by default.**
 
-**Variants.** 56,720 titles appear more than once under different ids and many more
-differ only by size or colour. Nothing gets deleted at ingest; a `group_key` (lowercased
-title with trailing parentheses, sizes and colour segments stripped) is computed from the
-title at query time and only one row per group survives, and a group can only fill one
-slot of an outfit. It is computed at query time on purpose, a grouping bug fix shouldnt
-need a 20 minute rebuild (learned that one the hard way).
+* Full index: 19 min gpu / ~45 min cpu build, 3.3 GB RSS. 100K most-rated: ~3 min, 1 GB.
+* Metadata quality rises with popularity: price known 26% vs 5%, features 79% vs 50%,
+  department 49% vs 12% (100+ ratings vs 0-4).
+* Cost: the long tail. `--sampling random` / `all` exist, `index_info.sampling` is in
+  every response, the evaluation runs all three.
 
-**Prices: strict when you say so, flagged when I guessed.** 94% of items have no price.
-If the request has an explicit `max_price`, only items with a known price inside it are
-eligible (an unpriced item can't be proven to fit). If the budget came out of the sentence
-("under $40", "budget 200 total"), items with unknown price are allowed into the same
-ranking, with `price_known: false` and a warning, because otherwise most slots would be
-empty or filled with the only priced thing that vaguely matches (a priced wooden ring in
-the blazer slot, i have seen it happen). `include_unpriced` overrides either way. A total budget
-is split across slots by the planner, with a floor of 10% per slot and scaling so the
-parts never exceed the total.
+**Hybrid retrieval, masks before top-N.**
 
-**Product type is a hard constraint, like price.** The first evaluation with whole-word
-rules showed "running shoes for flat feet" filled with insoles: every channel scores
-"arch support flat feet", and no boost lifts a shoe over twenty insoles. So for LLM
-plans (whose keywords are curated type synonyms) retrieval gates on type once k matches
-exist, the head noun of a keyword counts ("rain jacket" accepts any jacket), an accessory
-word before or right after the type word vetoes ("Shoe Insoles"), and the reranker's
-picks go through the same rule. A named brand gets its own ranking pass first; with fewer
-than k rows of the right type it degrades to a preference and the response says so.
-match@k on the 28 query set went from 0.83 to about 0.89, and the brand queries from 1 of 4
-on-brand to 3 or 4 of 4 where the catalog actually has the items (ADR-0015).
+* Dense wins conversational phrasing; bm25 wins brands and exact phrases; RRF (k=60)
+  fuses without calibration.
+* The point i'd defend hardest: constraints are boolean masks on full score vectors,
+  applied *before* top-N. Post-filtering silently empties slots when eligible items sit
+  at rank 61+. With masks, one matching women's sandal under $30 anywhere in the index
+  is found.
+* Additive extras: keyword boost, Bayesian rating prior (4.8 from 500 beats 5.0 from 1).
 
-**LLM reranker, one call per slot.** It sees compact json (title, price or null, rating,
-audience, material/colour/style when present, matched keywords) and is told type fit
-comes first, then occasion, then price, then ratings. Output tokens dominate latency, so
-the five slots of an outfit run as five parallel calls and a failing slot doesn't take the
-others down. Catalog text is labelled as untrusted data in the prompt, the request itself
-is passed as json data, every id the model returns is checked against the candidates and
-the product type, reasons are link-striped and capped at 15 words, and the evidence
-fields are checked against what the candidate actually carried. Why not a cross-encoder
-in the hot path: it can't reason about "for my 6 year old" or "200 total", and it doesn't
-write the reasons; as the sub-second path in `docs/production.md` it is the right tool.
+**Variants.**
 
-**Deadlines.** One request deadline (40 s) covers everything, including retrieval. The
-planner gets at most 15 s, the reranker 20 s, and a stage is skipped when less than its
-minimum is left. Every provider failure is a typed error with a fallback path and a test.
-Typical numbers on my laptop: planner 2-6 s, retrieval 50-300 ms, rerank 3-7 s.
+* 56,720 duplicate titles under different ids, plus size/colour twins.
+* `group_key` = lowercased title minus trailing parens, sizes, colour segments.
+* Computed at query time on purpose: a grouping bug fix must not need a 20 min rebuild.
+* One row per group survives; a group fills at most one slot per outfit.
 
-**Two providers, one protocol.** `complete_json(system, user, schema)` is the whole
-interface; Anthropic and OpenAI adapters implement it with their SDKs' structured output.
-No framework, about 70 lines each, easier to read then to configure. The default model per
-provider is the one the evaluation ran on; `LLM_RERANK_MODEL` lets a cheaper model do the
-per-slot rerank calls, which is where most of the tokens go.
+**Prices: strict when you say so, flagged when i guessed.** 94% of items have no price.
+
+* Explicit `max_price` in the request: only known prices inside it are eligible.
+* Budget inferred from the sentence: unpriced items allowed, `price_known: false` +
+  warning. Otherwise slots go empty or a priced wooden ring wins the blazer slot (seen
+  it happen).
+* `include_unpriced` overrides either way. Total budgets split by the planner: 10% floor
+  per slot, parts never exceed the total.
+
+**Product type is a hard constraint, like price.** The first eval filled "running shoes
+for flat feet" with insoles: every channel scores "arch support flat feet".
+
+* LLM plans gate on type once k typed matches exist.
+* Head noun counts ("rain jacket" accepts any jacket); an accessory word next to the
+  type word vetoes ("Shoe Insoles").
+* Reranker picks pass the same rule. Brand gets its own pass first; short of k typed
+  rows it degrades to a preference and says so.
+* Effect: match@k 0.83 -> ~0.89; brand queries 1/4 -> 3-4 of 4 on-brand (ADR-0015).
+
+**LLM reranker, one call per slot.**
+
+* Input: compact json per candidate (title, price or null, rating, audience,
+  material/colour/style, matched keywords). Priority order: type, occasion, price,
+  ratings.
+* Five slots = five parallel calls; a failing slot never takes the others down.
+* Safety: catalog text labelled untrusted, request passed as json data, ids validated
+  against candidates + type, reasons link-stripped and capped at 15 words, evidence
+  checked against the candidate.
+* Why not a cross-encoder here: cant reason about "for my 6 year old" or "200 total",
+  writes no reasons. It is the right sub-second tool in `docs/production.md`.
+
+**Deadlines.** One 40 s request deadline over everything. Planner max 15 s, reranker
+20 s, a stage skips when under its minimum. Every provider failure: typed error,
+fallback path, test. Laptop numbers: plan 2-6 s, retrieve 50-300 ms, rerank 3-7 s.
+
+**Providers behind one protocol.** `complete_json(system, user, schema)` is the whole
+interface. Anthropic / OpenAI / Bedrock adapters, ~70 lines each, no framework.
+`LLM_RERANK_MODEL` puts a cheaper model on the rerank calls, where the tokens go.
 
 ## Evaluation
 
-`scripts/evaluate.py` runs 28 human style queries (`scripts/eval_queries.json`, 20
-conversational ones and 8 brand requests) through several configurations on three
-indexes. The main number, `match@k`, is the share of returned items whose title passes a
-hand written product-type rule for its slot (the "sandals" slot of the beach query
-accepts sandal / flip flop / slide / espadrille; a brand rule needs the brand and the
-type). I wrote the rules before looking at any output so i couldnt cheat. Its a
-regression check for "is this even the right kind of product", not a relevance
-judgement, and it is blind to style, so read it as a floor. Every llm configuration uses
-the same 28 plans on every index, so the comparisons are paired. Details, the other
-metrics (macro average with bootstrap intervals, mapped precision, slot recall, strict
-query success, paired deltas), per index tables and the caveats are in `docs/evaluation.md`.
+`scripts/evaluate.py`: 28 queries (20 conversational + 8 brand), several configs, three
+indexes.
+
+* `match@k` = share of returned items whose title passes a hand-written type rule for
+  its slot (sandals slot accepts sandal / flip flop / slide / espadrille; brand rules
+  need brand + type).
+* Rules written before looking at any output. A type-correctness floor, not a relevance
+  judgement; blind to style.
+* Same 28 plans on every index -> paired comparisons.
+* Macro averages with bootstrap intervals, mapped precision, slot recall, strict query
+  success, paired deltas: `docs/evaluation.md`.
 
 | config (what runs) | popular 100K | random 100K | full 826K |
 |---|---|---|---|
@@ -435,22 +403,23 @@ query success, paired deltas), per index tables and the caveats are in `docs/eva
 | dense only, LLM planner | 0.862 | 0.877 | 0.923 |
 | hybrid, LLM planner + LLM rerank (the default path) | 0.885 | 0.885 | 0.935 |
 
-`match@k` with k=4 per slot, `claude-sonnet-4-6`, prompt version 2, code at the commit
-in each json file. Zero empty slots and zero price violations in every run. Full
-pipeline p50 about 5.5 s with a warm plan cache and 11.5 s cold (plan 4 to 7 s, rerank
-5 to 7 s in parallel across slots); retrieval alone p50 22 ms (100K, cpu) and 110 ms
-(full). The macro average of the full pipeline is 0.857 (95% interval 0.76 to 0.94) on
-the default index and 0.967 (0.94 to 0.99) on the full catalog.
+k=4 per slot, `claude-sonnet-4-6`, prompt version 2, commit sha in each json file.
 
-Reading it: the LLM planner is what makes the conversational queries work (the raw
-sentence gets 0.63 to 0.75 on hybrid retrieval, the planner's product-style queries
-0.88 to 0.94). bm25 on its own is not usable for sentences; under the planner the two
-channels are within two points and hybrid is kept becuase bm25 is the channel that
-carries a brand token. The reranker adds about a point of type-match on the same plans;
-its job is the constraints, the reasons and keeping off-type items out. The full catalog
-beats the 100K subsets on the same plans (0.935 vs 0.885): the default index is not
-losing product type, it loses specific brands (no Levi's jeans, three Columbia fleeces)
-and the long tail, the trade it makes for a 3 minute build and 1 GB of memory.
+* Zero empty slots, zero price violations, every run.
+* Macro (full pipeline): 0.857 (95% CI 0.76 to 0.94) on popular, 0.967 (0.94 to 0.99)
+  on full.
+* Latency: p50 ~5.5 s warm plan cache, 11.5 s cold; retrieval alone 22 ms (100K) /
+  110 ms (full).
+
+Reading it:
+
+* The planner is the win: raw sentence 0.63 to 0.75, planner queries 0.88 to 0.94.
+* bm25 alone unusable for sentences; kept becuase it carries brand tokens. Channels
+  within 2 points under the planner.
+* Reranker adds ~1 point of type-match; its real job is constraints, reasons, off-type
+  vetoes.
+* Full catalog beats 100K (0.935 vs 0.885) on brands and long tail, not on type. The
+  trade: 3 min build, 1 GB RAM.
 
 ## Performance and cost, measured
 
@@ -464,53 +433,43 @@ setting (`scripts/benchmark.py`, raw numbers in `docs/bench_cpu.json`):
 | 4 | 65 ms | 82 ms | 62 |
 | 8 | 126 ms | 145 ms | 62 |
 
-It flattens around 60 req/s per process (numpy and torch already spread across the
-cores, so past that point more replicas beat more threads). RSS after load is 1.0 GB for the 100K index, 3.3 GB for the
-full one, and the index loads in 0.1 s including a sha256 of every file.
-
-Full pipeline with `claude-sonnet-4-6`, a 20 query live run made before the 8 brand
-queries were added (`docs/live_run_sonnet.json`, kept as the cold-latency sample): plan p50 5.2 s, retrieve 0.13 s, rerank 5.9 s, total
-11.5 s (p95 13.5 s), 3.9 LLM calls per request on average. A burst of 8 concurrent
-requests finished in 18.5 s with zero errors. Cost per request, from the token counts the response itself reports (and the request log
-line prints): mean $0.036 at Sonnet-class prices ($3/$15 per million), $0.012 on a
-Haiku-class model. At 10K requests a day thats about $360 as measured, near $200 with a
-90% plan-cache hit rate plus prompt caching (the adapter marks the system prompts
-cacheable), under $100 with a Haiku-class reranker on top. The provider's tokens-per-minute quota is the capacity
-ceiling, not the CPU. `docs/production.md` works all of this through, including the path
-to a sub-second p50 (semantic plan cache, a distilled 1-3B planner, a cross-encoder
-rerank, the big model demoted to an async refinement) with the expected cost of each rung.
-The first rungs of that ladder are no longer theory: the AWS section below has them
-deployed and measured at 57 ms steady p50.
+* Flattens ~60 req/s per process; past that, replicas beat threads.
+* RSS: 1.0 GB (100K) / 3.3 GB (full). Index load 0.1 s incl. sha256 of every file.
+* Full pipeline (Sonnet, 20-query live run, `docs/live_run_sonnet.json`): plan p50
+  5.2 s, retrieve 0.13 s, rerank 5.9 s, total 11.5 s (p95 13.5 s), 3.9 calls/request.
+  8-way burst: 18.5 s, zero errors.
+* Cost/request from reported tokens: $0.036 Sonnet-class, $0.012 Haiku-class. 10K/day:
+  ~$360 measured; ~$200 with 90% plan-cache hits + prompt caching; under $100 with a
+  Haiku reranker.
+* Capacity ceiling = provider TPM quota, not CPU.
+* Sub-second path (semantic plan cache, distilled 1-3B planner, cross-encoder rerank,
+  big model as async refinement): `docs/production.md`. First rungs are deployed and
+  measured below: 57 ms steady p50.
 
 ## Deployment
 
-`Dockerfile` builds a cpu-only image (python 3.12 slim, uv, the embedding model
-pre-downloaded at a pinned revision, runs as a non-root user) and, by default, **bakes a
-demo index into the image**: the build downloads the raw metadata, ingests it and embeds
-the 40K most rated listings (about 4 minutes on a cpu builder). The container then needs
-no volume and no external files. `--build-arg BAKE_INDEX_LIMIT=0` skips that; then give
-the container an index through a volume at `/app/data` or through `INDEX_URL` +
-`INDEX_SHA256` (a tarball from `make index-tar`; on boot it is downloaded from a public
-https host, size capped, checksum verified, extracted with member and path checks,
-validated by the same loader the service uses, and swapped in under a lock).
+* `Dockerfile`: cpu-only, python 3.12 slim, uv, pinned model revision, non-root. By
+  default **bakes a 40K demo index** into the image (~4 min on a cpu builder); no
+  volume, no external files.
+* `--build-arg BAKE_INDEX_LIMIT=0` skips baking. Then: volume at `/app/data`, or
+  `INDEX_URL` + `INDEX_SHA256` (tarball from `make index-tar`; size-capped download,
+  checksum, member/path checks, loader-validated, locked swap).
 
-Limits and knobs that matter once it faces real traffic (all env variables, defaults
-in brackets): `RATE_LIMIT_PER_MINUTE` [60] per client with a burst of a sixth of it,
-`MAX_INFLIGHT_REQUESTS` [16], `MAX_BODY_BYTES` [16384], `LLM_CONCURRENCY` [8],
-`REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20],
-`TRUST_PROXY_HEADERS` [off; the container image sets it, so the client ip comes from the
-proxy's x-forwarded-for], `CORS_ALLOW_ORIGINS` [none], `STARTUP_FAIL_FAST` [off],
-`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. This branch adds the fast-profile
-knobs: `LLM_PROVIDER=bedrock` with `BEDROCK_REGION`, `PLANNER_CALL_TIMEOUT_S` [20] (the
-shared background call's own clock, separate from the bounded wait),
-`RERANK_DEFAULT` [on; the AWS profile turns it off], `SEMANTIC_PLAN_CACHE` [off] with
-`SEMANTIC_PLAN_THRESHOLD` [0.92], and `RESPONSE_CACHE_TTL_S` [0 = off].
-`docs/production.md` has the sizing numbers behind the defaults.
+Knobs for real traffic (env variables, defaults in brackets):
 
-`railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
-check, `PORT` picked up automatically. After the first deploy add `ANTHROPIC_API_KEY` or
-`OPENAI_API_KEY` (and optionally `LLM_MODEL`) as service variables to switch on the LLM
-planner and reranker; without a key the service runs in regex mode. From a clone:
+* Limits: `RATE_LIMIT_PER_MINUTE` [60, burst = a sixth], `MAX_INFLIGHT_REQUESTS` [16],
+  `MAX_BODY_BYTES` [16384], `LLM_CONCURRENCY` [8].
+* Deadlines: `REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20].
+* Posture: `TRUST_PROXY_HEADERS` [off; the image sets it], `CORS_ALLOW_ORIGINS` [none],
+  `STARTUP_FAIL_FAST` [off], `LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off].
+* Fast profile (this branch): `LLM_PROVIDER=bedrock` + `BEDROCK_REGION`,
+  `PLANNER_CALL_TIMEOUT_S` [20, the background call's own clock], `RERANK_DEFAULT`
+  [on; AWS profile turns it off], `SEMANTIC_PLAN_CACHE` [off] +
+  `SEMANTIC_PLAN_THRESHOLD` [0.92], `RESPONSE_CACHE_TTL_S` [0 = off].
+* Sizing behind the defaults: `docs/production.md`.
+
+`railway.toml`: Dockerfile builder, `/ready` health check, `PORT` auto. Add a key as a
+service variable after the first deploy; keyless runs in regex mode. From a clone:
 
 ```bash
 npm i -g @railway/cli && railway login
@@ -520,67 +479,50 @@ railway domain        # public url
 railway variables --set ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-I dont have Docker on the machine i wrote this on, so the image is verified by the GitHub
-Actions workflow (`.github/workflows/ci.yml`), which builds it without the baked index,
-indexes the fixture inside the container and hits `/ready` and `/recommend`, and by the
-Railway build itself.
-
-`/health` always answers (what is loaded, which model), `/ready` is 503 until the index is
-in memory.
-
-For a real deployment the shape i'd run: 2 vCPU / 4 GB per replica (8 GB for the full
-index), one uvicorn worker per replica, three replicas behind the platform's proxy,
-autoscaling on in-flight requests, the index tarball in object storage pinned by
-`INDEX_URL` + `INDEX_SHA256`, Redis for a shared plan cache once there is more then one
-replica, and the LLM key in the platform's secret store. What degrades when things break,
-in order: LLM planner fails or times out -> regex planner (with a 30 s negative cache so
-an outage isnt retried per request); one rerank call fails -> that slot keeps retrieval
-order, the others keep their picks; the reranker rejects everything -> type matches in
-retrieval order, or an honest empty slot; index missing at boot -> `/health` explains,
-`/ready` and `/recommend` say 503 (or the process exits, `STARTUP_FAIL_FAST=1`); no key
-at all -> the whole thing runs as plain search. Degradations inside a served answer land
-in the response `warnings`; no-key mode shows in `llm_info` and the hard stops are http
-errors. Before real traffic i'd add the observability
-stack from `docs/production.md` (json logs, OpenTelemetry traces per stage, Prometheus
-histograms, alerts on p95 / fallback rate / 429s), a provider circuit breaker and an
-off-domain request filter, thats all listed there with tools and pass conditions.
+* No Docker on this machine, so CI (`.github/workflows/ci.yml`) builds the image,
+  indexes the fixture inside it and hits `/ready` + `/recommend`. Railway builds it too.
+* `/health` always answers; `/ready` is 503 until the index is in memory.
+* Production shape i'd run: 2 vCPU / 4 GB per replica (8 GB full index), 1 worker per
+  replica, 3 replicas, autoscale on in-flight, index tarball pinned by URL + sha256,
+  Redis for the shared plan cache, key in the secret store.
+* Degradation ladder: planner fails -> regex (30 s negative cache); one rerank call
+  fails -> that slot keeps retrieval order; reranker rejects all -> type matches or an
+  honest empty slot; no index -> 503 + `/health` explains; no key -> plain search.
+  Every degradation lands in `warnings` or `llm_info`.
+* Before real traffic: json logs, OpenTelemetry per stage, Prometheus histograms,
+  alerts on p95 / fallback rate / 429s, provider circuit breaker, off-domain filter.
+  Tools and pass conditions: `docs/production.md`.
 
 ## The AWS deployment on this branch
 
-This branch (`AWS_deployment`) is the deployed answer to "get prompt to result under
-half a second". Main keeps the provider-neutral service; this branch adds a fast
-serving profile plus the scripts that put it on AWS, and then the measurements. It ran
-twice: us-east-1 first, Tokyo second, once the numbers said most of the remaining time
-was the Pacific. While the demo runs its live at https://d3bys47v9rho9.cloudfront.net
-(about $4 a day, one teardown script removes everything).
+Goal: prompt to result under 0.5 s. Main keeps the provider-neutral service; this
+branch adds the fast profile, the AWS scripts and the measurements. us-east-1 first,
+Tokyo second (most of the remaining time was the Pacific). Live while the demo runs:
+https://d3bys47v9rho9.cloudfront.net. ~$4/day, one teardown script.
 
-The path is short. CloudFront at the edge (TLS near the user, HTTP/3, `/assets` cached
-hard), an EC2 origin in ap-northeast-1 (c7i.xlarge, systemd, 2 uvicorn workers, no
-docker: the box boots from a source tarball in S3), and Bedrock in the same region for
-planning (`apac.amazon.nova-lite-v1:0`, structured output through one forced tool, the
-instance role as the only credential). Port 8000 admits CloudFront origin-facing ranges
-and nothing else; there are no ssh keys anywhere, ops go through SSM.
+Topology:
 
-What the fast profile changes, all in the same codebase behind env settings:
+* CloudFront: edge TLS, HTTP/3, `/assets` cached hard, rest pass-through.
+* EC2 origin: c7i.xlarge, ap-northeast-1a, systemd, 2 uvicorn workers, no docker (boots
+  from a source tarball in S3). Port 8000 admits CloudFront origin-facing ranges only.
+  No ssh keys; ops via SSM.
+* Bedrock in-region: `apac.amazon.nova-lite-v1:0`, structured output via one forced
+  tool, instance role as the only credential.
 
-* A bounded planner wait. The request waits at most `PLANNER_BUDGET_S` (0.10 s live)
-  for the LLM plan, then answers with the regex plan. The Bedrock call keeps running on
-  its own 20 s clock and lands in the caches for every request after. The 0.10 came
-  from a measured completion curve, not taste: 0 of 12 plans landed inside 0.35 s
-  (Micro p50 999 ms, Lite 1154 ms), so waiting 350 ms bought nothing.
-  `deploy/aws/planner_cdf.py` reproduces the measurement on the box.
-* A background plan lands in the exact AND the semantic plan cache (nearest plan at
-  cosine 0.92, guarded so a different budget or audience never reuses it), wich is what
-  lets paraphrases ride a plan they never paid for.
-* A response cache (`RESPONSE_CACHE_TTL_S`, 300 s live) for identical request bodies.
-  Only warning-free answers are cached; that one rule keeps a degraded fallback from
-  being frozen for the whole TTL while a better plan lands a second later. A hit says
-  `served_from_cache: true` and reports its real serve time, not the old compute.
-* A slot-embedding LRU, so a warm five slot request spends under a millisecond of
-  server time. And at most 8 background planner calls run at once: a flood of unique
-  cold queries degrades to regex plans instead of building an unbounded Bedrock queue.
-* Warmup on every restart: two passes over the six UI example queries. The first pass
-  starts the background plans, the second caches the planned answers.
+Fast profile (same codebase, env settings):
+
+* Bounded planner wait: `PLANNER_BUDGET_S=0.10`, then the regex plan answers. The
+  Bedrock call runs on its own 20 s clock and lands in the caches. 0.10 is measured,
+  not taste: 0/12 plans inside 0.35 s (Micro p50 999 ms, Lite 1154 ms).
+  `deploy/aws/planner_cdf.py` reproduces it.
+* Background plans land in the exact AND semantic plan cache (cosine 0.92, budget +
+  audience guard). Paraphrases ride plans they never paid for.
+* Response cache (`RESPONSE_CACHE_TTL_S=300`): warning-free answers only, so a degraded
+  fallback is never frozen. Hits carry `served_from_cache: true` + real serve time.
+* Slot-embedding LRU: warm 5-slot request = sub-ms server time. Background planner
+  admission capped at 8: cold floods degrade to regex, never an unbounded Bedrock queue.
+* Warmup on restart: two passes over the six UI examples (start plans, then cache
+  planned answers).
 
 Measured from a client in Japan, wall time through CloudFront. Raw runs are files in
 `deploy/aws/experiments/` (exp01 to exp19), the narrative with both rounds is
@@ -595,18 +537,17 @@ Measured from a client in Japan, wall time through CloudFront. Raw runs are file
 | paraphrase via the semantic cache | 215 ms | 116 ms |
 | direct origin, warm | n/a | 22 ms |
 
-Every row, the cold one included, is under the 0.5 s target. Load: a repeat-mode ramp
-holds p50 43 to 47 ms from c=1 through c=8 with a fresh TLS connection per request,
-40 req/s, zero errors; a 1-vs-2 worker comparison kept 2 workers (p50 within noise,
-better p95 at c=4 and c=16, and a second failure domain). Quality: the 28 evaluation
-queries POSTed at production and scored by the offline rules gave match@4 micro 0.772
-with Nova Lite against 0.705 with Nova Micro (success 0.50 vs 0.39), so Lite is the
-planner. The remaining gap to the Sonnet-planned local eval (0.885 on the same index)
-is planner model quality, and since planning is background work a bigger planner costs
-the user nothing in latency.
+* Every row, cold included, under the 0.5 s target.
+* Ramp (repeat mode, fresh TLS each request): p50 43 to 47 ms at c=1..8, 40 req/s,
+  zero errors.
+* Workers: 1-vs-2 measured; kept 2 (p50 within noise, better p95 at c=4/c=16, second
+  failure domain).
+* Quality, live, 28 queries, offline rules: Lite 0.772 match@4 micro vs Micro 0.705
+  (success 0.50 vs 0.39) -> planner is Lite. Gap to Sonnet-planned local eval (0.885)
+  is planner model quality; planning is background, so a bigger planner costs no
+  latency.
 
-Deploying it yourself is five short scripts plus a teardown, region generic (the same
-scripts built both regions):
+Deploy: five region-generic scripts plus teardown (same scripts built both regions):
 
 ```bash
 cd deploy/aws
@@ -620,11 +561,9 @@ STYLIST_REGION=ap-northeast-1 ./03_ec2.sh    # sg from the cloudfront prefix lis
 
 ### Tested like it will be used
 
-Latency probes prove the fast path; they say nothing about contracts, guardrails or
-what a deploy costs. `deploy/aws/test_battery.py` runs a ten-section acceptance
-battery against the live endpoint (raw results: `deploy/aws/experiments/exp20` to
-`exp22`). Around 11,500 requests hit production during it. Zero were 5xx outside the
-one deliberately induced restart window.
+Latency probes prove the fast path only. `deploy/aws/test_battery.py`: ten sections
+against production, ~11,500 requests, zero 5xx outside the one induced restart window.
+Raw results: `deploy/aws/experiments/exp20` to `exp22`.
 
 | section | what it proves | result |
 |---|---|---|
@@ -639,36 +578,35 @@ one deliberately induced restart window.
 | cache ladder, asserted | exact, semantic and response caches behave | pass |
 | consistency, x5 | identical warm answers | identical |
 
-The capacity story from the ramp: repeat traffic (what a demo audience generates)
-holds 36 to 52 ms p50 from c=1 all the way to c=32, peaking at 100 req/s. Unique cold
-traffic, where every request pays real retrieval, saturates the four vCPUs at 10 to
-13 req/s; p50 climbs to 2.7 s at c=32 with zero 5xx, just queuing. That number, not
-the cache-hit one, is what you size replicas from.
+Capacity, from the ramp:
 
-The battery also earned its keep the old fashioned way: it caught a real bug. One
-worker held a Nova Lite beach plan with five slots and a $135 total budget; tight
-price masks left the type gate short, the ranker widened its window x4 per pass, and
-every pass hydrated every window row through per-row pandas iloc. 19,783 row
-hydrations in one request, server p50 2.44 s, 10.4 s under 12-way load, and the
-response cache refused to mask it (the plan carried warnings, and degraded answers
-are never cached, by design). The fix reads scoring fields with one vectorized column
-gather per window and leaves the row walk to the rows a slot returns: the same
-captured plan replays at 985 ms cold, live steady p50 fell to 12.8 ms, a regression
-test pins it, and the rerun quality probe (match@4 micro 0.800, success 0.50, 28/28
-plans landed) confirms ranking did not move. It never showed on us-east-1 or in the
-local eval; only live Lite traffic walked that path. Which is the argument for this
-whole section.
+* Repeat traffic: 36 to 52 ms p50 from c=1 to c=32, 100 req/s peak.
+* Unique cold traffic: 4 vCPUs saturate at 10 to 13 req/s, p50 2.7 s at c=32, zero
+  5xx, just queuing. Size replicas from this number, not the cache-hit one.
 
-Known limits, stated rather than hidden: a single origin means a deploy costs ~7 s of
-5xx (origin failover or a second box removes it); the rate limiter is per worker, so
-the effective burst is twice the configured one; and each worker warms its own caches,
-so a cold query can answer differently for about a second depending on which worker
-takes it.
+The bug the battery caught:
 
-A review pass over the deployment plan ran before the Tokyo cutover, and it earned its
-keep: the two cache rules above started as bugs it caught, and the worker count and
-planner budget were measured instead of assumed because it insisted. The numbers in
-this section are those measurements.
+* Symptom: one worker 2.44 s server p50 on the beach query, the other 0.4 ms. Idle box.
+* Trigger: a Nova Lite plan, 5 slots, $135 total budget. Tight price masks starved the
+  type gate; the ranker widened x4 per pass; every pass hydrated every window row via
+  per-row pandas iloc. 19,783 hydrations/request; 10.4 s under 12-way load.
+* The response cache refused to mask it: degraded answers are never cached, by design.
+* Fix: one vectorized column gather per window for scoring fields; row walk only for
+  returned rows.
+* Proof: captured plan 2,831 -> 985 ms cold replay; live steady p50 2,442 -> 12.8 ms;
+  regression test counts hydrations; quality rerun unchanged (0.800 micro, 0.50
+  success, 28/28 plans).
+* Never showed on us-east-1 (Micro rarely emits budgets) or the local eval (Sonnet
+  plans). Only live traffic walked it. That is the case for the battery.
+
+Known limits, stated:
+
+* Single origin: a deploy costs ~7 s of 5xx. Failover or a second box removes it.
+* Rate limiter is per worker: effective burst is twice the configured one.
+* Workers warm seperately: a cold query can answer differently for ~1 s.
+
+A review pass ran before the Tokyo cutover: both cache rules above started as bugs it
+caught, and worker count + planner budget were measured because it insisted.
 
 ## Tests
 
@@ -678,20 +616,23 @@ make test-all   # adds the real embedding model and, if keys are set, a live LLM
 make lint
 ```
 
-The fast suite uses a determinstic hashed-ngram embedder and a scripted fake LLM, and
-covers: price parsing and the audience heuristic, plan normalisation (slot caps, budget
-splits, keyword cleanup, brand), masks and fusion, the type gate and brand pass,
-variant grouping, every LLM failure class falling back correctly, reranker output
-validation (unknown ids, duplicates, off-type picks, a slot that fails while the others
-succeed, reasons stripped of links), cross-slot uniqueness, deadlines (a stuck planner, a
-waiter's own timeout, a retrieval that blows the deadline -> 504), the API contract and
-error bodies, the rate limit, in-flight cap, body cap and security headers, index
-checksums and row alignment (tampered embeddings, swapped row ids, edited bm25 files,
-missing columns, pickled arrays), artifact installs (archive bombs, private hosts, stale
-indexes, locks), the CLI, the evaluation scorer, and the regressions from two audit
-rounds. `make test-all` adds the real embedding model and, with a key, one live LLM round
-trip. CI runs the suite, ruff, bandit, pip-audit, a docker smoke test against the fixture
-data and a check that `ui/dist` still matches the UI sources.
+Fast suite: determinstic hashed-ngram embedder + scripted fake LLM. Covers:
+
+* Parsing + planning: price parsing, audience heuristic, plan normalisation (slot caps,
+  budget splits, keyword cleanup, brand).
+* Retrieval: masks, fusion, type gate, brand pass, variant grouping.
+* LLM failure classes -> correct fallbacks; reranker output validation (unknown ids,
+  duplicates, off-type picks, partial slot failure, link-stripped reasons); cross-slot
+  uniqueness.
+* Deadlines: stuck planner, waiter timeout, retrieval past deadline -> 504.
+* API contract, error bodies, rate limit, in-flight cap, body cap, security headers.
+* Index integrity: checksums, row alignment, tampered embeddings, swapped row ids,
+  edited bm25 files, missing columns, pickled arrays. Artifact installs: archive bombs,
+  private hosts, stale indexes, locks.
+* CLI, evaluation scorer, regressions from the audit rounds.
+
+CI: suite, ruff, bandit, pip-audit, docker smoke test on the fixture, `ui/dist` drift
+check.
 
 ## Repository layout
 

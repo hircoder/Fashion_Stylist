@@ -6,13 +6,13 @@ numbers. Written while building, so some of it reads like a lab notebook.
 
 ## What the data allowed
 
-The assignment pdf lists 14 fields. After profiling all 826,108 rows, five of them do
-real work: `title` (always there, median 89 chars, stuffed with brand + gender + type +
-colour + size), `rating_number`, `average_rating`, `images` (100% have one) and `features`
-(56% non-empty, but the median feature list is 11 characters long, so mostly "Pull On
-closure"). `categories` is an empty list on every row. `bought_together` is null on every
-row. `price` is a float on 6.1% of rows and null otherwise. `description` shows up 7% of the
-time.
+The assignment pdf lists 14 fields. After profiling all 826,108 rows, five do real work:
+
+* `title`: 100%, median 89 chars, packed with brand + gender + type + colour + size.
+* `rating_number`, `average_rating`, `images`: 100%.
+* `features`: 56% non-empty, median 11 chars ("Pull On closure").
+* Dead: `categories` (empty everywhere), `bought_together` (always null). `price` 6.1%,
+  `description` 7%.
 
 That kills two ideas i had on day one: a category tree for filtering, and "people also
 bought" bundles. Everything has to come out of the title text. Which is fine, its a very
@@ -31,12 +31,13 @@ One more thing that decided the subset policy. Coverage goes up sharply with pop
 
 ## Subset: why popular-first by default
 
-Embedding the whole catalog takes about 19 minutes on an M-series laptop and 40+ on CPU,
-and serving it needs ~3.3 GB RSS (1.2 GB of that is the float32 matrix, measured with
-`scripts/benchmark.py`; the 100K index serves in ~1 GB). Nobody reviewing a
-take-home wants to wait for that. So `make index` takes the 100K most-rated listings
-(about 2.7 minutes on the laptop), `--sampling random` gives a seeded long-tail sample
-instead, and `--sampling all` does the full thing.
+Popular-first, stated everywhere:
+
+* Full catalog embed: ~19 min laptop gpu, 40+ min cpu, 3.3 GB RSS to serve; 100K most
+  rated: ~3 min, 1 GB.
+* Metadata quality climbs with popularity (price 5% -> 26%, features 50% -> 79%,
+  department 12% -> 49%).
+* The bias is stated in `index_info.sampling` and measured against random and full.
 
 Popular-first is a bias, i know. The defence is the table above: the listings with many
 ratings are the ones with prices, features and a department, which is exactly what the
@@ -51,11 +52,14 @@ notebook experiment, but bm25 wins on exact phrases ("wedding guest", brand name
 is basicaly free. Reciprocal rank fusion with k=60 needs no score calibration between
 the two, which is why i picked it over a weighted sum.
 
-The part i'd defend hardest: constraints are applied as boolean masks on the full score
-vectors *before* taking top-N. The naive version (retrieve 60, then filter by price and
-audience) quietly returns empty slots as soon as the eligible items sit at rank 61+. With
-masks, if there is a single womens sandal under 30 dollars anywhere in the index, the slot
-gets it. Cost: the mask is an O(n) boolean op over 100K rows, microseconds.
+The part i'd defend hardest: constraints are boolean masks on the full score vectors,
+applied *before* top-N.
+
+* The naive version (retrieve 60, filter by price and audience) quietly empties slots
+  when eligible items sit past the cut.
+* With masks, one matching women's sandal under $30 anywhere in the index is found.
+* Cost: an O(n) boolean op over 100K rows, microseconds.
+* Small additive terms on top: keyword boost, Bayesian rating prior.
 
 Two small additive terms sit on top of the fused score: +0.5 x RRF(rank 1) when a
 planner keyword literally appears in the title, and +0.1 x RRF(rank 1) x normalised
@@ -67,24 +71,23 @@ multiply. Five slots = one matmul, not five.
 
 ## Variants and duplicates
 
-56,720 titles appear more than once under different `parent_asin`, and many more differ
-only by a size or colour suffix (`..., Black, Large` vs `..., White, Small`, or
-`(Blue, Size 9-12)`). Deleting them at ingest felt wrong, the two rows can carry different
-prices and images. So every row is kept and gets a `group_key`: lowercased title with
-trailing parentheses, size tokens and colour/size comma-segments stripped. At query time
-the highest scored row of a group represents it, and a group can only fill one slot of an
-outfit. The key is a heuristic and it will merge "Hanes socks, 6 pairs" with the 12 pairs
-listing, which i think is the right call for recommendations.
+* 56,720 titles repeat under different `parent_asin`; many more differ only by size or
+  colour suffix.
+* Nothing deleted at ingest (twin rows can carry different prices and images).
+* `group_key` = lowercased title minus trailing parens, size tokens, colour/size
+  comma-segments. Highest-scored row represents the group; one slot per group.
+* A heuristic: it merges "Hanes socks, 6 pairs" with the 12-pack. Right call for
+  recommendations.
 
 ## The planner
 
-The LLM's job is translation, from how people talk to how product listings are written.
-"I need an outfit to go to the beach this summer" becomes five slots (swimsuit, cover up,
-sandals, sun hat, sunglasses), each with a product-listing style query and a handful of
-title keywords. Single item requests become one slot. Structured output (pydantic schema
-on both providers) means i never parse free text, and a normaliser enforces the things a
-json schema can't: at most 5 slots, keywords deduped and capped at 6, per-slot budget
-allocations that don't add up to more than the total.
+The LLM's job is translation: how people talk -> how listings are written.
+
+* Beach query -> five slots (swimsuit, cover up, sandals, sun hat, sunglasses), each
+  with a listing-style query + title keywords. Single items -> one slot.
+* Structured output on both providers: no free-text parsing.
+* A normaliser enforces what a json schema cant: max 5 slots, keywords deduped and
+  capped at 6, budget allocations never above the total.
 
 Without a key, or when the call fails or the deadline is close, a regex planner takes
 over: one slot with the raw query, budget from patterns like "under $50" or "$20-40",
@@ -93,14 +96,13 @@ never fails, and the response says which planner ran.
 
 ## The reranker
 
-One call per slot, the slots of a request in parallel (output tokens dominate the latency,
-so five slots cost about what one costs), with the top 10 candidates of the slot as compact
-json (row id, title, price or null, rating, audience, store, material/colour/style when
-present, matched keywords, and an off_type_hint when a title matched one of the slot's
-exclude words). The model returns ordered picks with a one sentence reason and the
-evidence fields it used. Everything it returns is checked: ids must belong to that slot,
-duplicates dropped, the rest of the slot keeps retrieval order. An unpriced pick stays
-flagged `price_known: false`; the response never claims it fits the budget.
+* One call per slot, slots in parallel: output tokens dominate, so five slots cost
+  about what one costs.
+* Input: top 10 candidates as compact json (row id, title, price or null, rating,
+  audience, store, material/colour/style, matched keywords, off_type_hint).
+* Output: ordered picks + one-sentence reason + evidence fields.
+* Everything checked: ids belong to the slot, duplicates dropped, the rest keeps
+  retrieval order. Unpriced picks stay `price_known: false`.
 
 Catalog text goes into the prompt as data inside a json blob, labelled untrusted, with an
 instruction to never follow anything inside it. That's not a guarantee against prompt
@@ -114,16 +116,16 @@ away from off (`rerank=false`).
 
 ## Prices: strict when explicit, flagged when inferred
 
-94% of items have no price. If someone asks for "under $40" and we return an unpriced
-item, we can't claim it fits. So an explicit `max_price` on the request only admits items
-with a known price inside the window. That shrinks the pool a lot (a 100K index has ~11K
-priced items), and the first version applied the same rule to budgets the planner read out
-of the sentence. Result: "husband, outdoor wedding, budget 200 total" gave a priced wooden
-ring in the blazer slot while real blazers without a price were filtered out. So now a
-budget that came from the text keeps the unpriced items in the ranking, flagged
-`price_known: false`, with a small score bonus for the priced in-budget ones and a warning
-in the response. `include_unpriced` (true/false) overrides the automatic choice either way.
-Per-slot allocations of a total budget get a 10% floor so the planner can't starve a slot.
+94% of items have no price.
+
+* Explicit `max_price`: only known prices inside the window (a 100K index has ~11K
+  priced rows).
+* V1 applied that rule to inferred budgets too. Result: "husband, outdoor wedding,
+  budget 200 total" put a priced wooden ring in the blazer slot while unpriced real
+  blazers were filtered out.
+* Now: inferred budgets keep unpriced items, flagged `price_known: false` + warning,
+  with a small bonus for priced in-budget rows.
+* `include_unpriced` overrides either way. Per-slot allocations get a 10% floor.
 
 Planner failures do get a short negative cache (30 s, PLANNER_FAILURE_TTL_S) so an
 outage is not retried on every single request; a waiter whose own budget ran out never

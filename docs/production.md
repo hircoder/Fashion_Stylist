@@ -55,14 +55,15 @@ log line, so cost per request is a number you can read off, not an estimate.
 About 2,100 input and 195 output tokens per call. The two system prompts and the ten
 candidate rows are most of the input, which is why prompt caching pays.
 
-At 10,000 requests a day: about $360 on the Sonnet class as measured. The plan cache
-only removes the planner call (1 of 3.9 calls), so a 90% hit rate plus prompt caching on
-the system prompts (now marked cacheable in the adapter) lands around $200 a day; put a
-Haiku-class model on the rerank calls too and its under $100. Capacity per replica,
-measured not derived: the burst of 8 concurrent requests took 18.5 s, about 0.43 req/s
-sustained at `LLM_CONCURRENCY=8`, call it 35K LLM-mode requests a day per replica (or
-several million retrieval-only ones); the provider's tokens-per-minute quota is the
-ceiling before the CPU is.
+At 10,000 requests a day:
+
+* ~$360/day, Sonnet class, as measured.
+* ~$200/day with a 90% plan-cache hit rate + prompt caching (system prompts are marked
+  cacheable in the adapter). The plan cache removes 1 of 3.9 calls.
+* Under $100/day with a Haiku-class reranker on top.
+* Capacity per replica, measured: 8-way burst in 18.5 s = ~0.43 req/s sustained at
+  `LLM_CONCURRENCY=8`, ~35K LLM-mode requests/day (millions retrieval-only). Provider
+  TPM quota binds before CPU.
 
 Ways to cut the bill, in order of payoff: cache plans across replicas (Redis); rerank
 with a smaller model (the paired eval says the reranker adds about a point of type-match,
@@ -98,13 +99,14 @@ what it buys:
 6. Retrieval from 130 ms to about 40 ms: pre-tokenised bm25 queries, int8 embeddings, an
    ANN index (HNSW) only once the catalog passes about a million rows.
 
-Budget after the ladder: plan 10 to 300 ms, retrieval 40 to 130 ms, rerank 60 to 120 ms,
-selection 1 ms: p50 around 250 to 600 ms, p95 under a second, cost per request near
-$0.001 with the GPU amortised. What gets lost: the large model's judgement on unusual
-requests and its written reasons. Keep that path as a background refinement ("better
-picks in 8 s") and as the source of training data. Independently of all this, streaming per-slot results over SSE gets the retrieval-order
-products on screen in a couple hundred ms once the plan is cached or distilled, with the
-reranked order swapping in as the calls land.
+Budget after the ladder:
+
+* plan 10-300 ms + retrieve 40-130 ms + rerank 60-120 ms + select 1 ms.
+* p50 ~250-600 ms, p95 under a second, ~$0.001/request with the GPU amortised.
+* Lost: the big model's judgement on odd requests + written reasons. Keep it as a
+  background refinement ("better picks in 8 s") and the training-data source.
+* Independent win: per-slot SSE streaming puts retrieval-order products on screen in a
+  couple hundred ms; reranked order swaps in as calls land.
 
 ## Recommended production setup
 
@@ -119,11 +121,14 @@ reranked order swapping in as the calls land.
 | edge | TLS, CDN for `/assets`, WAF rate rules, request size limit at the edge too | the in-app limits are the second line |
 | secrets | platform secret store or Vault, rotated keys, nothing in images or logs | the settings repr hides keys, errors are scrubbed, queries are not logged unless LOG_QUERIES=1 |
 
-Sizing: retrieval-only traffic scales at about 60 req/s per vCPU pair; LLM traffic at
-about 0.43 req/s per replica (measured with a burst at LLM_CONCURRENCY=8, not derived
-from a formula, the calls overlap too much for one). Memory is index bytes x 2 (float16 on disk, float32 in memory)
-plus about 600 MB fixed. Startup is 10 to 20 s with the index download; readiness on `/ready`
-with a 60 s initial delay, liveness on `/health`.
+Sizing:
+
+* Retrieval-only: ~60 req/s per vCPU pair.
+* LLM traffic: ~0.43 req/s per replica (measured burst at LLM_CONCURRENCY=8, not a
+  formula; the calls overlap too much for one).
+* Memory: index bytes x 2 (float16 disk, float32 RAM) + ~600 MB fixed.
+* Startup 10-20 s incl. index download. Readiness `/ready` (60 s initial delay),
+  liveness `/health`.
 
 Settings that matter: `REQUEST_DEADLINE_S=40 PLANNER_BUDGET_S=15 RERANK_BUDGET_S=20
 LLM_CONCURRENCY=8 MAX_INFLIGHT_REQUESTS=16 RATE_LIMIT_PER_MINUTE=60 MAX_BODY_BYTES=16384
@@ -145,15 +150,16 @@ INDEX_SHA256=...`.
   errors or logs. Residual: the host check is a resolve-then-connect pair, so DNS
   rebinding between the two is not caught; INDEX_URL is operator configuration.
 
-Fallback ladder (a degradation inside a served answer lands in `warnings`; no-key mode
-shows in `llm_info`, a missing index or a tripped limit is an http error): planner error
-or timeout -> regex
-planner (with a 30 s negative cache against stampedes); one rerank call fails or is late
--> that slot keeps retrieval order; reranker rejects everything -> type matches in
-retrieval order, or an empty slot; a slot below k in the price window -> flagged unpriced
-backfill when the bound was inferred; index missing at boot -> `/health` stays up with a
-curated message, `/ready` and `/recommend` return 503 (or the process exits with
-`STARTUP_FAIL_FAST`); no key at all -> `LLM_PROVIDER=none` runs the service as search.
+Fallback ladder (degradations land in `warnings`; no-key mode shows in `llm_info`; a
+missing index or tripped limit is an http error):
+
+* Planner error/timeout -> regex planner (30 s negative cache against stampedes).
+* One rerank call fails/late -> that slot keeps retrieval order.
+* Reranker rejects everything -> type matches in retrieval order, or an empty slot.
+* Slot below k in the price window -> flagged unpriced backfill (inferred bound only).
+* Index missing at boot -> `/health` explains, `/ready` + `/recommend` 503 (or exit
+  with `STARTUP_FAIL_FAST`).
+* No key -> `LLM_PROVIDER=none`, plain search.
 
 ## To add before real traffic
 
