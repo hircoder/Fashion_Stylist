@@ -855,12 +855,24 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
     <h2><a class="tl" href="#s18">What is missing, and the plan to close it</a></h2>
     <div class="two">
       <div>
-        <h3 style="margin-top:0">Gaps, by impact</h3>
+        <h3 style="margin-top:0">Production blockers, from the audit (the full plan with efforts is <code>TODO.md</code>)</h3>
+        <table>
+          <tr><th style="width:8%">prio</th><th>gap</th><th>fix</th></tr>
+          <tr><td>P0</td><td>no authentication: anyone with the URL can burn Bedrock tokens</td><td>API key verified at the edge (CloudFront function), per-key quotas; ALB auth later</td></tr>
+          <tr><td>P0</td><td>single origin: a deploy costs a measured 6.7 s of 5xx, an instance loss is an outage</td><td>ALB + autoscaling group (min 2, two AZs) or an ECS service; rolling deploys take the window to zero and make the origin hop TLS</td></tr>
+          <tr><td>P0</td><td>two deploy paths: the Dockerfile exists but AWS runs a bare systemd tarball</td><td>one artifact: CI builds the image, ECR, ECS Fargate runs it; trivy scan in CI</td></tr>
+          <tr><td>P0</td><td>no alarms; logs die with the instance</td><td>JSON logs to CloudWatch, alarms on p95 / 5xx / fallback rate / Bedrock throttles / budget, one dashboard. The metrics already sit in the request log line</td></tr>
+          <tr><td>P1</td><td>per-worker caches and limiter (answers flip ~1 s cold; burst doubles)</td><td>ElastiCache Redis for plan + response caches and the limiter</td></tr>
+          <tr><td>P1</td><td>hand-run deploys; static catalog</td><td>GitHub Actions to ECR to ECS with canary + auto-rollback; a scheduled index rebuild that flips INDEX_URL</td></tr>
+          <tr><td>P1</td><td>provider outages retry every 30 s</td><td>a real circuit breaker (closed / open / half-open) around each provider</td></tr>
+        </table>
+        <h3>Product and ML gaps</h3>
         <table>
           <tr><th>gap</th><th>why it matters</th><th>plan</th></tr>
-          <tr><td>relevance is judged by 28 hand written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job</td></tr>
+          <tr><td>relevance is judged by 28 hand written rules</td><td>type-match says nothing about fit, style or whether a human would buy it</td><td>200 labelled queries (3 graders, majority vote), nDCG@4; an LLM judge calibrated against the labels, nightly in CI</td></tr>
+          <tr><td>plans vary across identical calls, even at temperature 0</td><td>cold answers differ between requests; provider-side nondeterminism</td><td>plan pinning by query hash in the shared cache now; the distilled 1-3B planner (deterministic, ~200 ms) later</td></tr>
           <tr><td>no online signal</td><td>offline metrics drift from what shoppers do</td><td>week 3: impression and click logging with request_id, a holdout, CTR and add-to-cart per configuration; A/B switch on prompt version and reranker model</td></tr>
-          <tr><td>latency is LLM-bound (97%)</td><td>11 s median is fine for a stylist page, way too slow for type-ahead</td><td>week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s</td></tr>
+          <tr><td>full rerank is 1.4-1.8 s; results arrive all at once</td><td>good, not great; perceived latency is the page filling in</td><td>cross-encoder rerank on the origin's idle vCPUs (60-120 ms for 50 pairs) behind a flag; SSE per slot so retrieval order renders in ~200 ms</td></tr>
           <tr><td>no outfit coherence</td><td>slots are ranked independently; a floral shirt and a striped blazer can both win</td><td>week 4-5: a coherence pass over the top 3 per slot (colour and style fields, one LLM call on the cross product), evaluated on the labelled set</td></tr>
           <tr><td>catalog scale</td><td>brute-force matmul is fine to about 1M rows x 384-d; beyond that memory and p95 grow linearly</td><td>when needed: HNSW (faiss or usearch) with the same masks applied after search, int8 embeddings, the catalog served from parquet row groups instead of pandas</td></tr>
           <tr><td>single-tenant, single-language</td><td>the prompts and the audience heuristic are English only</td><td>multilingual embedding model (bge-m3) and a language field in the plan; per-tenant index and prompt version</td></tr>
@@ -871,9 +883,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <h3 style="margin-top:0">Tests still to run</h3>
         <table>
           <tr><th>test</th><th>tool</th><th>pass condition</th></tr>
-          <tr><td>load, retrieval only: 50 req/s for 10 min on the production container</td><td>k6 or Locust</td><td>p95 &lt; 150 ms, 0 errors, RSS flat</td></tr>
-          <tr><td>load, LLM mode: 1 req/s for 30 min</td><td>k6 against a staging key</td><td>p95 &lt; 20 s, 429 handled, fallback rate &lt; 5%</td></tr>
-          <tr><td>soak: 12 h at 20% capacity</td><td>k6 + Grafana</td><td>no memory growth, no thread pool leak, cache bounded</td></tr>
+          <tr><td>load and a short soak ran in round three (21 ramp cells to c=32, 5 min at c=6, zero errors). Still to run: 12 h at 20% capacity</td><td>k6 + Grafana</td><td>no memory growth, no thread pool leak, cache bounded</td></tr>
           <tr><td>chaos: LLM returns 500 / garbage / hangs, index corrupted mid-run, replica killed during install</td><td>toxiproxy, a fake provider, kill -9</td><td>every case ends in a warning or a clean 503, never a 500 or a wrong answer</td></tr>
           <tr><td>prompt injection corpus (catalog text and queries)</td><td>a fixture of 100 hostile strings</td><td>no url, no instruction echo, ids still validated</td></tr>
           <tr><td>property-based: planner normalisation and budget allocation</td><td>hypothesis</td><td>invariants hold for any input (sum &lt;= total, floors, caps)</td></tr>

@@ -605,6 +605,25 @@ Known limits, stated:
 * Rate limiter is per worker: effective burst is twice the configured one.
 * Workers warm seperately: a cold query can answer differently for ~1 s.
 
+### The production-readiness audit
+
+A full pass over the code, the infra and the docs asking "what would an SRE team
+refuse to sign off on". The answers, each with a solution and an effort estimate,
+live in `TODO.md`. The P0 list, so it is not buried:
+
+| prio | gap | fix |
+|---|---|---|
+| P0 | no authentication on the API | edge API key (CloudFront function), per-key quotas |
+| P0 | single origin: 6.7 s deploy window, no failover | ALB + ASG min 2 across AZs, or ECS; rolling deploys; TLS origin hop |
+| P0 | AWS runs a tarball while the Dockerfile sits unused | one artifact: CI -> ECR -> ECS Fargate; trivy scan |
+| P0 | no alarms, logs die with the instance | JSON logs to CloudWatch, alarms on p95 / 5xx / fallback / budget |
+| P1 | per-worker caches and limiter | ElastiCache Redis |
+| P1 | hand-run deploys, static catalog | GitHub Actions pipeline; scheduled index rebuild |
+
+What already holds up: fail-closed index loading, typed fallbacks for every LLM
+error class, IMDSv2 enforced, no keys on the box, Retry-After on 429/503, the
+measured battery. The audit found process gaps, not correctness ones.
+
 A review pass ran before the Tokyo cutover: both cache rules above started as bugs it
 caught, and worker count + planner budget were measured because it insisted.
 
@@ -675,6 +694,8 @@ tests/            pytest suite + the 486 row fixture
   bugs the review pass caught.
 * `deploy/aws/README.md`: the deployment kit on one page: scripts, knobs, probes,
   all 22 experiments, the runbook.
+* `TODO.md`: the production-readiness audit: every gap with a priority, a
+  solution and an effort estimate.
 * `docs/overview.md`: the deck as plain markdown, for reading outside a browser.
 * `docs/notebooks.md`: the exploration notebook flattened into one page, charts
   included.

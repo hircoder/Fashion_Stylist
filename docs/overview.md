@@ -654,13 +654,26 @@ _17 / 19 · Guardrails, observability, reliability_
 
 _18 / 19 · Gaps and next actions_
 
-### Gaps, by impact
+### Production blockers, from the audit (the full plan with efforts is `TODO.md`)
+
+| prio | gap | fix |
+|---|---|---|
+| P0 | no authentication: anyone with the URL can burn Bedrock tokens | API key verified at the edge (CloudFront function), per-key quotas; ALB auth later |
+| P0 | single origin: a deploy costs a measured 6.7 s of 5xx, an instance loss is an outage | ALB + autoscaling group (min 2, two AZs) or an ECS service; rolling deploys take the window to zero and make the origin hop TLS |
+| P0 | two deploy paths: the Dockerfile exists but AWS runs a bare systemd tarball | one artifact: CI builds the image, ECR, ECS Fargate runs it; trivy scan in CI |
+| P0 | no alarms; logs die with the instance | JSON logs to CloudWatch, alarms on p95 / 5xx / fallback rate / Bedrock throttles / budget, one dashboard. The metrics already sit in the request log line |
+| P1 | per-worker caches and limiter (answers flip ~1 s cold; burst doubles) | ElastiCache Redis for plan + response caches and the limiter |
+| P1 | hand-run deploys; static catalog | GitHub Actions to ECR to ECS with canary + auto-rollback; a scheduled index rebuild that flips INDEX_URL |
+| P1 | provider outages retry every 30 s | a real circuit breaker (closed / open / half-open) around each provider |
+
+### Product and ML gaps
 
 | gap | why it matters | plan |
 |---|---|---|
-| relevance is judged by 28 hand written rules | type-match says nothing about fit, style or whether a human would buy it | week 1-2: 200 labelled queries (3 graders, majority vote), nDCG@4 and slot recall; LLM-as-judge calibrated against the labels; both wired into CI as a nightly job |
+| relevance is judged by 28 hand written rules | type-match says nothing about fit, style or whether a human would buy it | 200 labelled queries (3 graders, majority vote), nDCG@4; an LLM judge calibrated against the labels, nightly in CI |
+| plans vary across identical calls, even at temperature 0 | cold answers differ between requests; provider-side nondeterminism | plan pinning by query hash in the shared cache now; the distilled 1-3B planner (deterministic, ~200 ms) later |
 | no online signal | offline metrics drift from what shoppers do | week 3: impression and click logging with request_id, a holdout, CTR and add-to-cart per configuration; A/B switch on prompt version and reranker model |
-| latency is LLM-bound (97%) | 11 s median is fine for a stylist page, way too slow for type-ahead | week 2: prompt caching, shared Redis plan cache, Haiku-class rerank behind a flag, streamed partial results per slot (server-sent events) so the page fills in under 5 s |
+| full rerank is 1.4-1.8 s; results arrive all at once | good, not great; perceived latency is the page filling in | cross-encoder rerank on the origin's idle vCPUs (60-120 ms for 50 pairs) behind a flag; SSE per slot so retrieval order renders in ~200 ms |
 | no outfit coherence | slots are ranked independently; a floral shirt and a striped blazer can both win | week 4-5: a coherence pass over the top 3 per slot (colour and style fields, one LLM call on the cross product), evaluated on the labelled set |
 | catalog scale | brute-force matmul is fine to about 1M rows x 384-d; beyond that memory and p95 grow linearly | when needed: HNSW (faiss or usearch) with the same masks applied after search, int8 embeddings, the catalog served from parquet row groups instead of pandas |
 | single-tenant, single-language | the prompts and the audience heuristic are English only | multilingual embedding model (bge-m3) and a language field in the plan; per-tenant index and prompt version |
@@ -670,9 +683,7 @@ _18 / 19 · Gaps and next actions_
 
 | test | tool | pass condition |
 |---|---|---|
-| load, retrieval only: 50 req/s for 10 min on the production container | k6 or Locust | p95 < 150 ms, 0 errors, RSS flat |
-| load, LLM mode: 1 req/s for 30 min | k6 against a staging key | p95 < 20 s, 429 handled, fallback rate < 5% |
-| soak: 12 h at 20% capacity | k6 + Grafana | no memory growth, no thread pool leak, cache bounded |
+| load and a short soak ran in round three (21 ramp cells to c=32, 5 min at c=6, zero errors). Still to run: 12 h at 20% capacity | k6 + Grafana | no memory growth, no thread pool leak, cache bounded |
 | chaos: LLM returns 500 / garbage / hangs, index corrupted mid-run, replica killed during install | toxiproxy, a fake provider, kill -9 | every case ends in a warning or a clean 503, never a 500 or a wrong answer |
 | prompt injection corpus (catalog text and queries) | a fixture of 100 hostile strings | no url, no instruction echo, ids still validated |
 | property-based: planner normalisation and budget allocation | hypothesis | invariants hold for any input (sum <= total, floors, caps) |
