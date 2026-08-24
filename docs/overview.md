@@ -68,7 +68,7 @@ I profiled every row before writing code. Two of the fourteen fields in the brie
 * Popular listings carry far better metadata (the chart on the right), so the default index is the 100K most rated rows: it builds in 3 minutes and gives the reranker real fields to cite.
 * A stated bias: in every response, measured against random and full (slide 10).
 * 56,720 titles repeat under different ids; size and colour variants everywhere.
-* Dense retrieval leaks gender ("men's chinos" -> a women's office suit): audience became a mask, not a hope.
+* Dense retrieval leaks gender ("men's chinos" returned a women's office suit), so audience became a mask, not a hope.
 
 ---
 
@@ -363,7 +363,7 @@ _10 / 19 · Evaluation_
 
 * match@k = title passes a hand-written type rule per slot (brand rules need brand + type). Whole-word. Rules written before any output was seen.
 * Macro, full pipeline: 0.857 (95% CI 0.76-0.94) popular; 0.967 (0.94-0.99) full. Zero empty slots, zero price violations, every run.
-* Same 28 plans on every index -> paired deltas: reranker vs plan-only +0.009 (CI -0.00 to +0.03); dense vs hybrid within 2 points under the planner.
+* Every configuration reuses the same 28 plans on every index, so the deltas are paired: reranker vs plan-only +0.009 (CI -0.00 to +0.03); dense vs hybrid within 2 points under the planner.
 * A regression diagnostic, not relevance. Rest: `docs/evaluation.md`.
 
 ### What the numbers say

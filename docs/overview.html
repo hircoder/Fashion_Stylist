@@ -189,7 +189,7 @@
           <li>Popular listings carry far better metadata (the chart on the right), so the default index is the 100K most rated rows: it builds in 3 minutes and gives the reranker real fields to cite.</li>
           <li>A stated bias: in every response, measured against random and full (slide 10).</li>
           <li>56,720 titles repeat under different ids; size and colour variants everywhere.</li>
-          <li>Dense retrieval leaks gender ("men's chinos" -> a women's office suit): audience became a mask, not a hope.</li>
+          <li>Dense retrieval leaks gender ("men's chinos" returned a women's office suit), so audience became a mask, not a hope.</li>
         </ul>
   </div>
 </section>
@@ -531,7 +531,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
         <ul class="small" style="list-style:disc; padding-left:18px">
           <li>match@k = title passes a hand-written type rule per slot (brand rules need brand + type). Whole-word. Rules written before any output was seen.</li>
           <li>Macro, full pipeline: 0.857 (95% CI 0.76-0.94) popular; 0.967 (0.94-0.99) full. Zero empty slots, zero price violations, every run.</li>
-          <li>Same 28 plans on every index -> paired deltas: reranker vs plan-only +0.009 (CI -0.00 to +0.03); dense vs hybrid within 2 points under the planner.</li>
+          <li>Every configuration reuses the same 28 plans on every index, so the deltas are paired: reranker vs plan-only +0.009 (CI -0.00 to +0.03); dense vs hybrid within 2 points under the planner.</li>
           <li>A regression diagnostic, not relevance. Rest: <code>docs/evaluation.md</code>.</li>
         </ul>
       </div>
