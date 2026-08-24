@@ -49,6 +49,8 @@ _3 / 19 · Data_
 
 I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (`categories`, `bought_together`): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.
 
+How often each field is filled in, across all 826,108 listings:
+
 | field | non-empty |
 |---|---|
 | title, images, rating | 100% |
@@ -58,6 +60,8 @@ I profiled every row before writing code. Two of the fourteen fields in the brie
 | price | 6.1% |
 | categories, bought_together | 0% |
 
+The same fields, split by how many ratings a listing has. Read down a column: coverage climbs with popularity.
+
 | ratings count | rows | price | features | dept. |
 |---|---|---|---|---|
 | 0 to 4 | 450,202 | 4.9% | 50% | 12% |
@@ -65,10 +69,12 @@ I profiled every row before writing code. Two of the fourteen fields in the brie
 | 20 to 99 | 85,025 | 11% | 68% | 25% |
 | 100+ | 16,483 | 26% | 79% | 49% |
 
-* Popular listings carry far better metadata (the chart on the right), so the default index is the 100K most rated rows: it builds in 3 minutes and gives the reranker real fields to cite.
-* A stated bias: in every response, measured against random and full (slide 10).
-* 56,720 titles repeat under different ids; size and colour variants everywhere.
-* Dense retrieval leaks gender ("men's chinos" returned a women's office suit), so audience became a mask, not a hope.
+* What the right table says: a listing with 100+ ratings has a price 26% of the time, features 79%, a department 49%. A listing with 0 to 4 ratings: 4.9%, 50%, 12%. More popular means better documented.
+* Why that matters: the price filter can only act on rows that HAVE a price, and the reranker can only justify a pick with fields that exist. Thin rows can only be recommended on trust.
+* The decision: the default index keeps the 100K listings with the most ratings, wich here means everything with 20+ ratings (85,025 + 16,483 = 101,508 rows). Builds in 3 minutes; `make index-full` still serves all 826K.
+* Indexing only the popular rows is a bias, so it is never hidden: every response names the subset it was answered from (`index_info.sampling`), and the evaluation on slide 10 runs the same queries against a random sample and the full catalog to measure what the subset costs.
+* The catalog is full of near-duplicates: 56,720 titles appear more than once under different product ids, mostly the same item in another size or colour. At query time these collapse to one result each, through a group key computed from the title.
+* Embedding search on its own leaks gender: "men's chinos" returned a women's office suit, because embeddings place all chinos near each other regardless of audience. That is why audience is enforced as a hard filter before ranking, instead of hoping the similarity score gets it right.
 
 ---
 
