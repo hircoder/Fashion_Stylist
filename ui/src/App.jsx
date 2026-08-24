@@ -283,7 +283,7 @@ export default function App() {
                   disabled={!useLlm}
                   title="one llm rerank call per slot, llm-written reasons"
                 >
-                  full rerank <span className="seg-note">~5-8 s</span>
+                  full rerank <span className="seg-note">~1-2 s</span>
                 </button>
               </div>
             </div>
