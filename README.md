@@ -618,6 +618,53 @@ STYLIST_REGION=ap-northeast-1 ./03_ec2.sh    # sg from the cloudfront prefix lis
 ./99_teardown.sh                             # removes all of it, both regions
 ```
 
+### Tested like it will be used
+
+Latency probes prove the fast path; they say nothing about contracts, guardrails or
+what a deploy costs. `deploy/aws/test_battery.py` runs a ten-section acceptance
+battery against the live endpoint (raw results: `deploy/aws/experiments/exp20` to
+`exp22`). Around 11,500 requests hit production during it. Zero were 5xx outside the
+one deliberately induced restart window.
+
+| section | what it proves | result |
+|---|---|---|
+| contract (20 checks) | 422/413/405 with the documented error body, full response schema | 20/20 |
+| endpoints + headers | UI, deck, /docs, /health, /ready; CSP, nosniff, frame DENY, h3 advertised; /assets served from the edge | all pass |
+| guardrail envelope | 70 rapid requests: first 429 at request 65, throttles answer in 12 ms with a proper body, clean recovery in 20 s | pass |
+| steady keep-alive, n=100 | the floor of the deployment | p50 12.8 ms, p99 16.9 ms, max 17.5 ms |
+| fresh TLS per request, n=50 | what a first click pays | p50 34.9 ms, p99 70 ms |
+| ramp, 21 cells, c=1..32 | repeat / unique / mixed workloads | 672 requests, zero errors |
+| soak, 5 min at c=6 mixed | drift and leaks | 5,010 requests, 16.7 req/s, zero errors, per-minute p95 flat at 0.87 to 1.01 s, host memory flat at 1.8 to 2.1 GB |
+| restart under traffic | the cost of a deploy | 6.7 s of 502/504, then full recovery |
+| cache ladder, asserted | exact, semantic and response caches behave | pass |
+| consistency, x5 | identical warm answers | identical |
+
+The capacity story from the ramp: repeat traffic (what a demo audience generates)
+holds 36 to 52 ms p50 from c=1 all the way to c=32, peaking at 100 req/s. Unique cold
+traffic, where every request pays real retrieval, saturates the four vCPUs at 10 to
+13 req/s; p50 climbs to 2.7 s at c=32 with zero 5xx, just queuing. That number, not
+the cache-hit one, is what you size replicas from.
+
+The battery also earned its keep the old fashioned way: it caught a real bug. One
+worker held a Nova Lite beach plan with five slots and a $135 total budget; tight
+price masks left the type gate short, the ranker widened its window x4 per pass, and
+every pass hydrated every window row through per-row pandas iloc. 19,783 row
+hydrations in one request, server p50 2.44 s, 10.4 s under 12-way load, and the
+response cache refused to mask it (the plan carried warnings, and degraded answers
+are never cached, by design). The fix reads scoring fields with one vectorized column
+gather per window and leaves the row walk to the rows a slot returns: the same
+captured plan replays at 985 ms cold, live steady p50 fell to 12.8 ms, a regression
+test pins it, and the rerun quality probe (match@4 micro 0.800, success 0.50, 28/28
+plans landed) confirms ranking did not move. It never showed on us-east-1 or in the
+local eval; only live Lite traffic walked that path. Which is the argument for this
+whole section.
+
+Known limits, stated rather than hidden: a single origin means a deploy costs ~7 s of
+5xx (origin failover or a second box removes it); the rate limiter is per worker, so
+the effective burst is twice the configured one; and each worker warms its own caches,
+so a cold query can answer differently for about a second depending on which worker
+takes it.
+
 A review pass over the deployment plan ran before the Tokyo cutover, and it earned its
 keep: the two cache rules above started as bugs it caught, and the worker count and
 planner budget were measured instead of assumed because it insisted. The numbers in
@@ -686,8 +733,8 @@ tests/            pytest suite + the 486 row fixture
 * `docs/aws-latency.md`: the AWS story in full, both rounds, every number and both
   bugs the review pass caught.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
-  data flow (18 slides, agenda on the left; slides 14 and 15 are the AWS build and its
-  measurements).
+  data flow (19 slides, agenda on the left; slides 14 to 16 are the AWS build, its
+  measurements and the acceptance battery).
 
 ## Limitations and what i would do next
 

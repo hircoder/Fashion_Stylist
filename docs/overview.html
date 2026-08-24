@@ -96,10 +96,10 @@
 </style>
 </head>
 <body>
-<div id="pos">1 / 18</div>
+<div id="pos">1 / 19</div>
 <button id="agenda-toggle" type="button" aria-controls="agenda" aria-expanded="false">agenda</button>
 <nav id="agenda" aria-label="agenda">
-  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 18</span></a>
+  <a class="ttl" href="#s1">Agenda <span id="ag-pos">1 / 19</span></a>
   <div class="bar"><i id="ag-bar"></i></div>
   <table>
     <tr data-s="0"><td class="n">1</td><td><a class="row" href="#s1">Overview</a></td></tr>
@@ -117,16 +117,17 @@
     <tr data-s="12"><td class="n">13</td><td><a class="row" href="#s13">Under one second</a></td></tr>
     <tr data-s="13"><td class="n">14</td><td><a class="row" href="#s14">AWS deployment</a></td></tr>
     <tr data-s="14"><td class="n">15</td><td><a class="row" href="#s15">AWS results</a></td></tr>
-    <tr data-s="15"><td class="n">16</td><td><a class="row" href="#s16">Guardrails and observability</a></td></tr>
-    <tr data-s="16"><td class="n">17</td><td><a class="row" href="#s17">Gaps and next actions</a></td></tr>
-    <tr data-s="17"><td class="n">18</td><td><a class="row" href="#s18">Files and deployment</a></td></tr>
+    <tr data-s="15"><td class="n">16</td><td><a class="row" href="#s16">AWS verification</a></td></tr>
+    <tr data-s="16"><td class="n">17</td><td><a class="row" href="#s17">Guardrails and observability</a></td></tr>
+    <tr data-s="17"><td class="n">18</td><td><a class="row" href="#s18">Gaps and next actions</a></td></tr>
+    <tr data-s="18"><td class="n">19</td><td><a class="row" href="#s19">Files and deployment</a></td></tr>
   </table>
   <div class="hint">Arrow keys or scroll. On slide 5, left / right step the flow.</div>
 </nav>
 
 <section class="slide" id="s1">
   <div class="inner fade">
-    <div class="no">1 / 18 &middot; Take-home project</div>
+    <div class="no">1 / 19 &middot; Take-home project</div>
     <h1><a class="tl" href="#s1">Fashion Stylist: a semantic recommendation service</a></h1>
     <p>The brief: a small service that takes a sentence like the one below, works out what the person actually needs, and finds it in the Amazon Fashion catalog (826,108 listings) using semantic search and an LLM. Exposed as an API. This page is the short version; the README, the PRD, the decision records and the evaluation doc in <code>docs/</code> have the long one.</p>
     <p class="small">shopper types:</p>
@@ -144,7 +145,7 @@
 
 <section class="slide" id="s2">
   <div class="inner fade">
-    <div class="no">2 / 18 &middot; Scope and business case</div>
+    <div class="no">2 / 19 &middot; Scope and business case</div>
     <h2><a class="tl" href="#s2">Scope and business case</a></h2>
     <p>A catalog search box understands product words. "I need an outfit to go to the beach this summer" has none, and the budget, the audience or the occasion hiding in a sentence get dropped by keyword search. The business value of fixing that: one search box that accepts situations, bundles instead of single items, and answers that explain themselves so the product team can trust and debug them.</p>
     <p>I wrote a short PRD first (<code>docs/prd.md</code>) and kept it honest as the data pushed back. The requirements and how each one is met:</p>
@@ -163,7 +164,7 @@
 
 <section class="slide" id="s3">
   <div class="inner fade">
-    <div class="no">3 / 18 &middot; Data</div>
+    <div class="no">3 / 19 &middot; Data</div>
     <h2><a class="tl" href="#s3">Data: what the catalog contains and what it lacks</a></h2>
     <p>I profiled every row before writing code. Two of the fourteen fields in the brief are empty on every single row (<code>categories</code>, <code>bought_together</code>): no taxonomy, no "people also bought". Price exists for 6% of listings. The title is always there and it's dense: brand, gender, type, colour, size, in a median of 89 characters.</p>
     <div class="two">
@@ -190,7 +191,7 @@
 
 <section class="slide" id="s4">
   <div class="inner fade">
-    <div class="no">4 / 18 &middot; Exploration</div>
+    <div class="no">4 / 19 &middot; Exploration</div>
     <h2><a class="tl" href="#s4">Exploration: scripts, notebooks and prompt experiments</a></h2>
     <div class="two">
       <div>
@@ -229,7 +230,7 @@
 
 <section class="slide" id="s5">
   <div class="inner wide fade">
-    <div class="no">5 / 18 &middot; Architecture, one request animated</div>
+    <div class="no">5 / 19 &middot; Architecture, one request animated</div>
     <h2><a class="tl" href="#s5">Architecture and data flow</a></h2>
     <div class="stage" id="stage">
       <svg class="wires" id="wires" viewBox="0 0 1200 640" preserveAspectRatio="none" aria-hidden="true">
@@ -273,7 +274,7 @@
 
 <section class="slide" id="s6">
   <div class="inner wide fade">
-    <div class="no">6 / 18 &middot; Design decisions</div>
+    <div class="no">6 / 19 &middot; Design decisions</div>
     <h2><a class="tl" href="#s6">Design decisions and their rationale</a></h2>
     <p class="small">One line each here; each has a full record in <code>docs/adr/</code> (context, decision, why, consequences, alternatives).</p>
     <table>
@@ -299,7 +300,7 @@
 
 <section class="slide" id="s7">
   <div class="inner fade">
-    <div class="no">7 / 18 &middot; Technology stack</div>
+    <div class="no">7 / 19 &middot; Technology stack</div>
     <h2><a class="tl" href="#s7">Technology stack</a></h2>
     <table>
       <tr><td>Python 3.12, FastAPI, pydantic</td><td>typed request and response models, OpenAPI at <code>/docs</code> for free, async pipeline, <code>/health</code> and <code>/ready</code></td></tr>
@@ -315,7 +316,7 @@
 
 <section class="slide" id="s8">
   <div class="inner fade">
-    <div class="no">8 / 18 &middot; Capabilities</div>
+    <div class="no">8 / 19 &middot; Capabilities</div>
     <h2><a class="tl" href="#s8">Features and capabilities</a></h2>
     <ul>
       <li>Outfit decomposition: "what to wear to an outdoor wedding" becomes shirt, pants, blazer, shoes, tie. A single item request stays one slot.</li>
@@ -333,7 +334,7 @@
 
 <section class="slide" id="s9">
   <div class="inner fade">
-    <div class="no">9 / 18 &middot; Sample results</div>
+    <div class="no">9 / 19 &middot; Sample results</div>
     <h2><a class="tl" href="#s9">Sample results</a></h2>
     <p class="small">100K index, claude-sonnet-4-6 as the model. Output trimmed to fit.</p>
     <div class="tabs">
@@ -504,7 +505,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s10">
   <div class="inner wide fade">
-    <div class="no">10 / 18 &middot; Evaluation</div>
+    <div class="no">10 / 19 &middot; Evaluation</div>
     <h2><a class="tl" href="#s10">Evaluation and quality</a></h2>
     <div class="two">
       <div>
@@ -544,7 +545,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s11">
   <div class="inner wide fade">
-    <div class="no">11 / 18 &middot; Production numbers</div>
+    <div class="no">11 / 19 &middot; Production numbers</div>
     <h2><a class="tl" href="#s11">Latency, throughput and cost, measured</a></h2>
     <div class="two">
       <div>
@@ -591,7 +592,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s12">
   <div class="inner wide fade">
-    <div class="no">12 / 18 &middot; Production deployment</div>
+    <div class="no">12 / 19 &middot; Production deployment</div>
     <h2><a class="tl" href="#s12">Recommended production setup</a></h2>
     <div class="two">
       <div>
@@ -631,7 +632,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s13">
   <div class="inner wide fade">
-    <div class="no">13 / 18 &middot; Under one second</div>
+    <div class="no">13 / 19 &middot; Under one second</div>
     <h2><a class="tl" href="#s13">Getting the total under one second</a></h2>
     <p>97% of the 11.5 s is two LLM calls that run one after the other. Tuning them wont reach one second, taking them out of the synchronous path does. Each rung below is independent and measurable on the eval set before it ships.</p>
     <div class="two">
@@ -669,7 +670,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s14">
   <div class="inner wide fade">
-    <div class="no">14 / 18 &middot; AWS deployment</div>
+    <div class="no">14 / 19 &middot; AWS deployment</div>
     <h2><a class="tl" href="#s14">The AWS build: CloudFront to Tokyo to Bedrock</a></h2>
     <p>The <code>AWS_deployment</code> branch is rungs 1, 2 and half of 6, deployed and measured. One request path: CloudFront at the edge, an EC2 origin in Tokyo, Bedrock in the same region for the planner. No docker on the box; systemd runs uvicorn straight from a source tarball out of S3.</p>
     <div class="two">
@@ -706,7 +707,7 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
 
 <section class="slide" id="s15">
   <div class="inner wide fade">
-    <div class="no">15 / 18 &middot; AWS results</div>
+    <div class="no">15 / 19 &middot; AWS results</div>
     <h2><a class="tl" href="#s15">Measured from Japan: 44 ms warm, 210 ms cold</a></h2>
     <div class="two">
       <div>
@@ -744,10 +745,47 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
   </div>
 </section>
 
+
 <section class="slide" id="s16">
   <div class="inner wide fade">
-    <div class="no">16 / 18 &middot; Guardrails, observability, reliability</div>
-    <h2><a class="tl" href="#s16">Guardrails, observability, fallback and monitoring</a></h2>
+    <div class="no">16 / 19 &middot; AWS verification</div>
+    <h2><a class="tl" href="#s16">The acceptance battery: 11,500 requests, one bug, zero excuses</a></h2>
+    <p>Latency probes prove the fast path. The battery (<code>deploy/aws/test_battery.py</code>, ten sections, results in exp20 to exp22) asks the rest: does the contract hold, do guardrails fail the right way, what does a deploy cost, where does the machine saturate.</p>
+    <div class="two">
+      <div>
+        <table>
+          <tr><th>section</th><th>result</th></tr>
+          <tr><td>contract: 20 checks, 422/413/405 + full schema</td><td>20/20</td></tr>
+          <tr><td>headers: CSP, nosniff, frame DENY, h3, edge-cached assets</td><td>all pass</td></tr>
+          <tr><td>guardrail: 70 rapid requests</td><td>first 429 at #65, throttles in 12 ms, clean recovery</td></tr>
+          <tr><td>steady keep-alive, n=100</td><td>p50 12.8 ms, p99 16.9, max 17.5</td></tr>
+          <tr><td>fresh TLS each request, n=50</td><td>p50 34.9 ms</td></tr>
+          <tr><td>ramp: 21 cells, c=1..32, three workloads</td><td>672 requests, zero errors</td></tr>
+          <tr><td>soak: 5 min at c=6 mixed</td><td>5,010 requests, p95 flat 0.87 to 1.01 s, memory flat</td></tr>
+          <tr><td>restart under traffic</td><td>6.7 s of 5xx, full recovery</td></tr>
+          <tr><td>cache ladder + consistency x5</td><td>asserted, identical answers</td></tr>
+        </table>
+        <p class="small">Capacity: repeat traffic 36 to 52 ms p50 up to c=32 (100 req/s peak); unique cold traffic saturates 4 vCPUs at 10 to 13 req/s, p50 2.7 s at c=32, zero 5xx. Size replicas from the cold number, not the cache-hit one.</p>
+      </div>
+      <div>
+        <h3 style="margin-top:0">The bug the battery caught</h3>
+        <p>One worker answered the beach query in 0.4 ms, the other in 2.44 s, on an idle box. Its plan had five slots and a $135 total budget: tight price masks starved the type gate, the ranker widened its window x4 per pass, and every pass hydrated every window row through per-row pandas iloc. 19,783 row hydrations per request; 10.4 s under 12-way load. The response cache refused to hide it, by design: degraded answers are never cached.</p>
+        <ul>
+          <li>Fix: one vectorized column gather per window for the scoring fields; the full row walk only for rows a slot returns.</li>
+          <li>Proof: captured plan replays 2,831 ms before, 985 ms after; live steady p50 2,442 to 12.8 ms; a regression test counts hydrations.</li>
+          <li>Quality unmoved: match@4 micro 0.800, success 0.50, 28/28 plans landed on the rerun.</li>
+          <li>It never showed on us-east-1 (Micro rarely emits budgets) or the local eval (Sonnet plans). Only live traffic walked it. That is the argument for the battery.</li>
+        </ul>
+        <p class="small">Stated limits: a deploy on one origin costs ~7 s of 5xx (failover removes it); the rate limiter is per worker, so effective burst doubles; workers warm seperately for about a second.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s17">
+  <div class="inner wide fade">
+    <div class="no">17 / 19 &middot; Guardrails, observability, reliability</div>
+    <h2><a class="tl" href="#s17">Guardrails, observability, fallback and monitoring</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Guardrails in place today</h3>
@@ -786,10 +824,10 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
   </div>
 </section>
 
-<section class="slide" id="s17">
+<section class="slide" id="s18">
   <div class="inner wide fade">
-    <div class="no">17 / 18 &middot; Gaps and next actions</div>
-    <h2><a class="tl" href="#s17">What is missing, and the plan to close it</a></h2>
+    <div class="no">18 / 19 &middot; Gaps and next actions</div>
+    <h2><a class="tl" href="#s18">What is missing, and the plan to close it</a></h2>
     <div class="two">
       <div>
         <h3 style="margin-top:0">Gaps, by impact</h3>
@@ -826,10 +864,10 @@ timings: {&#x27;plan_ms&#x27;: 6698.5, &#x27;retrieve_ms&#x27;: 234.9, &#x27;rer
   </div>
 </section>
 
-<section class="slide" id="s18">
+<section class="slide" id="s19">
   <div class="inner fade">
-    <div class="no">18 / 18 &middot; Files and deployment</div>
-    <h2><a class="tl" href="#s18">Repository structure, documentation and deployment</a></h2>
+    <div class="no">19 / 19 &middot; Files and deployment</div>
+    <h2><a class="tl" href="#s19">Repository structure, documentation and deployment</a></h2>
     <div class="two">
       <div>
 <pre>src/stylist/
@@ -847,7 +885,7 @@ scripts/          evaluate, benchmark, fixture
 notebooks/        data exploration, executed
 docs/             prd, adr/ (16), design notes,
                   evaluation, exploration, diagram
-tests/            419 tests + 486 row fixture
+tests/            420 tests + 486 row fixture
 deploy/aws/       five scripts + teardown,
                   experiments exp01 to exp19
 Dockerfile  railway.toml  Makefile  ci.yml</pre>

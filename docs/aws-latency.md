@@ -160,3 +160,54 @@ cold query can flip between LLM and regex answers for about a second), the share
 cache that would fix it, and CloudWatch alarms on the fallback rate. The instance
 runs about $4/day; `99_teardown.sh` still removes everything it made, in both
 regions.
+
+
+## Round three: the acceptance battery, and what it caught
+
+Latency probes tell you the fast paths are fast. An acceptance battery asks harder
+questions: does the contract hold, do the guardrails fail the right way, what does a
+deploy cost, and where does the machine actually saturate. `deploy/aws/test_battery.py`
+runs ten sections against the live endpoint; the raw results are exp20 to exp22.
+
+The headline is a bug. The first steady run came back with a server-side p50 of
+2.44 seconds on one worker while the other answered the same query in half a
+millisecond. Not rerank, not Bedrock: retrieve_ms was the whole number, on an idle
+box. The trigger turned out to be plan shape. Nova Lite had given one worker a beach
+plan with five slots and a total budget of $135; tight price masks plus queries like
+"women's summer cover-up" left the type gate short of matches, so the ranker widened
+its window four-fold per pass, and every widening pass fully hydrated every window row
+through per-row pandas iloc. A cProfile on the box showed 19,783 row hydrations in one
+request, 6.5 of 7.4 seconds inside pandas. Under 12 parallel connections the same plan
+hit 10.4 seconds. And becuase the plan carried warnings, the response cache refused it
+each time, so the worker re-paid the full price on every request.
+
+The fix reads scoring fields (title, rating, count, audience, group key) with one
+vectorized column gather per window and leaves the full row walk to the handful of
+rows a slot actually returns. Replaying the captured plan on the box: 2,831 ms before,
+985 ms after in a cold process. The live steady p50 went from 2,442 ms to 12.8 ms. A
+regression test now counts full hydrations per request and fails if a window ever gets
+row-walked again. Worth saying plainly: this path never showed in us-east-1 (Micro's
+plans rarely carry budgets) or in the local eval (Sonnet plans). Only live Lite
+traffic walked it, wich is exactly why you load-test the deployed thing and not a
+model of it.
+
+The rest of the battery, briefly. Contract: 20 of 20, every malformed input gets its
+422/413/405 with the documented error body, every response carries its full schema.
+Guardrails: 70 rapid requests met their first 429 at request 65 (two workers means two
+token buckets, so the effective burst doubles: noted, accepted for a demo), throttles
+answered in 12 ms with a well-formed body, and service resumed clean after 20 s.
+Steady keep-alive n=100: p50 12.8 ms, p99 16.9 ms, max 17.5 ms. Fresh TLS per request
+n=50: p50 34.9 ms. The 21-cell ramp (repeat, unique and mixed at c=1 through 32, 672
+requests) finished with zero errors: repeat traffic holds 36 to 52 ms p50 all the way
+up (100 req/s peak), unique cold traffic saturates the four vCPUs at 10 to 13 req/s
+with p50 climbing to 2.7 s at c=32 and not a single 5xx, just honest queuing. The five
+minute soak at c=6 mixed: 5,010 requests, 16.7 req/s, zero errors, per-minute p95 flat
+between 870 and 1,010 ms with no drift. Host memory held at 1.8 to 2.1 GB the whole
+time. Restart under traffic: one systemd restart costs 6.7 s of 502/504 through
+CloudFront, then full recovery; a second origin behind failover removes that, and it
+sits first on the production gap list. The cache ladder passed with assertions once
+the probe rode a single keep-alive connection like a browser would (a fresh connection
+per rung round-robins across workers and reads the split as a failure). Five identical
+warm requests returned identical items. And the 28-query quality probe, rerun after
+the fix at production settings: match@4 micro 0.800 on the planned pass, success 0.50,
+28 of 28 plans landed. The fix moved where fields are read, not how rows rank.

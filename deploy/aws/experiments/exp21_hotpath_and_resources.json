@@ -1,0 +1,31 @@
+{
+ "what": "what the battery caught: a retrieval hot path, plus on-box resources under load",
+ "finding": {
+  "symptom": "steady keep-alive p50 2.44 s server-side on one worker; the other worker answered the same query in 0.4 ms",
+  "trigger": "a nova lite plan with 5 slots and a total budget of 135: tight price masks plus 'women's summer X' queries left the type gate short of matches, so _rank_distinct widened its window x4 per pass and _rank fully hydrated every window row through per-row pandas iloc",
+  "profile": "19,783 _hydrate calls in one request, 6.5 s of 7.4 s inside pandas fast_xs; under 12-way load the same plan hit retrieve_ms 10404",
+  "fix": "scoring fields (title, rating, count, audience, group key) now come from one vectorized column gather per window; the full per-row hydration runs only for the rows a slot returns",
+  "proof": "replay of the captured plan on the box: 2831 ms before, 985 ms after in a cold process; live steady p50 fell from 2442 ms to 12.8 ms; regression test pins the behavior",
+  "why_it_hid": "us-east-1 ran nova micro, whose plans rarely carried budgets; the local eval uses sonnet plans; only live lite traffic walked this path"
+ },
+ "resources_during_battery": {
+  "samples": 90,
+  "window_min": 15,
+  "load_1m_idle": 0.02,
+  "load_1m_peak": 7.51,
+  "vcpus": 4,
+  "peak_during": "unique-query ramp cells c24 and c32: the retrieval cpu ceiling, throughput flat at 10-13 req/s there",
+  "host_used_mb_min": 1834,
+  "host_used_mb_max": 2069,
+  "host_total_mb": 7845,
+  "leak_check": "host memory flat across 10,000+ requests including the 5 minute soak"
+ },
+ "restart_cost": {
+  "error_window_s": 6.7,
+  "statuses": [
+   502,
+   504
+  ],
+  "note": "single box: a deploy costs ~7 s of 5xx through cloudfront. a second origin behind failover, or socket activation, removes it. accepted for a demo, listed as the first production gap"
+ }
+}

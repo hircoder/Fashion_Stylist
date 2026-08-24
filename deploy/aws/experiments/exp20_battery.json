@@ -1,0 +1,437 @@
+{
+ "what": "acceptance battery against the live cloudfront endpoint, client in japan",
+ "date": "2026-08-24",
+ "phase1_at_production_settings": [
+  "contract",
+  "endpoints",
+  "cache_ladder",
+  "consistency_x5",
+  "guardrail_rate_limit"
+ ],
+ "phase2_with_rate_limit_off": [
+  "steady_keepalive_n100",
+  "fresh_tls_n50",
+  "ramp",
+  "soak_5min_c6",
+  "restart_under_traffic"
+ ],
+ "note": "steady and fresh were first run before the hydration fix (p50 2.4 s on the worker holding a budget plan); the numbers stored here are from the fixed build. the pre-fix numbers and the profile live in exp21.",
+ "sections": {
+  "contract": {
+   "passed": 20,
+   "failed": 0,
+   "cases": []
+  },
+  "endpoints": {
+   "/": {
+    "status": 200,
+    "ms": 65.7
+   },
+   "/overview": {
+    "status": 200,
+    "ms": 48.0
+   },
+   "/health": {
+    "status": 200,
+    "ms": 14.0
+   },
+   "/ready": {
+    "status": 200,
+    "ms": 13.5
+   },
+   "/docs": {
+    "status": 200,
+    "ms": 13.1
+   },
+   "asset_first": {
+    "status": 200,
+    "ms": 17.9,
+    "x_cache": "Hit from cloudfront"
+   },
+   "asset_second": {
+    "status": 200,
+    "ms": 24.4,
+    "x_cache": "Hit from cloudfront"
+   },
+   "headers": {
+    "alt_svc_h3": true,
+    "csp": true,
+    "nosniff": true,
+    "frame_deny": true,
+    "via_cloudfront": true
+   }
+  },
+  "cache_ladder": {
+   "cold": {
+    "ms": 258,
+    "planner": "llm"
+   },
+   "after_background": {
+    "ms": 21,
+    "planner": "llm",
+    "plan_cache_hit": true
+   },
+   "response_cache": {
+    "ms": 16,
+    "served_from_cache": true,
+    "fresh_request_id": true,
+    "zero_llm_calls_reported": true
+   },
+   "paraphrase_semantic": {
+    "ms": 204,
+    "planner": "llm",
+    "new_llm_calls": 0
+   },
+   "pass": true
+  },
+  "consistency_x5": {
+   "identical": true,
+   "items_per_answer": 9
+  },
+  "guardrail_rate_limit": {
+   "sent": 70,
+   "ok": 64,
+   "throttled": 6,
+   "first_429_at_request": 65,
+   "throttle_p50_ms": 11.8,
+   "error_body_shape_ok": true,
+   "recovered_status_after_20s": 200
+  },
+  "steady_keepalive_n100": {
+   "n": 100,
+   "p50_ms": 12.8,
+   "p90_ms": 14.8,
+   "p95_ms": 16.2,
+   "p99_ms": 16.9,
+   "max_ms": 17.5,
+   "server_p50_ms": 0.3,
+   "server_p95_ms": 0.4
+  },
+  "fresh_tls_n50": {
+   "n": 50,
+   "p50_ms": 34.9,
+   "p90_ms": 36.4,
+   "p95_ms": 37.9,
+   "p99_ms": 70.0,
+   "max_ms": 70.0,
+   "server_p50_ms": 0.4,
+   "server_p95_ms": 0.4,
+   "errors": {}
+  },
+  "ramp": {
+   "repeat_c1": {
+    "n": 32,
+    "p50_ms": 38.2,
+    "p90_ms": 275.2,
+    "p95_ms": 275.5,
+    "p99_ms": 277.8,
+    "max_ms": 277.8,
+    "server_p50_ms": 0.4,
+    "server_p95_ms": 237.4,
+    "errors": {},
+    "rps": 9.2
+   },
+   "repeat_c2": {
+    "n": 32,
+    "p50_ms": 36.3,
+    "p90_ms": 285.8,
+    "p95_ms": 298.4,
+    "p99_ms": 351.7,
+    "max_ms": 351.7,
+    "server_p50_ms": 0.6,
+    "server_p95_ms": 259.0,
+    "errors": {},
+    "rps": 19.9
+   },
+   "repeat_c4": {
+    "n": 32,
+    "p50_ms": 38.1,
+    "p90_ms": 202.0,
+    "p95_ms": 228.9,
+    "p99_ms": 544.8,
+    "max_ms": 544.8,
+    "server_p50_ms": 0.6,
+    "server_p95_ms": 195.7,
+    "errors": {},
+    "rps": 41.2
+   },
+   "repeat_c8": {
+    "n": 32,
+    "p50_ms": 38.4,
+    "p90_ms": 208.1,
+    "p95_ms": 232.3,
+    "p99_ms": 420.8,
+    "max_ms": 420.8,
+    "server_p50_ms": 0.4,
+    "server_p95_ms": 199.3,
+    "errors": {},
+    "rps": 55.6
+   },
+   "repeat_c16": {
+    "n": 48,
+    "p50_ms": 44.0,
+    "p90_ms": 297.3,
+    "p95_ms": 677.3,
+    "p99_ms": 697.3,
+    "max_ms": 697.3,
+    "server_p50_ms": 0.6,
+    "server_p95_ms": 589.4,
+    "errors": {},
+    "rps": 57.5
+   },
+   "repeat_c24": {
+    "n": 72,
+    "p50_ms": 45.3,
+    "p90_ms": 58.0,
+    "p95_ms": 62.2,
+    "p99_ms": 566.1,
+    "max_ms": 581.6,
+    "server_p50_ms": 0.5,
+    "server_p95_ms": 2.5,
+    "errors": {},
+    "rps": 100.4
+   },
+   "repeat_c32": {
+    "n": 96,
+    "p50_ms": 51.7,
+    "p90_ms": 141.5,
+    "p95_ms": 826.3,
+    "p99_ms": 1116.6,
+    "max_ms": 1129.7,
+    "server_p50_ms": 0.5,
+    "server_p95_ms": 723.5,
+    "errors": {},
+    "rps": 77.7
+   },
+   "unique_c1": {
+    "n": 32,
+    "p50_ms": 205.4,
+    "p90_ms": 225.8,
+    "p95_ms": 227.4,
+    "p99_ms": 242.0,
+    "max_ms": 242.0,
+    "server_p50_ms": 170.0,
+    "server_p95_ms": 192.7,
+    "errors": {},
+    "rps": 4.7
+   },
+   "unique_c2": {
+    "n": 32,
+    "p50_ms": 257.6,
+    "p90_ms": 300.4,
+    "p95_ms": 305.1,
+    "p99_ms": 398.1,
+    "max_ms": 398.1,
+    "server_p50_ms": 214.7,
+    "server_p95_ms": 270.0,
+    "errors": {},
+    "rps": 7.3
+   },
+   "unique_c4": {
+    "n": 32,
+    "p50_ms": 336.2,
+    "p90_ms": 441.0,
+    "p95_ms": 453.3,
+    "p99_ms": 804.1,
+    "max_ms": 804.1,
+    "server_p50_ms": 298.9,
+    "server_p95_ms": 371.3,
+    "errors": {},
+    "rps": 10.7
+   },
+   "unique_c8": {
+    "n": 32,
+    "p50_ms": 840.5,
+    "p90_ms": 1081.2,
+    "p95_ms": 1205.6,
+    "p99_ms": 1477.2,
+    "max_ms": 1477.2,
+    "server_p50_ms": 658.7,
+    "server_p95_ms": 981.1,
+    "errors": {},
+    "rps": 8.7
+   },
+   "unique_c16": {
+    "n": 48,
+    "p50_ms": 1017.8,
+    "p90_ms": 1808.3,
+    "p95_ms": 1897.4,
+    "p99_ms": 1906.4,
+    "max_ms": 1906.4,
+    "server_p50_ms": 796.2,
+    "server_p95_ms": 1465.3,
+    "errors": {},
+    "rps": 13.2
+   },
+   "unique_c24": {
+    "n": 72,
+    "p50_ms": 1835.1,
+    "p90_ms": 2503.1,
+    "p95_ms": 2872.3,
+    "p99_ms": 2919.9,
+    "max_ms": 2939.2,
+    "server_p50_ms": 1475.6,
+    "server_p95_ms": 2032.6,
+    "errors": {},
+    "rps": 10.9
+   },
+   "unique_c32": {
+    "n": 96,
+    "p50_ms": 2696.2,
+    "p90_ms": 3999.2,
+    "p95_ms": 4447.9,
+    "p99_ms": 4738.2,
+    "max_ms": 4738.3,
+    "server_p50_ms": 1849.9,
+    "server_p95_ms": 3024.6,
+    "errors": {},
+    "rps": 10.4
+   },
+   "mixed_c1": {
+    "n": 32,
+    "p50_ms": 181.3,
+    "p90_ms": 245.3,
+    "p95_ms": 246.7,
+    "p99_ms": 366.7,
+    "max_ms": 366.7,
+    "server_p50_ms": 145.4,
+    "server_p95_ms": 207.4,
+    "errors": {},
+    "rps": 7.2
+   },
+   "mixed_c2": {
+    "n": 32,
+    "p50_ms": 203.4,
+    "p90_ms": 291.7,
+    "p95_ms": 347.4,
+    "p99_ms": 391.1,
+    "max_ms": 391.1,
+    "server_p50_ms": 168.8,
+    "server_p95_ms": 311.2,
+    "errors": {},
+    "rps": 12.2
+   },
+   "mixed_c4": {
+    "n": 32,
+    "p50_ms": 206.3,
+    "p90_ms": 428.0,
+    "p95_ms": 439.8,
+    "p99_ms": 505.7,
+    "max_ms": 505.7,
+    "server_p50_ms": 167.3,
+    "server_p95_ms": 401.6,
+    "errors": {},
+    "rps": 17.7
+   },
+   "mixed_c8": {
+    "n": 32,
+    "p50_ms": 344.8,
+    "p90_ms": 754.9,
+    "p95_ms": 815.6,
+    "p99_ms": 1006.1,
+    "max_ms": 1006.1,
+    "server_p50_ms": 293.9,
+    "server_p95_ms": 673.9,
+    "errors": {},
+    "rps": 19.9
+   },
+   "mixed_c16": {
+    "n": 48,
+    "p50_ms": 607.0,
+    "p90_ms": 993.6,
+    "p95_ms": 1307.5,
+    "p99_ms": 1490.8,
+    "max_ms": 1490.8,
+    "server_p50_ms": 280.5,
+    "server_p95_ms": 958.6,
+    "errors": {},
+    "rps": 23.0
+   },
+   "mixed_c24": {
+    "n": 72,
+    "p50_ms": 1271.7,
+    "p90_ms": 2267.8,
+    "p95_ms": 2322.1,
+    "p99_ms": 2613.2,
+    "max_ms": 3074.0,
+    "server_p50_ms": 554.9,
+    "server_p95_ms": 1729.1,
+    "errors": {},
+    "rps": 15.0
+   },
+   "mixed_c32": {
+    "n": 96,
+    "p50_ms": 1539.6,
+    "p90_ms": 2676.1,
+    "p95_ms": 2717.1,
+    "p99_ms": 3204.7,
+    "max_ms": 3642.2,
+    "server_p50_ms": 850.1,
+    "server_p95_ms": 2035.5,
+    "errors": {},
+    "rps": 16.7
+   }
+  },
+  "soak_5min_c6": {
+   "total": {
+    "n": 5010,
+    "p50_ms": 178.5,
+    "p90_ms": 831.4,
+    "p95_ms": 953.2,
+    "p99_ms": 1176.8,
+    "max_ms": 1571.1,
+    "errors": {},
+    "rps": 16.7
+   },
+   "per_minute": {
+    "min0": {
+     "n": 1237,
+     "p50_ms": 65.4,
+     "p95_ms": 871.7,
+     "errors": 0
+    },
+    "min1": {
+     "n": 941,
+     "p50_ms": 313.1,
+     "p95_ms": 963.6,
+     "errors": 0
+    },
+    "min2": {
+     "n": 899,
+     "p50_ms": 326.1,
+     "p95_ms": 996.3,
+     "errors": 0
+    },
+    "min3": {
+     "n": 1045,
+     "p50_ms": 304.4,
+     "p95_ms": 874.0,
+     "errors": 0
+    },
+    "min4": {
+     "n": 882,
+     "p50_ms": 320.1,
+     "p95_ms": 1010.9,
+     "errors": 0
+    },
+    "min5": {
+     "n": 6,
+     "p50_ms": 583.3,
+     "p95_ms": 984.7,
+     "errors": 0
+    }
+   }
+  },
+  "restart_under_traffic": {
+   "n": 4913,
+   "errors": 634,
+   "error_statuses": [
+    502,
+    504
+   ],
+   "error_window_s": 6.7,
+   "first_error_at_s": 16.3,
+   "recovered": true
+  }
+ }
+}

@@ -152,5 +152,29 @@
   "p50_ms": null,
   "ran_at": "2026-08-23T23:50:00Z",
   "note": "cold 210 / plan-cache 112 / response-cache 34 / paraphrase 116 ms from japan"
+ },
+ {
+  "label": "exp20_battery",
+  "n": 11500,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-24T02:40:00Z",
+  "note": "contract 20/20, guardrail envelope clean, ramp 21 cells 0 errors, soak 5010 req 0 errors, steady p50 12.8 ms"
+ },
+ {
+  "label": "exp21_hotpath_and_resources",
+  "n": null,
+  "errors": null,
+  "p50_ms": null,
+  "ran_at": "2026-08-24T02:20:00Z",
+  "note": "battery caught a hydrate-per-row hot path (2.4 s server p50 on budget plans); fixed, 12.8 ms after"
+ },
+ {
+  "label": "exp22_quality_after_fix",
+  "n": 56,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-24T02:55:00Z",
+  "note": "match@4 micro 0.800 planned pass, success 0.50: fix did not move ranking"
  }
 ]

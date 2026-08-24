@@ -1,0 +1,16 @@
+{
+ "what": "quality after the hydration fix, same 28-query probe, production settings",
+ "cold": {
+  "micro": 0.724,
+  "macro": 0.675,
+  "success": 0.0,
+  "llm_rate": 0.143
+ },
+ "planned": {
+  "micro": 0.8,
+  "macro": 0.761,
+  "success": 0.5,
+  "llm_rate": 1.0
+ },
+ "read": "within nova sampling variance of exp18 (0.772): the fix changed where fields are read, not how rows rank"
+}
