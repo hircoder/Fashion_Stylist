@@ -366,6 +366,28 @@ class Retriever:
             key = self._group_keys[idx] = group_key(title)
         return key
 
+    def _hydrate_scoring(self, cands: list[Candidate]) -> list[Candidate]:
+        """Just the fields ranking needs (title, rating, audience, group key), for a
+        whole window at once. The per-row iloc walk the full _hydrate does is fine for
+        the 30 rows a slot returns and ruinous for a 1600 row widening pass: a budget
+        plan with thin type matches was spending seconds in here."""
+        if not cands:
+            return cands
+        idxs = np.fromiter((c.idx for c in cands), dtype=np.int64, count=len(cands))
+        cat = self.index.catalog
+        titles = cat["title"].to_numpy()[idxs]
+        ratings = cat["average_rating"].to_numpy()[idxs]
+        counts = cat["rating_number"].to_numpy()[idxs]
+        auds = cat["audience"].to_numpy()[idxs]
+        for c, title, rating, count, aud in zip(cands, titles, ratings, counts, auds, strict=True):
+            c.title = str(title)
+            r = _none_if_nan(rating)
+            c.average_rating = float(r) if r is not None else None
+            c.rating_number = int(_none_if_nan(count) or 0)
+            c.audience = str(aud)
+            c.group_key = self._group_key(c.idx, c.title)
+        return cands
+
     def _hydrate(self, c: Candidate) -> Candidate:
         row = self.index.catalog.iloc[c.idx]
         c.row_id = int(row["row_id"])
@@ -399,8 +421,8 @@ class Retriever:
         audience: str | None = None,
     ) -> list[Candidate]:
         fused = rrf_fuse(dense, bm25, mask, top_n=top_n, k=self.s.rrf_k)
+        self._hydrate_scoring(fused)
         for c in fused:
-            self._hydrate(c)
             if audience and c.audience == audience:
                 c.score += AUDIENCE_MATCH_BONUS * self._unit
             c.matched_keywords = keyword_matches(c.title, slot.keywords)
@@ -567,6 +589,8 @@ class Retriever:
                     )
             elif n_eligible == 0:
                 warnings.append(f"slot '{slot.name}': no eligible items")
+            for c in ranked:  # the survivors get the full row; the windows never did
+                self._hydrate(c)
             out.append(
                 SlotCandidates(
                     slot, window, ranked, n_eligible, warnings, eligible_rows=int(eligible.sum())

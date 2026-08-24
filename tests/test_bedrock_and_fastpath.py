@@ -519,3 +519,31 @@ async def test_planner_admission_is_bounded(fixture_index, hash_embedder):
             fut.cancel()
         svc._plan_inflight.clear()
         svc.close()
+
+
+async def test_ranking_windows_are_not_row_hydrated(fixture_index, hash_embedder):
+    """A widening pass over a big masked pool must not walk the catalog row by row.
+    Full hydration is for returned candidates only; the profiler caught a budget plan
+    spending seconds in per-row iloc before this held."""
+    svc = RecommendationService(
+        fixture_index, hash_embedder, Settings.from_env({"EMBEDDER": "hash"}), llm=None
+    )
+    try:
+        calls = {"n": 0}
+        inner = svc.retriever._hydrate
+
+        def counting(c):
+            calls["n"] += 1
+            return inner(c)
+
+        svc.retriever._hydrate = counting
+        resp = await svc.recommend(
+            RecommendRequest(query="warm boots under $60", k=3, use_llm=False)
+        )
+        returned = sum(len(s.items) for s in resp.slots)
+        assert returned > 0
+        # full hydration stays within the final per-slot pools (2 x n_candidates per
+        # slot at most), far below the number of rows the scoring windows saw
+        assert calls["n"] <= 4 * 15 * len(resp.slots)
+    finally:
+        svc.close()
