@@ -673,6 +673,11 @@ tests/            pytest suite + the 486 row fixture
   observability, gaps with a dated plan, the tests still to run.
 * `docs/aws-latency.md`: the AWS story in full, both rounds, every number and both
   bugs the review pass caught.
+* `deploy/aws/README.md`: the deployment kit on one page: scripts, knobs, probes,
+  all 22 experiments, the runbook.
+* `docs/overview.md`: the deck as plain markdown, for reading outside a browser.
+* `docs/notebooks.md`: the exploration notebook flattened into one page, charts
+  included.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
   data flow (19 slides, agenda on the left; slides 14 to 16 are the AWS build, its
   measurements and the acceptance battery).
