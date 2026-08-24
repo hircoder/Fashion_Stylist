@@ -1,7 +1,5 @@
 # ADR-0007: LLM reranker, one call per slot, run in parallel
 
-Status: accepted
-
 ## Context
 Retrieval returns a ranked pool per slot. Picking the final items and explaining them
 needs the request context (audience, occasion, budget) that a similarity score ignores.

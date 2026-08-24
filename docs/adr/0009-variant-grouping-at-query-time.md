@@ -1,7 +1,5 @@
 # ADR-0009: Variant grouping computed at query time, nothing deleted at ingest
 
-Status: accepted
-
 ## Context
 56,720 titles repeat under different ids and many more differ only by a size or colour
 suffix ("(8 B(M) US, Silver)", ", Black, Large", "Wedding Shoes 8" vs "8.5").

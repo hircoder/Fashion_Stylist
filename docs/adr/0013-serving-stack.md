@@ -1,7 +1,5 @@
 # ADR-0013: FastAPI + React page + CLI; Docker on Railway
 
-Status: accepted
-
 ## Context
 The brief asks for a function, CLI or API, optionally a front end. The user's existing
 demos use FastAPI serving a single page, deployed on Railway.

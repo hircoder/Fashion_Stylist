@@ -1,7 +1,5 @@
 # ADR-0004: Exact brute-force search in memory instead of an ANN index
 
-Status: accepted
-
 ## Context
 The catalog is 826K rows at most; the default index is 100K.
 
