@@ -196,7 +196,7 @@ y = 0
 svg.append(
     f'<text x="{M}" y="44" class="title">Fashion stylist: how the service is built and how a request moves through it</text>'
 )
-_SUBTITLE = 'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM (brand and all), retrieves per slot with dense + BM25 search over 100,000 indexed listings behind a type gate, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, the dotted box is the only external service.'
+_SUBTITLE = 'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM (brand and all), retrieves per slot with dense + BM25 search over 100,000 indexed listings behind a type gate, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, dotted boxes are the external LLM services. Lane 3 is the AWS serving path from the AWS_deployment branch, measured from a client in Japan.'
 for _i, _line in enumerate(wrap(_SUBTITLE, 12.5, WIDTH - 2 * M)):
     svg.append(f'<text x="{M}" y="{62 + _i * 16}" class="sub">{escape(_line)}</text>')
 
@@ -494,7 +494,105 @@ svg.append(
     )
 )
 
-HEIGHT = int(lane2_y + lane2_h + 30)
+# ---- aws lane
+lane3_y = lane2_y + lane2_h + 40
+r3 = lane3_y + 46
+aws = {}
+aws["user"] = Box(
+    "user",
+    "Browser in Japan",
+    "GET / for the page, /overview for the deck\nPOST /recommend, same contract as lane 2\nd3bys47v9rho9.cloudfront.net while the demo runs",
+    colx(0),
+    r3,
+    BW,
+)
+aws["cf"] = Box(
+    "cf",
+    "CloudFront edge",
+    "TLS terminates near the user, HTTP/3 on\n/assets cached hard at the edge\neverything else passes through to the origin\ncosts 10 to 15 ms over the bare origin and buys the edge",
+    colx(1),
+    r3,
+    BW,
+)
+aws["ec2"] = Box(
+    "ec2",
+    "EC2 origin (Tokyo)",
+    "c7i.xlarge in ap-northeast-1a, elastic IP\nsystemd runs 2 uvicorn workers, no docker: the box boots from a source tarball in S3\nwarmup on every restart: two passes over the six UI examples\nport 8000 admits CloudFront origin-facing ranges and nothing else",
+    colx(2),
+    r3,
+    BW,
+    small="the same code as lane 2 in the fast profile: rerank off, bounded planner wait",
+)
+aws["caches"] = Box(
+    "caches",
+    "Three caches in the process",
+    "response cache: 300 s TTL, warning-free answers only, a hit says served_from_cache with its real serve time\nsemantic plan cache: nearest plan at cosine 0.92, budget and audience guarded\nslot-embedding LRU (4096 texts)\nplus the exact plan cache from lane 2",
+    colx(3),
+    r3,
+    BW,
+    kind="store",
+    small="a background plan lands in the exact AND the semantic cache: paraphrases stop paying",
+)
+aws["bedrock"] = Box(
+    "bedrock",
+    "Bedrock (same region)",
+    "apac.amazon.nova-lite-v1:0 through the Converse API, one forced tool for structured output\nthe instance role is the credential: no key on the box\nbounded wait 0.10 s, chosen from a measured completion curve (0 of 12 plans inside 0.35 s, p50 about 1.15 s)\ncall keeps running in the background, at most 8 at once",
+    colx(4),
+    r3,
+    BW,
+    kind="llm",
+)
+aws["nums"] = Box(
+    "nums",
+    "Measured (exp01 to exp19)",
+    "steady keep-alive p50 57 ms, warm repeat 13 to 44 ms\ncold unique 210 ms, paraphrase 116 ms, all under the 0.5 s target\n40 req/s at c=8, zero errors, 2 workers kept after a 1-vs-2 ramp\nquality on the 28 eval queries: match@4 micro 0.772 with Lite, 0.705 with Micro\nabout $4 a day; deploy/aws/99_teardown.sh removes everything",
+    colx(5),
+    r3,
+    BW,
+    kind="note",
+)
+h3 = max(b.h for b in aws.values())
+for b in aws.values():
+    b.h = h3
+lane3_h = 46 + h3 + 64
+svg.append(
+    f'<rect x="{M - 14}" y="{lane3_y}" width="{WIDTH - 2 * M + 28}" height="{lane3_h:.0f}" rx="8" fill="none" stroke="#bbb"/>'
+)
+svg.append(
+    f'<text x="{M}" y="{lane3_y + 28}" class="lane">3. AWS serving path (branch AWS_deployment): the same service, moved next to the user and measured</text>'
+)
+for b in aws.values():
+    svg.append(b.svg())
+
+h_arrow(aws["user"], aws["cf"], "https, h2 or h3")
+h_arrow(aws["cf"], aws["ec2"], "http :8000")
+a, b = aws["ec2"], aws["caches"]
+svg.append(arrow([(a.right, a.cy - 16), (b.x - 1, a.cy - 16)]))
+svg.append(gap_label((a.right + b.x) / 2, a.cy - 16, b.x - a.right, "look up first"))
+svg.append(arrow([(b.x, a.cy + 16), (a.right + 1, a.cy + 16)]))
+svg.append(
+    gap_label((a.right + b.x) / 2, a.cy + 16, b.x - a.right, "hit, or store after", below=True)
+)
+ec, bd = aws["ec2"], aws["bedrock"]
+ly4 = ec.bottom + 24
+svg.append(
+    arrow(
+        [(ec.cx, ec.bottom), (ec.cx, ly4), (bd.cx, ly4), (bd.cx, bd.bottom + 1)]
+        if False
+        else [(ec.cx, ec.bottom), (ec.cx, ly4), (bd.cx - 30, ly4), (bd.cx - 30, bd.bottom + 1)],
+        cls="dashed",
+        both=True,
+    )
+)
+svg.append(
+    label(
+        (ec.cx + bd.cx) / 2,
+        ly4 + 14,
+        "plan call in the background, about 1 s; the answer never waits past 100 ms",
+    )
+)
+
+HEIGHT = int(lane3_y + lane3_h + 30)
 head = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" font-family="Helvetica, Arial, sans-serif">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/></marker>

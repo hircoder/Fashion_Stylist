@@ -15,7 +15,9 @@ small React page. Runs without any API key too, just with less magic (and less s
 Table of contents is the headings below, i didnt bother with a real one. If you only have
 five minutes: quick start, then the sample output, then design decisions. If you are
 assessing this: evaluation, then performance and cost, then the deck at `/overview`
-(`docs/overview.html`), wich walks all of it with an animated request flow.
+(`docs/overview.html`), wich walks all of it with an animated request flow. On this
+branch there is also a live AWS deployment with its own section below, measured to a
+57 ms steady p50 from Japan.
 
 ## Why this exists
 
@@ -477,6 +479,8 @@ cacheable), under $100 with a Haiku-class reranker on top. The provider's tokens
 ceiling, not the CPU. `docs/production.md` works all of this through, including the path
 to a sub-second p50 (semantic plan cache, a distilled 1-3B planner, a cross-encoder
 rerank, the big model demoted to an async refinement) with the expected cost of each rung.
+The first rungs of that ladder are no longer theory: the AWS section below has them
+deployed and measured at 57 ms steady p50.
 
 ## Deployment
 
@@ -496,8 +500,12 @@ in brackets): `RATE_LIMIT_PER_MINUTE` [60] per client with a burst of a sixth of
 `REQUEST_DEADLINE_S` [40], `PLANNER_BUDGET_S` [15], `RERANK_BUDGET_S` [20],
 `TRUST_PROXY_HEADERS` [off; the container image sets it, so the client ip comes from the
 proxy's x-forwarded-for], `CORS_ALLOW_ORIGINS` [none], `STARTUP_FAIL_FAST` [off],
-`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. `docs/production.md` has the sizing
-numbers behind the defaults.
+`LOG_QUERIES` [off], `INDEX_ALLOW_PRIVATE_URL` [off]. This branch adds the fast-profile
+knobs: `LLM_PROVIDER=bedrock` with `BEDROCK_REGION`, `PLANNER_CALL_TIMEOUT_S` [20] (the
+shared background call's own clock, separate from the bounded wait),
+`RERANK_DEFAULT` [on; the AWS profile turns it off], `SEMANTIC_PLAN_CACHE` [off] with
+`SEMANTIC_PLAN_THRESHOLD` [0.92], and `RESPONSE_CACHE_TTL_S` [0 = off].
+`docs/production.md` has the sizing numbers behind the defaults.
 
 `railway.toml` wires this up for Railway: Dockerfile builder, `/ready` as the health
 check, `PORT` picked up automatically. After the first deploy add `ANTHROPIC_API_KEY` or
@@ -536,6 +544,84 @@ errors. Before real traffic i'd add the observability
 stack from `docs/production.md` (json logs, OpenTelemetry traces per stage, Prometheus
 histograms, alerts on p95 / fallback rate / 429s), a provider circuit breaker and an
 off-domain request filter, thats all listed there with tools and pass conditions.
+
+## The AWS deployment on this branch
+
+This branch (`AWS_deployment`) is the deployed answer to "get prompt to result under
+half a second". Main keeps the provider-neutral service; this branch adds a fast
+serving profile plus the scripts that put it on AWS, and then the measurements. It ran
+twice: us-east-1 first, Tokyo second, once the numbers said most of the remaining time
+was the Pacific. While the demo runs its live at https://d3bys47v9rho9.cloudfront.net
+(about $4 a day, one teardown script removes everything).
+
+The path is short. CloudFront at the edge (TLS near the user, HTTP/3, `/assets` cached
+hard), an EC2 origin in ap-northeast-1 (c7i.xlarge, systemd, 2 uvicorn workers, no
+docker: the box boots from a source tarball in S3), and Bedrock in the same region for
+planning (`apac.amazon.nova-lite-v1:0`, structured output through one forced tool, the
+instance role as the only credential). Port 8000 admits CloudFront origin-facing ranges
+and nothing else; there are no ssh keys anywhere, ops go through SSM.
+
+What the fast profile changes, all in the same codebase behind env settings:
+
+* A bounded planner wait. The request waits at most `PLANNER_BUDGET_S` (0.10 s live)
+  for the LLM plan, then answers with the regex plan. The Bedrock call keeps running on
+  its own 20 s clock and lands in the caches for every request after. The 0.10 came
+  from a measured completion curve, not taste: 0 of 12 plans landed inside 0.35 s
+  (Micro p50 999 ms, Lite 1154 ms), so waiting 350 ms bought nothing.
+  `deploy/aws/planner_cdf.py` reproduces the measurement on the box.
+* A background plan lands in the exact AND the semantic plan cache (nearest plan at
+  cosine 0.92, guarded so a different budget or audience never reuses it), wich is what
+  lets paraphrases ride a plan they never paid for.
+* A response cache (`RESPONSE_CACHE_TTL_S`, 300 s live) for identical request bodies.
+  Only warning-free answers are cached; that one rule keeps a degraded fallback from
+  being frozen for the whole TTL while a better plan lands a second later. A hit says
+  `served_from_cache: true` and reports its real serve time, not the old compute.
+* A slot-embedding LRU, so a warm five slot request spends under a millisecond of
+  server time. And at most 8 background planner calls run at once: a flood of unique
+  cold queries degrades to regex plans instead of building an unbounded Bedrock queue.
+* Warmup on every restart: two passes over the six UI example queries. The first pass
+  starts the background plans, the second caches the planned answers.
+
+Measured from a client in Japan, wall time through CloudFront. Raw runs are files in
+`deploy/aws/experiments/` (exp01 to exp19), the narrative with both rounds is
+`docs/aws-latency.md`:
+
+| path | us-east-1 | Tokyo |
+|---|---|---|
+| steady keep-alive p50 | 344 ms | 57 ms |
+| warm repeat (response cache) | n/a | 13 to 44 ms |
+| cold unique query | ~640 ms | 210 ms |
+| plan-cache hit after the background fill | n/a | 112 ms |
+| paraphrase via the semantic cache | 215 ms | 116 ms |
+| direct origin, warm | n/a | 22 ms |
+
+Every row, the cold one included, is under the 0.5 s target. Load: a repeat-mode ramp
+holds p50 43 to 47 ms from c=1 through c=8 with a fresh TLS connection per request,
+40 req/s, zero errors; a 1-vs-2 worker comparison kept 2 workers (p50 within noise,
+better p95 at c=4 and c=16, and a second failure domain). Quality: the 28 evaluation
+queries POSTed at production and scored by the offline rules gave match@4 micro 0.772
+with Nova Lite against 0.705 with Nova Micro (success 0.50 vs 0.39), so Lite is the
+planner. The remaining gap to the Sonnet-planned local eval (0.885 on the same index)
+is planner model quality, and since planning is background work a bigger planner costs
+the user nothing in latency.
+
+Deploying it yourself is five short scripts plus a teardown, region generic (the same
+scripts built both regions):
+
+```bash
+cd deploy/aws
+./01_artifacts.sh                            # source + index tarballs into s3
+./02_iam.sh                                  # role: s3 read, bedrock invoke, ssm
+STYLIST_REGION=ap-northeast-1 ./03_ec2.sh    # sg from the cloudfront prefix list, eip, boot
+./04_cloudfront.sh                           # one distribution, /assets cached, rest passes through
+./05_test.sh                                 # probes through the distribution
+./99_teardown.sh                             # removes all of it, both regions
+```
+
+A review pass over the deployment plan ran before the Tokyo cutover, and it earned its
+keep: the two cache rules above started as bugs it caught, and the worker count and
+planner budget were measured instead of assumed because it insisted. The numbers in
+this section are those measurements.
 
 ## Tests
 
@@ -578,6 +664,7 @@ src/stylist/
   llm/            provider protocol, anthropic + openai adapters, prompts, fake for tests
 ui/               React + Vite front-end (dist/ is committed, the API serves it)
 scripts/          evaluation, benchmark, fixture builder
+deploy/aws/       five deploy scripts + teardown, probes, experiments exp01 to exp19
 notebooks/        data exploration + embedding model comparison
 docs/             architecture diagram, design notes, evaluation
 tests/            pytest suite + the 486 row fixture
@@ -596,8 +683,11 @@ tests/            pytest suite + the 486 row fixture
 * `docs/production.md`: measured latency, throughput and cost, what it costs at scale,
   how to get under a second, the recommended production setup, guardrails and
   observability, gaps with a dated plan, the tests still to run.
+* `docs/aws-latency.md`: the AWS story in full, both rounds, every number and both
+  bugs the review pass caught.
 * `docs/overview.html` (also at `/overview`): the walkthrough deck with the animated
-  data flow (16 slides, agenda on the left).
+  data flow (18 slides, agenda on the left; slides 14 and 15 are the AWS build and its
+  measurements).
 
 ## Limitations and what i would do next
 
@@ -613,7 +703,9 @@ tests/            pytest suite + the 486 row fixture
 * Variant grouping is string based. Two colourways with different titles still shows up as
   two items.
 * Latency is dominated by the two LLM stages (6-15 s per request with Sonnet class
-  models). Streaming the slots to the UI as they finish would hide most of it, didnt get to it.
+  models). Streaming the slots to the UI as they finish would hide most of it, didnt get
+  to it. The AWS branch attacks the same problem from the other side: the planner moved
+  out of the hot path entirely, and rerank is off in that profile.
 * No outfit coherence scoring between slots yet: a floral shirt and a striped blazer can
   both win their slot. A colour/style pass over the top 3 per slot is sketched in
   `docs/production.md`, week 4-5 of the plan there.
