@@ -128,7 +128,9 @@ export default function App() {
   const [k, setK] = useState(4);
   const [priceMode, setPriceMode] = useState("auto"); // auto | strict | relaxed
   const [useLlm, setUseLlm] = useState(true);
-  const [rerank, setRerank] = useState(true);
+  // quick: bounded planner + deterministic reasons, sub-second. full: llm rerank, slower
+  const [mode, setMode] = useState("quick");
+  const rerank = mode === "full";
   const [abort, setAbort] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -263,10 +265,27 @@ export default function App() {
                 <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} />
                 use llm
               </label>
-              <label className="check">
-                <input type="checkbox" checked={rerank} onChange={(e) => setRerank(e.target.checked)} disabled={!useLlm} />
-                llm rerank
-              </label>
+              <div className="seg" role="radiogroup" aria-label="response mode">
+                <button
+                  type="button"
+                  className={mode === "quick" ? "seg-btn on" : "seg-btn"}
+                  aria-pressed={mode === "quick"}
+                  onClick={() => setMode("quick")}
+                  title="bounded planner wait, cached plans, template reasons"
+                >
+                  quick <span className="seg-note">~0.1-0.5 s</span>
+                </button>
+                <button
+                  type="button"
+                  className={mode === "full" ? "seg-btn on" : "seg-btn"}
+                  aria-pressed={mode === "full"}
+                  onClick={() => setMode("full")}
+                  disabled={!useLlm}
+                  title="one llm rerank call per slot, llm-written reasons"
+                >
+                  full rerank <span className="seg-note">~5-8 s</span>
+                </button>
+              </div>
             </div>
           </form>
           <div className="chips">
