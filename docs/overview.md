@@ -90,6 +90,14 @@ _4 / 19 · Exploration_
 * Three embedding models against bm25 on 40K listings, 8 conversational queries: bge-small-en-v1.5 (761 docs/s) gave the most sensible lists; MiniLM (1,411 docs/s) clearly worse; arctic-xs (1,458 docs/s) close. bm25 failed "outfit for the beach" (toddler outfits, a cat purse) and won "wedding guest".
 * Planner examples: the beach query, a men's wedding outfit with a total budget, a French query translated into English listing queries.
 
+(inline screenshot: see the html deck)
+
+_From the notebook: title length, rating count (log10) and price over all 826,108 rows. Long dense titles, a heavy-tailed rating distribution, prices mostly under $40._
+
+(inline screenshot: see the html deck)
+
+_Field coverage per rating bucket: the bar chart behind the popular-first default index (the table on the previous slide, drawn)._
+
 ### scripts/
 
 * `evaluate.py` + `eval_queries.json`: 28 queries (20 conversational, 8 brand) with hand written slot rules, 9 configurations, 3 indexes, paired plans, bootstrap intervals. `eval_report.py` makes the tables.
