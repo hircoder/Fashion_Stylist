@@ -554,6 +554,9 @@ tests/            pytest suite + the 486 row fixture
 * `docs/production.md`: measured latency, throughput and cost, what it costs at scale,
   how to get under a second, the recommended production setup, guardrails and
   observability, gaps with a dated plan, the tests still to run.
+* `TODO.md`: the production-readiness audit: every gap with a priority, a
+  solution and an effort estimate (the deployment items live on the
+  `AWS_deployment` branch).
 * `docs/overview.md`: the deck as plain markdown, for reading outside a browser.
 * `docs/notebooks.md`: the exploration notebook flattened into one page, charts
   included.
