@@ -31,6 +31,7 @@ def run_pass(base: str, queries: list[dict], label: str) -> dict:
         r = call(base, q["query"])
         returned = [(s["name"], [i["title"] for i in s["items"]]) for s in r["slots"]]
         s = score_query(q["slots"], returned)
+        s["id"] = q["id"]
         s["planner"] = r["llm_info"]["planner_used"]
         s["match_at_k"] = s["match"] / s["items"] if s["items"] else 0.0
         per_query.append(s)
@@ -46,8 +47,13 @@ def run_pass(base: str, queries: list[dict], label: str) -> dict:
         "planner_llm_rate": round(
             sum(x["planner"] == "llm" for x in per_query) / len(per_query), 3
         ),
+        # per-query detail so a class split (brand_, trap_, lang_...) can be computed later
+        "per_query": [
+            {"id": x["id"], "match_at_k": round(x["match_at_k"], 3), "success": x["success"]}
+            for x in per_query
+        ],
     }
-    print(json.dumps(out))
+    print(json.dumps({k: v for k, v in out.items() if k != "per_query"}))
     return out
 
 

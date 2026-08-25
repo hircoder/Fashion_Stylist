@@ -1,6 +1,6 @@
 """Offline evaluation of the recommendation pipeline.
 
-Runs the 28 queries in scripts/eval_queries.json through several configurations and
+Runs the queries in scripts/eval_queries.json through several configurations and
 reports:
 
   keyword_match@k   share of returned items whose title passes the hand written type

@@ -1,0 +1,804 @@
+{
+  "cold": {
+    "label": "pass1_cold",
+    "n": 78,
+    "match_at_k_micro": 0.666,
+    "match_at_k_macro": 0.749,
+    "query_success": 0.628,
+    "empty_slots": 0,
+    "planner_llm_rate": 1.0,
+    "per_query": [
+      {
+        "id": "beach_outfit",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "snow_boots",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "wedding_guest",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "office_chinos",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "fall_sweater",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "flat_feet_running",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "ears_warm",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "europe_sandals",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "husband_wedding",
+        "match_at_k": 0.917,
+        "success": false
+      },
+      {
+        "id": "daughter_unicorn",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "wfh_winter",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "interview_startup",
+        "match_at_k": 0.8,
+        "success": false
+      },
+      {
+        "id": "rainy_commute",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "budget_sneakers",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "yoga",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "baby_summer",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "ski_trip",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "black_tie",
+        "match_at_k": 0.65,
+        "success": false
+      },
+      {
+        "id": "hiking_summer",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "grandma_gift",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "brand_nike",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_adidas",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_northface",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_champion",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_fotl",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_columbia",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_levis",
+        "match_at_k": 0.5,
+        "success": true
+      },
+      {
+        "id": "brand_calvin",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "conv_first_day_office_blouse",
+        "match_at_k": 0.2,
+        "success": false
+      },
+      {
+        "id": "conv_standing_all_day_shoes",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "conv_wedding_guest_jumpsuit",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "conv_rainy_commute_coat",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "conv_hot_yoga",
+        "match_at_k": 0.2,
+        "success": false
+      },
+      {
+        "id": "conv_hiking_socks",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "outfit_music_festival",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "outfit_mens_funeral",
+        "match_at_k": 0.85,
+        "success": true
+      },
+      {
+        "id": "outfit_ski_trip",
+        "match_at_k": 0.4,
+        "success": false
+      },
+      {
+        "id": "outfit_job_interview",
+        "match_at_k": 0.3,
+        "success": false
+      },
+      {
+        "id": "outfit_maternity_baby_shower",
+        "match_at_k": 0.25,
+        "success": false
+      },
+      {
+        "id": "outfit_long_flight",
+        "match_at_k": 0.667,
+        "success": false
+      },
+      {
+        "id": "aud_toddler_rain_boots",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "aud_baby_sun_hat",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_teen_boy_school_hoodie",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_teen_girl_party_dress",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "aud_grandfather_cardigan",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_wife_anniversary",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_belt_under_25",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_date_night_look_150",
+        "match_at_k": 0.4,
+        "success": false
+      },
+      {
+        "id": "budget_sunglasses_20_40",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_luxury_watch_min_100",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_gym_outfit_each_35",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "budget_pajamas_under_25",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_levis_straight_jeans",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "brand_columbia_rain_jacket",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_adidas_soccer_cleats",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_carhartt_work_pants",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "brand_rayban_aviators",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_casio_digital_watch",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "attr_vegan_leather_belt",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "attr_cotton_pajamas_no_polyester",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "attr_wide_fit_walking_shoes",
+        "match_at_k": 0.5,
+        "success": true
+      },
+      {
+        "id": "attr_silver_hypoallergenic_earrings",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "neg_dress_not_black",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "neg_warm_jacket_not_puffer",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "neg_flat_boots_no_heels",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "neg_handbag_no_logos",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "style_minimalist_gold_jewelry",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "style_y2k_baggy_jeans",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "style_cottagecore_flower_dress",
+        "match_at_k": 0.25,
+        "success": false
+      },
+      {
+        "id": "style_dark_academia_blazer",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "lang_spanish_wedding_shoes",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "lang_japanese_winter_coat",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "lang_german_regenjacke",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "lang_japanese_hiroi_kutsu",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "trap_running_shoes_not_accessories",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "trap_crossbody_bag_not_phone_case",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "trap_watch_not_band",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "trap_swimsuit_not_coverup",
+        "match_at_k": 1.0,
+        "success": true
+      }
+    ]
+  },
+  "warm": {
+    "label": "pass2_planned",
+    "n": 78,
+    "match_at_k_micro": 0.666,
+    "match_at_k_macro": 0.749,
+    "query_success": 0.628,
+    "empty_slots": 0,
+    "planner_llm_rate": 1.0,
+    "per_query": [
+      {
+        "id": "beach_outfit",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "snow_boots",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "wedding_guest",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "office_chinos",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "fall_sweater",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "flat_feet_running",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "ears_warm",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "europe_sandals",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "husband_wedding",
+        "match_at_k": 0.917,
+        "success": false
+      },
+      {
+        "id": "daughter_unicorn",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "wfh_winter",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "interview_startup",
+        "match_at_k": 0.8,
+        "success": false
+      },
+      {
+        "id": "rainy_commute",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "budget_sneakers",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "yoga",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "baby_summer",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "ski_trip",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "black_tie",
+        "match_at_k": 0.65,
+        "success": false
+      },
+      {
+        "id": "hiking_summer",
+        "match_at_k": 0.75,
+        "success": false
+      },
+      {
+        "id": "grandma_gift",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "brand_nike",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_adidas",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_northface",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_champion",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_fotl",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_columbia",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_levis",
+        "match_at_k": 0.5,
+        "success": true
+      },
+      {
+        "id": "brand_calvin",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "conv_first_day_office_blouse",
+        "match_at_k": 0.2,
+        "success": false
+      },
+      {
+        "id": "conv_standing_all_day_shoes",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "conv_wedding_guest_jumpsuit",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "conv_rainy_commute_coat",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "conv_hot_yoga",
+        "match_at_k": 0.2,
+        "success": false
+      },
+      {
+        "id": "conv_hiking_socks",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "outfit_music_festival",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "outfit_mens_funeral",
+        "match_at_k": 0.85,
+        "success": true
+      },
+      {
+        "id": "outfit_ski_trip",
+        "match_at_k": 0.4,
+        "success": false
+      },
+      {
+        "id": "outfit_job_interview",
+        "match_at_k": 0.3,
+        "success": false
+      },
+      {
+        "id": "outfit_maternity_baby_shower",
+        "match_at_k": 0.25,
+        "success": false
+      },
+      {
+        "id": "outfit_long_flight",
+        "match_at_k": 0.667,
+        "success": false
+      },
+      {
+        "id": "aud_toddler_rain_boots",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "aud_baby_sun_hat",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_teen_boy_school_hoodie",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_teen_girl_party_dress",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "aud_grandfather_cardigan",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "aud_wife_anniversary",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_belt_under_25",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_date_night_look_150",
+        "match_at_k": 0.4,
+        "success": false
+      },
+      {
+        "id": "budget_sunglasses_20_40",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_luxury_watch_min_100",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "budget_gym_outfit_each_35",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "budget_pajamas_under_25",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_levis_straight_jeans",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "brand_columbia_rain_jacket",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_adidas_soccer_cleats",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_carhartt_work_pants",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "brand_rayban_aviators",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "brand_casio_digital_watch",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "attr_vegan_leather_belt",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "attr_cotton_pajamas_no_polyester",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "attr_wide_fit_walking_shoes",
+        "match_at_k": 0.5,
+        "success": true
+      },
+      {
+        "id": "attr_silver_hypoallergenic_earrings",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "neg_dress_not_black",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "neg_warm_jacket_not_puffer",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "neg_flat_boots_no_heels",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "neg_handbag_no_logos",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "style_minimalist_gold_jewelry",
+        "match_at_k": 0.75,
+        "success": true
+      },
+      {
+        "id": "style_y2k_baggy_jeans",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "style_cottagecore_flower_dress",
+        "match_at_k": 0.25,
+        "success": false
+      },
+      {
+        "id": "style_dark_academia_blazer",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "lang_spanish_wedding_shoes",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "lang_japanese_winter_coat",
+        "match_at_k": 0.0,
+        "success": false
+      },
+      {
+        "id": "lang_german_regenjacke",
+        "match_at_k": 1.0,
+        "success": false
+      },
+      {
+        "id": "lang_japanese_hiroi_kutsu",
+        "match_at_k": 0.5,
+        "success": false
+      },
+      {
+        "id": "trap_running_shoes_not_accessories",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "trap_crossbody_bag_not_phone_case",
+        "match_at_k": 1.0,
+        "success": true
+      },
+      {
+        "id": "trap_watch_not_band",
+        "match_at_k": 0.25,
+        "success": true
+      },
+      {
+        "id": "trap_swimsuit_not_coverup",
+        "match_at_k": 1.0,
+        "success": true
+      }
+    ]
+  }
+}
