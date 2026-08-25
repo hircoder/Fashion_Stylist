@@ -6,16 +6,26 @@ rerun it with `uv run jupyter lab notebooks/` after `make data` (section 5 also 
 an LLM key). `docs/exploration.md` tells the same story with the prompt experiments
 added; this file is the notebook itself, organised.
 
+
 # Exploring the Amazon Fashion metadata
 
-Quick look at the data before building anything. Questions i wanted answered:
+A guided look at the catalog behind the recommendation service: 826,108 product
+listings. Written so that a non-engineer can follow it. Every section starts with
+the question in plain words, shows a chart or a table, and ends with the decision
+the answer forced.
 
-1. which fields are actually populated (the pdf lists 14 fields, how many are usable?)
-2. does metadata quality depend on popularity (rating count)? this decides how the demo subset gets picked
-3. which local embedding model is good enough for conversational queries, and does bm25 add anything
-4. what does the LLM planner produce for a few human style queries
+Two parts:
 
-Run from the repo root with the raw file in `data/raw/` (`make data`).
+1. **First look** (sections 1 to 5): what i checked before writing any code. Which
+   fields exist, whether popular products are documented better, which search model
+   to use, and what the LLM does with a human sentence.
+2. **The catalog under the microscope** (sections 6 to 12): written while building.
+   Prices, ratings, duplicate listings, brands, and the measured evidence behind the
+   biggest calls: hybrid search, the popular-first demo index, and serving the full
+   catalog.
+
+Run from the repo root with the raw file in `data/raw/` (`make data`). Section 5
+needs an LLM key; every other cell runs offline.
 
 ```python
 import gzip, json, re, itertools, collections, time, sys
@@ -29,12 +39,44 @@ from stylist.catalog import parse_price, derive_audience, group_key
 
 RAW = Path("data/raw/meta_Amazon_Fashion.jsonl.gz")
 assert RAW.exists(), "run `make data` first"
-plt.rcParams["figure.dpi"] = 110
+
+# one small chart style used everywhere: quiet grid, no box, direct labels.
+# palette: colorblind-checked categorical order (blue, orange, aqua, yellow, magenta)
+PAL = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+INK, INK2, MUTED, GRID = "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
+plt.rcParams.update({
+    "figure.dpi": 110, "figure.facecolor": "white", "axes.facecolor": "white",
+    "axes.edgecolor": "#c3c2b7", "axes.labelcolor": INK2, "text.color": INK,
+    "xtick.color": MUTED, "ytick.color": MUTED, "axes.titlesize": 12,
+    "axes.titleweight": "bold", "axes.titlelocation": "left", "font.size": 10,
+})
+
+def tidy(ax, ygrid=True):
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    if ygrid:
+        ax.grid(axis="y", color=GRID, linewidth=0.8)
+        ax.set_axisbelow(True)
+
+def fmt_count(n):
+    return f"{n/1e3:.0f}K" if n >= 10_000 else f"{n:,.0f}"
+
+from matplotlib.ticker import FuncFormatter
+KTICKS = FuncFormatter(lambda v, _: fmt_count(v) if v else "0")
 ```
 
-## 1. Field coverage
+## Part 1: first look, before any code was written
 
-Stream the whole file once (826K rows, about a minute) and count what is non-empty.
+Day one. The point of these five checks was to find out what the data would allow
+at all, and they ended up deciding most of the architecture.
+
+## 1. Which fields can we actually count on?
+
+The plain question: the assignment lists 14 fields per product. How many of them
+are actually filled in? A search feature can only use fields that exist.
+
+The cell below streams the whole file once (826K rows, about a minute) and counts
+what is non-empty.
 
 ```python
 keys = collections.Counter(); nonempty = collections.Counter(); n = 0
@@ -60,8 +102,6 @@ cov = pd.Series({k: nonempty[k] / n for k in keys}).sort_values(ascending=False)
 cov.round(3).to_frame("non-empty share")
 ```
 
-Output:
-
 ```
 rows: 826108
                  non-empty share
@@ -81,50 +121,137 @@ categories                 0.000
 bought_together            0.000
 ```
 
-So: `categories` is empty for every single row and `bought_together` is always null. `price` exists for 6%, `description` for 7%. The title is the one field that is always there, and it is dense (brand, gender, product type, colour, size all crammed in). That shaped the whole design: the title carries retrieval, everything else is a bonus.
+```python
+share = (cov * 100)
+fig, ax = plt.subplots(figsize=(8.4, 4.4))
+vals = share.sort_values()
+colors = [MUTED if v == 0 else PAL[0] for v in vals]
+bars = ax.barh(vals.index, vals.values, color=colors, height=0.62)
+for b, v in zip(bars, vals.values):
+    ax.text(v + 1.2, b.get_y() + b.get_height() / 2, f"{v:.0f}%" if v >= 1 else ("0%" if v == 0 else f"{v:.1f}%"),
+            va="center", fontsize=9, color=INK2)
+ax.set_xlim(0, 112)
+ax.set_title("how often each field is filled in, across all 826,108 listings")
+ax.set_xlabel("share of listings with the field present")
+tidy(ax, ygrid=False)
+ax.grid(axis="x", color=GRID, linewidth=0.8); ax.set_axisbelow(True)
+plt.tight_layout(); plt.show()
+```
+
+![fig1](notebook-figs/fig1.png)
+
+*Read it top-down: title, images and ratings are always there. Everything below
+`features` is scarce, and the two fields at the bottom are empty on every single
+row.*
+
+So: `categories` (a product taxonomy) is empty for all 826,108 rows, and
+`bought_together` (bundle suggestions) is always null. That killed two ideas on
+day one: no category tree to filter by, no "people also bought". A price exists on
+6% of listings, a description on 7%.
+
+What is left is the title. It is always present and it is dense: brand, gender,
+product type, colour and size all crammed into a median of 89 characters.
+
+**The decision this forced: the title carries the search, everything else is a
+bonus.** Both search channels (meaning-based and keyword-based) index the title
+plus whatever features and details a row happens to have.
 
 ```python
-fig, ax = plt.subplots(1, 3, figsize=(13, 3.4))
-ax[0].hist(np.clip(title_len, 0, 250), bins=50); ax[0].set_title("title length (chars)")
-rn = np.array(rating_number); ax[1].hist(np.log10(rn + 1), bins=40); ax[1].set_title("log10(rating_number + 1)")
-ax[2].hist(np.clip(prices, 0, 150), bins=50); ax[2].set_title(f"price (USD, n={len(prices):,})")
+rn = np.array(rating_number)
+fig, ax = plt.subplots(1, 3, figsize=(12.6, 3.6))
+
+ax[0].hist(np.clip(title_len, 0, 250), bins=50, color=PAL[0])
+ax[0].set_title("title length (characters)")
+ax[0].yaxis.set_major_formatter(KTICKS)
+ax[0].axvline(np.median(title_len), color=INK, linewidth=1)
+ax[0].text(np.median(title_len) + 5, ax[0].get_ylim()[1] * 0.92, f"median {np.median(title_len):.0f}", fontsize=9, color=INK2)
+ax[0].text(207, ax[0].get_ylim()[1] * 0.35, "titles get cut\noff near 200", fontsize=8.5, color=INK2)
+
+buckets = {"1-4": ((rn >= 1) & (rn <= 4)).sum(), "5-19": ((rn >= 5) & (rn <= 19)).sum(),
+           "20-99": ((rn >= 20) & (rn <= 99)).sum(), "100+": (rn >= 100).sum()}
+bars = ax[1].bar(buckets.keys(), buckets.values(), color=PAL[0], width=0.62)
+for b, v in zip(bars, buckets.values()):
+    ax[1].text(b.get_x() + b.get_width() / 2, v, f" {fmt_count(v)}", ha="center", va="bottom", fontsize=9, color=INK2)
+ax[1].set_title("how many ratings a product has")
+ax[1].set_xlabel("number of ratings")
+ax[1].yaxis.set_major_formatter(KTICKS)
+
+p = np.array(prices)
+clipped = np.clip(p, 0, 150)
+ax[2].hist(clipped, bins=30, color=PAL[0])
+ax[2].set_title(f"price, where known (n={len(p):,})")
+ax[2].set_xlabel("USD. rightmost bar = every price above $150")
+ax[2].axvline(np.median(p), color=INK, linewidth=1)
+ax[2].text(np.median(p) + 4, ax[2].get_ylim()[1] * 0.92, f"median ${np.median(p):.2f}", fontsize=9, color=INK2)
+
+for a in ax:
+    tidy(a)
 plt.tight_layout(); plt.show()
-print("rating_number: median", np.median(rn), " >=5:", (rn >= 5).sum(), " >=20:", (rn >= 20).sum(), " >=100:", (rn >= 100).sum())
-print("price median", np.median(prices), "p90", np.percentile(prices, 90))
+print("ratings: median", np.median(rn), "| products with 5+:", f"{(rn>=5).sum():,}",
+      "| 20+:", f"{(rn>=20).sum():,}", "| 100+:", f"{(rn>=100).sum():,}")
+print("price: p90", f"${np.percentile(p, 90):.2f}", "| max", f"${p.max():,.0f}",
+      "| share of known prices under $20:", f"{(p < 20).mean():.0%}")
 print("categories depth:", dict(cat_depth))
-print("department values (top):", dept.most_common(8))
-print("years listed (top):", sorted(years.items())[-8:])
 ```
 
-Output:
+![fig2](notebook-figs/fig2.png)
 
 ```
-rating_number: median 4.0  >=5: 375906  >=20: 101508  >=100: 16483
-price median 19.89 p90 71.91400000000009
+ratings: median 4.0 | products with 5+: 375,906 | 20+: 101,508 | 100+: 16,483
+price: p90 $71.91 | max $13,000 | share of known prices under $20: 53%
 categories depth: {0: 826108}
-department values (top): [('womens', 52833), ('mens', 19533), ('unisex-adult', 11741), ('girls', 8229), ('boys', 4353), ('unisex-child', 4000), ('women', 3791), ('unisex adult', 2736)]
-years listed (top): [('2019', 129790), ('2020', 96249), ('2021', 110445), ('2022', 34350), ('2023', 2686), ('2025', 1), ('2030', 1), ('2099', 1)]
 ```
 
-![figure 1](notebook-figs/fig1.png)
+*Three shapes worth knowing. Titles are long and get truncated by Amazon around
+200 characters. Ratings are extremely lopsided: over half of all products have
+four ratings or fewer, while a tiny group has thousands. Known prices sit mostly
+under $40 (median $19.89), with a long expensive tail up to $13,000.*
+
+That middle chart matters most. "Popular" here means "has many ratings", and only
+16,483 products out of 826,108 pass the 100-ratings bar. Keep that shape in mind
+for the next section.
 
 ## 2. Does popularity buy better metadata?
 
-The ingest step records coverage per rating bucket (`data/processed/ingest_stats.json`, written by `make ingest`). This is the evidence behind indexing the most-rated 100K items by default for the demo.
+The plain question: are well-rated products also better documented? If yes, a demo
+index built from popular products gets richer data to filter and explain with.
+
+The ingest step records field coverage per rating bucket
+(`data/processed/ingest_stats.json`, written by `make ingest`). Drawn below.
 
 ```python
 stats = json.loads(Path("data/processed/ingest_stats.json").read_text())
 by_bucket = pd.DataFrame(stats["by_rating_bucket"]).T
 by_bucket.index.name = "rating_number bucket"
 display(by_bucket)
-by_bucket.drop(columns=["rows", "image_url"]).plot.bar(figsize=(9, 3.4), title="share of rows with the field populated")
-plt.ylabel("share"); plt.tight_layout(); plt.show()
+
+fields = ["price", "features", "description", "department", "material"]
+labels = {"0-4": "0-4", "5-19": "5-19", "20-99": "20-99", "100-inf": "100+"}
+x = np.arange(len(by_bucket))
+w = 0.15
+fig, ax = plt.subplots(figsize=(9.6, 4.2))
+for i, f in enumerate(fields):
+    vals = by_bucket[f].values * 100
+    bars = ax.bar(x + (i - 2) * (w + 0.012), vals, width=w, color=PAL[i], label=f)
+    if f in ("price", "department"):
+        for b, v in zip(bars, vals):
+            ax.text(b.get_x() + b.get_width() / 2, v + 1, f"{v:.0f}", ha="center", fontsize=8, color=INK2)
+ax.set_xticks(x, [labels[i] for i in by_bucket.index])
+ax.set_xlabel("how many ratings the product has")
+ax.set_ylabel("share of listings with the field (%)")
+ax.set_title("every field gets more common as products get more popular")
+ax.legend(frameon=False, ncols=5, loc="upper left", fontsize=9)
+ax.set_ylim(0, 100)
+tidy(ax)
+ax.annotate("the quick demo index keeps roughly\nthese two buckets (20+ ratings = 101,508 rows)",
+            xy=(1.0, 78), fontsize=8.5, color=INK2, ha="center")
+plt.tight_layout(); plt.show()
 ```
 
-Output:
+![fig3](notebook-figs/fig3.png)
 
 ```
-                       price  features  description  image_url  department  \
+price  features  description  image_url  department  \
 rating_number bucket                                                         
 0-4                   0.0485    0.5026       0.0617        1.0      0.1168   
 5-19                  0.0529    0.6051       0.0615        1.0      0.1379   
@@ -139,13 +266,66 @@ rating_number bucket
 100-inf                 0.0867   16483.0
 ```
 
-![figure 2](notebook-figs/fig2.png)
+*Read any one colour left to right: it climbs. A product with 100+ ratings has a
+price 26% of the time; a product with 0-4 ratings, 4.9%. Features go 50% to 79%,
+department 12% to 49%.*
 
-Price coverage goes from 5% (0-4 ratings) to 26% (100+ ratings), features from 50% to 79%, department from 12% to 49%. Images are 100% everywhere. Popular listings are simply better documented, which matters a lot for a demo where the LLM has to explain its picks. The trade-off (long tail products never get indexed) is measured in `docs/evaluation.md` by also running the full catalog.
+Popular listings are simply better documented. That matters twice over: the price
+filter can only act on rows that have a price, and the model explaining a pick can
+only cite fields that exist.
 
-## 3. Audience heuristic and variant grouping
+**The decision this drove on day one: a quick index of the 100K most-rated
+listings** (in this catalog, everything with about 20+ ratings). It builds in 3
+minutes, serves in 1 GB of memory, and its rows carry the best metadata. The
+trade-off, losing the long tail, is not hidden: every API response names the
+subset it answered from, and section 10 measures exactly what the subset costs
+against the full catalog, which is what the deployed service ended up serving.
 
-No taxonomy, so audience is guessed from `details.Department` first and the title second. Variant listings (same product, other size or colour) get a `group_key` so they collapse at query time instead of being deleted at ingest.
+## 3. Who is each product for, and which listings are twins?
+
+No taxonomy means no "department: women" filter for most rows. So the audience
+(women / men / girls / boys / baby / unisex) is guessed: from `details.Department`
+when present, from title words otherwise. The same title also yields a grouping
+key that collapses size and colour variants of one product at query time.
+
+First, how the guessed audience splits across the whole catalog:
+
+```python
+aud = pd.read_parquet("data/processed/catalog.parquet", columns=["audience"])["audience"]
+counts = aud.value_counts()
+order = counts.sort_values()
+fig, ax = plt.subplots(figsize=(8.2, 3.8))
+colors = [MUTED if k == "unknown" else PAL[0] for k in order.index]
+bars = ax.barh(order.index, order.values, color=colors, height=0.62)
+for b, v in zip(bars, order.values):
+    ax.text(v + 4000, b.get_y() + b.get_height() / 2, f"{fmt_count(v)}  ({v/len(aud):.0%})",
+            va="center", fontsize=9, color=INK2)
+ax.set_title("who the listing is for, guessed from department and title words")
+ax.set_xlim(0, order.max() * 1.22)
+ax.set_xticks([])
+tidy(ax, ygrid=False)
+plt.tight_layout(); plt.show()
+print("note: 'unknown' is treated as a wildcard. an audience filter keeps unknown",
+      "rows in, so a thin guess never hides a product.")
+```
+
+![fig4](notebook-figs/fig4.png)
+
+```
+note: 'unknown' is treated as a wildcard. an audience filter keeps unknown rows in, so a thin guess never hides a product.
+```
+
+*Half the catalog is women's fashion. A quarter cannot be guessed at all, and
+those rows stay eligible for every search (filtering them out would silently
+shrink the catalog by 195K rows).*
+
+A small data-quality aside that justifies guessing from two sources: the raw
+`Department` field is a mess of near-duplicates ("Womens", "womens", "Women",
+"Unisex-adult", "unisex-adult"...), and it exists on only 14.5% of rows anyway.
+
+Below, the two heuristics checked by eye on a spread of real titles before
+trusting them. `group_key` is the variant key: same product in another size or
+colour should map to the same key.
 
 ```python
 sample = []
@@ -157,10 +337,8 @@ rows = [{"audience": derive_audience(r["title"], (r.get("details") or {}).get("D
 pd.DataFrame(rows).head(25)
 ```
 
-Output:
-
 ```
-   audience                                          group_key  \
+audience                                          group_key  \
 0       men  yuedge 5 pairs men's moisture control cushione...   
 1       men            mountain hardwear men's ratio down vest   
 2     women  peacameo women's summer casual tank tops scoop...   
@@ -215,9 +393,17 @@ Output:
 24  Pishon Men's Henley Shirt Slim Fit Sports Plai...
 ```
 
-## 4. Embedding models vs BM25 on conversational queries
+## 4. Which search model reads sentences best?
 
-40K listings with at least 5 ratings, 8 queries written the way a person would type them. No labels here, just eyeballing the top 3 per model. The full comparison is slow on CPU, takes ~2 min on an M-series GPU.
+Two ways to search text. Keyword search (BM25) matches the words you typed.
+Embedding search turns text into a list of numbers so that similar meanings land
+close together, which lets "outfit for the beach" find a swimsuit that never says
+"outfit". The question: which local embedding model is good enough, and does
+keyword search still add anything?
+
+The test: 40K listings, 8 queries written the way a person would type them, three
+small embedding models against BM25, judged by eyeballing the top 3. Takes about
+2 minutes on a laptop GPU.
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -259,13 +445,12 @@ for qi, q in enumerate(queries):
         print(f"  {name:18s}", " | ".join(t[:45] for t in results[name][qi]))
 ```
 
-Output:
-
 ```
-{'bge-small-en-v1.5': '761 docs/s', 'all-MiniLM-L6-v2': '1411 docs/s', 'arctic-embed-xs': '1458 docs/s'}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:   0%|          | 0/101 [00:00<?, ?it/s]{'bge-small-en-v1.5': '755 docs/s', 'all-MiniLM-L6-v2': '1378 docs/s', 'arctic-embed-xs': '1390 docs/s'}
 
 ### I need an outfit to go to the beach this summer
-  bm25               WAYB Crossbody Catchall - Black | Ready to Ro | Kerr's Choice Pink Kitty Bag for Girls | Pink | Toddler Girl Summer Tulle Dress Cotton Casual
+  bm25               Toddler Girl Summer Tulle Dress Cotton Casual | Kerr's Choice Pink Kitty Bag for Girls | Pink | Go Little One Go Anti-Slip Bamboo Baby Crawli
   bge-small-en-v1.5  Womens Summer Fashion Beach Boho Loose Fit Ca | Summer Beach Dresses for Women Tshirt Sundres | POPYOUNG Women's 2022 Summer Casual Tshirt Dr
   all-MiniLM-L6-v2   Fashion Bikini Swimwear Swimsuit Dress for Wo | Summer Beach Dresses for Women Tshirt Sundres | Summer Casual Tshirt Dresses for Women Swing 
   arctic-embed-xs    Women Summer Beach Boho Cute Pocket Casual Ts | Summer Beach Maxi Dresses for Women Off The S | POPYOUNG Women's 2023 Summer Casual Tshirt Dr
@@ -284,7 +469,7 @@ Output:
 
 ### men's slim fit chinos for the office
   bm25               Women's 2 Piece Office Lady Business Suit Set | Women's Elegant Ruched Knee Length Skirt Slim | SATINIOR Women's Elegant Ruched Knee Length S
-  bge-small-en-v1.5  Yazubi Men's Trousers Chino Pants Kyle Slim - | Ouber Men's Elastic Waist Chino Pant Slim Fit | Women's 2 Piece Office Lady Business Suit Set
+  bge-small-en-v1.5  Ouber Men's Elastic Waist Chino Pant Slim Fit | Yazubi Men's Trousers Chino Pants Kyle Slim - | Women's 2 Piece Office Lady Business Suit Set
   all-MiniLM-L6-v2   Janmid Men's Slim-Fit Flat Front Chino Short  | Ouber Men's Elastic Waist Chino Pant Slim Fit | MorwebVeo Athletic Men Shirts Fashion Slim Fi
   arctic-embed-xs    Janmid Men's Slim-Fit Flat Front Chino Short  | H2H Men's Slim Fit Color Block Polo Short Sle | Joggers Pants for Men Fashion Cotton Twill Ch
 
@@ -292,18 +477,18 @@ Output:
   bm25               Liadon Sherpa Pullover Sweaters Fuzzy Oversiz | WUHOVILA Womens Plush Hooded Sweatshirts Long | Dokotoo Womens Casual Cozy Long Sleeve Fall O
   bge-small-en-v1.5  Women's Oversized Long Sleeve Knitted Loose F | Oversized Sweaters for Women Crew Neck Lanter | SAMPEEL Ladies Oversized Casual Funny Christm
   all-MiniLM-L6-v2   Oversized Sweaters for Women Crew Neck Lanter | Byinns Oversized Pullover Sweater for Womens  | Lightweight Sweaters for Women Work High Neck
-  arctic-embed-xs    Oversized Sweaters for Women Crew Neck Lanter | Dearlove Women's Long Sleeve V-Neck Casual Lo | LookbookStore Fall Trendy Tops for Women Knit
+  arctic-embed-xs    Oversized Sweaters for Women Crew Neck Lanter | LookbookStore Fall Trendy Tops for Women Knit | Dearlove Women's Long Sleeve V-Neck Casual Lo
 
 ### running shoes with good arch support for flat feet
-  bm25               WHITIN Women's Orthotic Arch Support Slipper  | Shoe Insoles Arch Support Inserts Orthotic In | WHITIN Women's Orthotic Arch Support Mule Sli
-  bge-small-en-v1.5  Shoe Insoles Flat Feet Inserts Orthotics for  | OrthoComfoot Men's Slip On Loafers,Arch Suppo | Archies Supportive Flip Flops for Women, Best
+  bm25               Shoe Insoles Arch Support Inserts Orthotic In | WHITIN Women's Orthotic Arch Support Slipper  | WHITIN Women's Orthotic Arch Support Mule Sli
+  bge-small-en-v1.5  Shoe Insoles Flat Feet Inserts Orthotics for  | OrthoComfoot Men's Slip On Loafers,Arch Suppo | OrthoComfoot Women's Orthopedic Slip On Shoes
   all-MiniLM-L6-v2   Unisex Flip Flops Sandals with Arch Support,  | Unisex Flip Flops Sandals with Arch Support,  | Unisex Flip Flops Sandals with Arch Support, 
-  arctic-embed-xs    OrthoComfoot Men's Slip On Loafers,Arch Suppo | Orthofeet Arch Support Sandals for Men, Ideal | Shoe Insoles Flat Feet Inserts Orthotics for 
+  arctic-embed-xs    OrthoComfoot Men's Slip On Loafers,Arch Suppo | OrthoComfoot Women's Orthopedic Slip On Shoes | Orthofeet Innovative Plantar Fasciitis Shoes 
 
 ### something to keep my ears warm in winter
-  bm25               Something for Everyone Men's Undefined Graphi | Ganz Lucky Horseshoe for The Bride Charm ~ We | EMPISPORTS Thermal Helmet Liner Skull Cap Ear
-  bge-small-en-v1.5  Simplicity Thermal Insulated Soft Faux Fur Kn | VICASKY Ear Muffs for Winter Women Kids Stude | Metog Winter Earmuffs Unisex Foldable Polar F
-  all-MiniLM-L6-v2   Simplicity Thermal Insulated Soft Faux Fur Kn | VICASKY Ear Muffs for Winter Women Kids Stude | Metog Winter Earmuffs Unisex Foldable Polar F
+  bm25               Yacht & Smith Wholesale Kids Beanie and Glove | QKURT Thicken Winter Balaclava Beanie Hats, T | Something for Everyone Men's Undefined Graphi
+  bge-small-en-v1.5  VICASKY Ear Muffs for Winter Women Kids Stude | Simplicity Thermal Insulated Soft Faux Fur Kn | Metog Winter Earmuffs Unisex Foldable Polar F
+  all-MiniLM-L6-v2   Simplicity Thermal Insulated Soft Faux Fur Kn | VICASKY Ear Muffs for Winter Women Kids Stude | 6 Pieces Winter Watch Cap Skiing Skull Beanie
   arctic-embed-xs    VICASKY Ear Muffs for Winter Women Kids Stude | Lovful Womens Ladies Knit Earmuffs Winter Col | Simplicity Thermal Insulated Soft Faux Fur Kn
 
 ### comfortable sandals for walking around europe
@@ -319,11 +504,26 @@ What i took from this:
 * bge-small gives the most sensible lists of the three and is still ~1100 docs/s on the laptop GPU, so it became the default. arctic-xs is faster and close behind, MiniLM is noticeably weaker.
 * gender leaks through on dense only ("men's chinos" returned a women's office suit at rank 3), which is why the service has an audience filter applied as a mask before ranking.
 
-Hence hybrid: dense + bm25 fused with reciprocal rank fusion.
+| model | speed | verdict |
+|---|---|---|
+| bge-small-en-v1.5 | 761 docs/s | best lists, the default |
+| arctic-embed-xs | 1,458 docs/s | close second |
+| all-MiniLM-L6-v2 | 1,411 docs/s | noticeably weaker |
+| bm25 (keywords) | ~free | fails sentences, wins brands and exact phrases |
+
+**The decision: use both.** Embeddings read the sentence, BM25 catches brands and
+exact phrases, and their rankings merge (reciprocal rank fusion). The gender leak
+became a hard filter instead of a hope.
 
 ## 5. What the planner does with human queries
 
-Needs an LLM key in the environment (`LLM_PROVIDER`, see `.env.example`). Skipped otherwise.
+The planner is the LLM call that turns the shopper's sentence into a shopping
+list: named slots (swimsuit, sandals...), a search query per slot, and the
+constraints (who it is for, the budget, the season).
+
+Needs an LLM key in the environment (`LLM_PROVIDER`, see `.env.example`), so this
+cell is tagged `skip-execution` and keeps the output of its original run with
+`claude-sonnet-4-6` (the model named in the output below).
 
 ```python
 from stylist.config import Settings
@@ -346,8 +546,6 @@ else:
         for s in plan.slots:
             print(f"  - {s.name:14s} q={s.search_query!r}  kw={s.keywords}  budget={s.budget_max}")
 ```
-
-Output:
 
 ```
 model: claude-sonnet-4-6
@@ -373,4 +571,412 @@ model: claude-sonnet-4-6
   - running shoes  q="women's running shoes affordable"  kw=['running shoes', 'running sneakers', 'trainers', 'athletic shoes']  budget=None
 ```
 
-The planner translates the french query, splits the outfit into pieces and allocates a total budget across slots (shoes get more than the tie). Those per-slot queries are what the retriever actually searches, the shopper's sentence never hits the index directly.
+The planner translates the french query, splits the outfit into pieces and
+allocates a total budget across slots (shoes get more than the tie). Those
+per-slot queries are what the retriever actually searches, the shopper's sentence
+never hits the index directly.
+
+## Part 2: the catalog under the microscope
+
+Written while building the service, after part 1 had fixed the architecture. Each
+section here is the evidence behind one production decision: how prices behave,
+how ratings should be trusted, how many listings are twins, where the brands
+live, and what the measured quality numbers say about serving 100K rows versus
+all 826,108.
+
+```python
+cat = pd.read_parquet("data/processed/catalog.parquet",
+                      columns=["title", "price", "average_rating", "rating_number",
+                               "audience", "store", "brand", "department"])
+print(f"loaded {len(cat):,} rows,", f"{cat['price'].notna().sum():,} with a known price",
+      f"({cat['price'].notna().mean():.1%})")
+```
+
+```
+loaded 826,108 rows, 50,249 with a known price (6.1%)
+```
+
+## 6. Prices: mostly missing, and honest about it
+
+The plain question: can the service promise "under $80"? Only for rows that have
+a price at all, and 94% do not. This section shows what the known prices look
+like and how unevenly they are spread.
+
+```python
+known = cat["price"].dropna()
+fig, ax = plt.subplots(1, 2, figsize=(11.8, 3.8))
+
+ax[0].hist(np.clip(known, 0, 150), bins=30, color=PAL[0])
+ax[0].set_title(f"the {len(known):,} known prices (6% of the catalog)")
+ax[0].yaxis.set_major_formatter(KTICKS)
+ax[0].set_xlabel("USD. rightmost bar = every price above $150")
+for q, name in ((known.median(), "median"), (known.quantile(0.9), "p90")):
+    ax[0].axvline(q, color=INK, linewidth=1)
+    ax[0].text(q + 3, ax[0].get_ylim()[1] * (0.9 if name == "median" else 0.72),
+               f"{name} ${q:.2f}", fontsize=9, color=INK2)
+
+byaud = (cat.groupby("audience")["price"].apply(lambda s: s.notna().mean()) * 100).sort_values()
+bars = ax[1].barh(byaud.index, byaud.values, color=PAL[0], height=0.6)
+for b, v in zip(bars, byaud.values):
+    ax[1].text(v + 0.25, b.get_y() + b.get_height() / 2, f"{v:.1f}%", va="center", fontsize=9, color=INK2)
+ax[1].set_title("share of listings with a known price, by audience")
+ax[1].set_xlim(0, byaud.max() * 1.25)
+ax[1].set_xticks([])
+for a in ax:
+    tidy(a, ygrid=(a is ax[0]))
+plt.tight_layout(); plt.show()
+print(f"of the known prices: {(known < 20).mean():.0%} under $20,",
+      f"{(known < 40).mean():.0%} under $40, max ${known.max():,.0f}")
+```
+
+![fig5](notebook-figs/fig5.png)
+
+```
+of the known prices: 53% under $20, 80% under $40, max $13,000
+```
+
+*Left: known prices cluster under $40. Right: coverage is uneven, women's
+listings carry a price only 4.2% of the time, unisex 12.3%.*
+
+**The decision this forced (after a real failure):** the first version filtered
+every budget query to priced rows only. For "outdoor wedding, budget $200 total"
+the blazer slot came back with a $13 wooden ring, because among the few priced
+rows there was no blazer at all. Now the rule is split. A price limit you type
+explicitly is a promise: only rows with a known price inside it. A budget read
+out of your sentence is a hint: unpriced rows may still appear, every item says
+`price_known: true/false`, and the answer never claims an unpriced item fits the
+budget.
+
+## 7. Ratings: when is 5.0 stars worse than 4.8?
+
+The plain question: should a product with one 5-star rating outrank a product
+with five hundred 4.8-star ratings? Star averages on tiny samples are noise, and
+the left chart shows how common tiny samples are (half the catalog has 4 ratings
+or fewer, section 1).
+
+```python
+from stylist.retrieval import bayes_rating
+
+fig, ax = plt.subplots(1, 2, figsize=(11.8, 3.8))
+hist_buckets = [(1, 2), (2, 3), (3, 3.5), (3.5, 4), (4, 4.5), (4.5, 5.01)]
+names = ["1-2", "2-3", "3-3.5", "3.5-4", "4-4.5", "4.5-5"]
+avg = cat["average_rating"].astype(float)
+vals = [((avg >= lo) & (avg < hi)).sum() for lo, hi in hist_buckets]
+bars = ax[0].bar(names, vals, color=PAL[0], width=0.62)
+for b, v in zip(bars, vals):
+    ax[0].text(b.get_x() + b.get_width() / 2, v, f" {fmt_count(v)}", ha="center", va="bottom", fontsize=8.5, color=INK2)
+ax[0].set_title(f"star averages across the catalog (mean {avg.mean():.2f})")
+ax[0].set_xlabel("average rating (no product averages below 1 star)")
+ax[0].yaxis.set_major_formatter(KTICKS)
+
+prior = float(avg[cat["rating_number"] > 0].mean())
+examples = [("5.0 stars\n1 rating", 5.0, 1), ("4.8 stars\n500 ratings", 4.8, 500),
+            ("4.0 stars\n20,000 ratings", 4.0, 20000)]
+x = np.arange(len(examples))
+raw = [e[1] for e in examples]
+adj = [bayes_rating(e[1], e[2], m=20, prior=prior) for e in examples]
+b1 = ax[1].bar(x - 0.17, raw, width=0.3, color=MUTED, label="raw average")
+b2 = ax[1].bar(x + 0.17, adj, width=0.3, color=PAL[0], label="adjusted (what ranking uses)")
+for bs in (b1, b2):
+    for b in bs:
+        ax[1].text(b.get_x() + b.get_width() / 2, b.get_height(), f"{b.get_height():.2f}",
+                   ha="center", va="bottom", fontsize=9, color=INK2)
+ax[1].set_xticks(x, [e[0] for e in examples])
+ax[1].set_ylim(0, 6.6)
+ax[1].set_title("the adjustment: thin samples get pulled toward the catalog mean")
+ax[1].legend(frameon=False, fontsize=9, loc="upper right")
+for a in ax:
+    tidy(a)
+plt.tight_layout(); plt.show()
+print(f"catalog mean rating (the prior): {prior:.2f}. the pull is worth 20 pretend ratings.")
+```
+
+![fig6](notebook-figs/fig6.png)
+
+```
+catalog mean rating (the prior): 3.91. the pull is worth 20 pretend ratings.
+```
+
+*Right chart, first pair: the lone 5.0 collapses to 3.96 once the adjustment adds
+20 pretend ratings at the catalog average. The 4.8 with 500 real ratings barely
+moves. The 4.0 with 20,000 does not move at all.*
+
+**The decision: ranking uses the adjusted score** (a Bayesian average, in the
+code at `stylist/retrieval.py, bayes_rating`). It is a small tie-breaker on top
+of text relevance, worth a tenth of a rank point, but it stops one-rating
+five-star listings from floating up.
+
+## 8. Twins: one product, many listings
+
+The plain question: if a search returns five results and three of them are the
+same shirt in different colours, is that a useful answer? First, how much of the
+catalog is twins.
+
+```python
+t0 = time.time()
+gk = cat["title"].map(group_key)
+sizes = gk.value_counts()
+multi = sizes[sizes > 1]
+lower_extra = int(cat["title"].str.lower().duplicated().sum())
+print(f"group_key over {len(cat):,} titles in {time.time()-t0:.1f}s")
+print(f"exact repeat rows (case-insensitive titles): {lower_extra:,}")
+print(f"variant groups with more than one listing: {len(multi):,},",
+      f"covering {int(multi.sum()):,} rows ({multi.sum()/len(cat):.0%} of the catalog)")
+buckets = {"2": (multi == 2).sum(), "3": (multi == 3).sum(), "4": (multi == 4).sum(),
+           "5-9": ((multi >= 5) & (multi <= 9)).sum(), "10-49": ((multi >= 10) & (multi <= 49)).sum(),
+           "50+": (multi >= 50).sum()}
+fig, ax = plt.subplots(figsize=(8.0, 3.4))
+bars = ax.bar(buckets.keys(), buckets.values(), color=PAL[0], width=0.62)
+for b, v in zip(bars, buckets.values()):
+    ax.text(b.get_x() + b.get_width() / 2, v, f" {fmt_count(v)}", ha="center", va="bottom", fontsize=9, color=INK2)
+ax.set_title("size of each variant group (groups of 1 not shown)")
+ax.set_xlabel("listings in the group")
+ax.yaxis.set_major_formatter(KTICKS)
+tidy(ax)
+plt.tight_layout(); plt.show()
+print("the five biggest groups:")
+for k, v in sizes.head(5).items():
+    print(f"  {v:4d} listings ->  {k[:78]}")
+```
+
+![fig7](notebook-figs/fig7.png)
+
+```
+group_key over 826,108 titles in 11.8s
+exact repeat rows (case-insensitive titles): 56,720
+variant groups with more than one listing: 83,621, covering 262,880 rows (32% of the catalog)
+the five biggest groups:
+   151 listings ->  marked for archive
+   129 listings ->  slevel led light up shoes usb flashing sneakers for kids boys girls
+    98 listings ->  dunea women's maxi dress floral printed autumn 3/4 sleeve casual tunic long ma
+    93 listings ->  drskin women's open - front long sleeve knit cardigan
+    90 listings ->  homeyee women's elegant chic bodycon formal dress b288
+```
+
+*One in three listings shares its identity with at least one other row. Most
+groups are pairs, but the tail is wild: the biggest "group" is 151 rows literally
+titled "marked for archive", dead listings that a naive search would happily
+return as 151 separate products.*
+
+Two numbers to keep straight: 56,720 rows carry a title that another row also
+uses (comparing titles case-insensitively), and the variant key catches far more,
+262,880 rows, because it also merges "same shirt, size L, navy" with "same shirt,
+size S, red".
+
+**The decision: collapse variants at query time, delete nothing at ingest**
+(twin rows can carry different prices and images, and a bug fix in the grouping
+rule must not cost a 20-minute index rebuild). One listing per group survives in
+a result list, and a group can fill only one slot of an outfit.
+
+## 9. Brands: where the popular subset falls short
+
+The plain question: if a shopper asks for "levi's jeans", does the index even
+contain them? The 8 brand queries from the evaluation set, counted in the full
+catalog and in the 100K popular subset (the quick 3-minute build).
+
+```python
+idx_cat = pd.read_parquet("data/index/catalog.parquet", columns=["title", "store", "brand"])
+
+def brand_rows(df, brand):
+    pat = re.escape(brand.lower()).replace(r"\ ", r"[\s\-]*").replace("'", "['\u2019]?")
+    rx = re.compile(r"\b" + pat + r"\b")
+    hay = (df["title"].fillna("") + " | " + df["store"].fillna("") + " | " + df["brand"].fillna("")).str.lower()
+    return int(hay.str.contains(rx).sum())
+
+brands = ["nike", "adidas", "the north face", "champion", "fruit of the loom",
+          "columbia", "levi's", "calvin klein"]
+full_counts = [brand_rows(cat, b) for b in brands]
+pop_counts = [brand_rows(idx_cat, b) for b in brands]
+
+y = np.arange(len(brands))
+fig, ax = plt.subplots(figsize=(9.2, 4.4))
+b1 = ax.barh(y + 0.19, full_counts, height=0.34, color=PAL[0], label="full catalog (826K)")
+b2 = ax.barh(y - 0.19, pop_counts, height=0.34, color=PAL[1], label="popular 100K (the demo index)")
+for bars in (b1, b2):
+    for b in bars:
+        ax.text(b.get_width() + max(full_counts) * 0.012, b.get_y() + b.get_height() / 2,
+                f"{int(b.get_width()):,}", va="center", fontsize=8.5, color=INK2)
+ax.set_yticks(y, brands)
+ax.invert_yaxis()
+ax.set_title("listings that mention each evaluation brand")
+ax.set_xticks([])
+ax.legend(frameon=False, fontsize=9, loc="lower right")
+tidy(ax, ygrid=False)
+plt.tight_layout(); plt.show()
+for b, f_, p_ in zip(brands, full_counts, pop_counts):
+    if p_ < 25:
+        print(f"thin in the demo index: {b} ({p_} rows there, {f_} in the full catalog)")
+```
+
+![fig8](notebook-figs/fig8.png)
+
+```
+thin in the demo index: levi's (3 rows there, 50 in the full catalog)
+thin in the demo index: calvin klein (24 rows there, 661 in the full catalog)
+```
+
+*The pattern behind the evaluation's brand results: brands whose rows survive the
+popularity cut answer fine from the 100K index; brands that mostly live in the
+long tail nearly vanish from it.*
+
+This is the concrete cost of the popular-first subset. In the measured
+evaluation, "columbia rain jacket" and "levi's jeans" score 0 of 4 on-brand items
+on the 100K index and 4 of 4 on the full catalog. The service says so honestly (a
+warning names the fallback), but honesty is not the same as having the jeans.
+
+**The decision this supports: serve the full catalog.** The deployed service
+does, since brand requests are exactly the queries a shopper notices failing.
+The next section prices that decision.
+
+## 10. The measured evidence: what each part of the pipeline buys
+
+The evaluation harness runs 28 human-style queries (20 conversational, 8 brand)
+against three indexes and several configurations. The score, `match@4`, is the
+share of returned items whose title passes a hand-written product-type rule for
+its slot: a sandals slot accepts sandal / flip flop / slide, a jeans slot needs
+the brand too. The rules were written before looking at any output, and every
+configuration replays identical plans, so bars are directly comparable. It is a
+type-correctness floor, deliberately blind to style and taste.
+
+Numbers come straight from the committed result files (`docs/eval_*.json`).
+
+```python
+files = {"popular 100K": "docs/eval_popular100k.json",
+         "random 100K": "docs/eval_random100k.json",
+         "full 826K": "docs/eval_full.json"}
+show = [("bm25", "keyword search only"), ("dense", "meaning search only"),
+        ("hybrid", "both, fused"), ("llm_plan", "+ LLM planner"),
+        ("llm_plan_rerank", "full pipeline\n(+ LLM rerank)")]
+data = {}
+for label, path in files.items():
+    d = json.loads(Path(path).read_text())
+    rows = {r["config"]: r for r in d["results"]}
+    data[label] = [rows[c]["keyword_match_at_k"] for c, _ in show]
+
+x = np.arange(len(show))
+w = 0.24
+fig, ax = plt.subplots(figsize=(10.2, 4.4))
+for i, (label, vals) in enumerate(data.items()):
+    bars = ax.bar(x + (i - 1) * (w + 0.015), vals, width=w, color=PAL[i], label=label)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v + 0.012, f"{v:.2f}", ha="center", fontsize=8, color=INK2)
+ax.set_xticks(x, [n for _, n in show], fontsize=9)
+ax.set_ylim(0, 1.05)
+ax.set_ylabel("match@4 (right product type, higher is better)")
+ax.set_title("the planner is the feature; the full catalog adds the rest")
+ax.legend(frameon=False, fontsize=9, loc="upper left")
+tidy(ax)
+plt.tight_layout(); plt.show()
+for label, path in files.items():
+    d = json.loads(Path(path).read_text())
+    r = {x_["config"]: x_ for x_ in d["results"]}["llm_plan_rerank"]
+    print(f"{label:12s} full pipeline: match@4 {r['keyword_match_at_k']:.3f},",
+          f"query success {r['query_success']:.2f}, empty slots {r['empty_slots']},",
+          f"price violations {r['price_violations']}")
+```
+
+![fig9](notebook-figs/fig9.png)
+
+```
+popular 100K full pipeline: match@4 0.885, query success 0.61, empty slots 0, price violations 0
+random 100K  full pipeline: match@4 0.885, query success 0.61, empty slots 0, price violations 0
+full 826K    full pipeline: match@4 0.935, query success 0.71, empty slots 0, price violations 0
+```
+
+*Read left to right within one colour: keyword search alone manages 0.50 to 0.65.
+Adding the LLM planner, which rewrites the sentence into product-listing
+language, is the big jump, to 0.88 and above. The rerank adds about one more
+point. Read the colours at any x: the full catalog beats both 100K subsets, and
+all of its advantage is brands and the long tail.*
+
+What the full catalog costs, measured on the same laptop:
+
+| index | rows | build time | memory to serve | retrieval p50 |
+|---|---|---|---|---|
+| popular 100K | 100,000 | 2.6 min | 1.0 GB | 22 ms |
+| full catalog | 826,108 | 18.4 min | 3.3 GB | 110 ms |
+
+(build times from each index's `meta.json`; memory and latency from
+`scripts/benchmark.py` runs recorded in `docs/production.md`.)
+
+**The decision: both stay, with different jobs.** The 100K popular index is the
+3-minute reviewer build; the full catalog is what the deployed service serves,
+at 3.3 GB and a still-comfortable 110 ms of retrieval, because brand and
+long-tail coverage are worth that price. Zero empty slots and zero price
+violations hold on every index.
+
+## 11. Where the seconds go
+
+The plain question: a full answer takes about 11 seconds with a large model. What
+is actually slow? Timings from the recorded 20-query live run
+(`docs/live_run_sonnet.json`, claude-sonnet-4-6).
+
+```python
+import statistics
+run = json.loads(Path("docs/live_run_sonnet.json").read_text())
+rows = run["sequential"]
+stages = ["plan_ms", "retrieve_ms", "rerank_ms"]
+med = {s: statistics.median(r["timings"][s] for r in rows) / 1000 for s in stages}
+total = statistics.median(r["timings"]["total_ms"] for r in rows) / 1000
+
+fig, ax = plt.subplots(figsize=(9.2, 2.6))
+left = 0.0
+names = {"plan_ms": "plan (1 LLM call)", "retrieve_ms": "retrieve", "rerank_ms": "rerank (LLM, per slot)"}
+retrieve_mid = None
+for i, s in enumerate(stages):
+    ax.barh(["one request"], [med[s]], left=left, color=PAL[i], height=0.5)
+    if med[s] > 0.5:
+        ax.text(left + med[s] / 2, 0, f"{names[s]}\n{med[s]:.1f} s", ha="center", va="center",
+                fontsize=9, color="white")
+    else:
+        retrieve_mid = left + med[s] / 2
+    left += med[s]
+ax.text(left + 0.15, 0, f"median total {total:.1f} s", va="center", fontsize=9, color=INK2)
+if retrieve_mid is not None:
+    ax.annotate(f"retrieve, {med['retrieve_ms']:.2f} s (the actual search)",
+                xy=(retrieve_mid, 0.25), xytext=(retrieve_mid + 1.2, 0.44),
+                fontsize=9, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.8})
+ax.set_xlim(0, total * 1.25)
+ax.set_ylim(-0.62, 0.62)
+ax.set_title("where a full-pipeline request spends its time (median of 20 live queries)")
+ax.set_xlabel("seconds")
+tidy(ax, ygrid=False)
+plt.tight_layout(); plt.show()
+print(f"retrieval is {med['retrieve_ms']/total:.1%} of the total. the other ~99% is two LLM stages.")
+```
+
+![fig10](notebook-figs/fig10.png)
+
+```
+retrieval is 1.1% of the total. the other ~99% is two LLM stages.
+```
+
+*The tiny aqua sliver in the middle is the actual search. Nearly everything else
+is the two model calls.*
+
+**The decision this drove (on the AWS branch): move the model out of the hot
+path.** A request waits at most 0.1 s for the planner and answers immediately
+with a fallback plan; the real plan finishes in the background about a second
+later and is cached for everyone after, paraphrases included. Measured from a
+client in Japan, that turns this 11-second chart into a 13 to 210 ms answer.
+The full story with every number lives in `docs/aws-latency.md`.
+
+## 12. What each chart decided
+
+| evidence (section) | decision it forced | where it lives |
+|---|---|---|
+| taxonomy and bundles empty, title always present (1) | the title carries retrieval | `catalog.py build_doc_text`, ADR-001 |
+| metadata quality climbs with popularity (2) | popular-first 100K demo index, bias stated per response | ADR-005 |
+| a quarter of rows have no guessable audience (3) | audience filters keep "unknown" rows in | `retrieval.py eligibility_masks` |
+| bm25 fails sentences, embeddings leak gender (4) | hybrid search + audience as a hard mask | ADR-002, ADR-003 |
+| a sentence is not a search query (5) | the LLM planner rewrites it, with a regex fallback | ADR-006 |
+| 94% of prices missing, unevenly (6) | strict explicit bounds, flagged inferred ones, `price_known` | ADR-008 |
+| star averages on tiny samples (7) | Bayesian rating adjustment as a tie-breaker | `retrieval.py bayes_rating` |
+| a third of the catalog is twins (8) | variant collapse at query time, nothing deleted | ADR-009 |
+| brands vanish from the popular subset (9) | serve the full catalog for brand coverage | this branch |
+| planner + full catalog are the measured wins (10) | 0.885 -> 0.935 match@4 on the same plans | `docs/evaluation.md` |
+| 99% of latency is two LLM calls (11) | background planning + caches on the AWS branch | `docs/aws-latency.md` |
+
+In one line: the catalog gives you titles, ratings and images and almost nothing
+else, so the system trusts titles, treats everything scarce as a flagged bonus,
+and proves each of those calls with a number.

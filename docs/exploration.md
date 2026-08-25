@@ -5,14 +5,19 @@ one found. Everything here is reproducible from the repo.
 
 ## notebooks/01_explore_data.ipynb (executed, outputs kept)
 
+Written for two audiences at once: each section opens with the question in plain
+words and closes with the decision it forced. Two parts, twelve sections, ten charts.
+
+Part 1, before any code was written:
+
 1. Field coverage over all 826,108 rows: `categories` and `bought_together` empty on every
    row, price 6.1%, description 7.2%, features 56%, department 14.5%, images and titles
    100%. Title length median 89 chars. Rating count median 4, 16,483 rows with 100+.
 2. Coverage by popularity bucket (from the ingest stats): price 4.9% -> 26%, features 50%
    -> 79%, department 12% -> 49% going from 0-4 ratings to 100+. This is the evidence for
-   the popular-first default index (ADR-005).
-3. Audience heuristic and variant grouping on a sample of real titles, to eyeball the
-   `derive_audience` and `group_key` rules before trusting them.
+   the popular-first demo index (ADR-005).
+3. Audience split (49% women, 24% unguessable and treated as a wildcard) and the
+   heuristics checked on a sample of real titles before trusting them.
 4. Three embedding models on 40K listings with 8 conversational queries, side by side
    with bm25: bge-small-en-v1.5 761 docs/s, all-MiniLM-L6-v2 1,411 docs/s,
    arctic-embed-xs 1,458 docs/s. bge-small gave the most sensible lists; bm25 failed on
@@ -22,6 +27,25 @@ one found. Everything here is reproducible from the repo.
 5. Planner examples: the beach query, a men's wedding outfit with a total budget (shows the
    split across slots), and a French query (shows translation into English listing
    queries).
+
+Part 2, the analytics behind the production decisions:
+
+6. Prices in depth: the 50,249 known prices (median $19.89, 53% under $20), coverage by
+   audience (women 4.2%, unisex 12.3%), and the strict-explicit / flagged-inferred policy
+   they forced (ADR-008).
+7. Ratings: star averages cluster high (mean 3.91) on tiny samples, and the Bayesian
+   adjustment with a worked example (a lone 5.0 becomes 3.96; a 4.8 from 500 barely moves).
+8. Variants: 83,621 groups cover 262,880 rows, a third of the catalog; 56,720 rows repeat
+   another row's title (case-insensitive); the biggest "group" is 151 dead listings titled
+   "marked for archive". Query-time collapse, ADR-009.
+9. Brands: rows mentioning each evaluation brand, full catalog vs the popular 100K
+   (levi's: 50 vs 3). The measured reason brand queries need the full catalog.
+10. The evaluation evidence drawn from `docs/eval_*.json`: match@4 by configuration and
+    index, the planner as the big jump, the full catalog on top, and what it costs
+    (18.4 min build, 3.3 GB, 110 ms retrieval).
+11. Where the seconds go: stage timings from the recorded live run; retrieval is ~1% of
+    an 11.5 s request, which is what justified background planning on the AWS branch.
+12. A closing map from each chart to the decision it settled.
 
 ## scripts/
 
