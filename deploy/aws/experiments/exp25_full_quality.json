@@ -1,0 +1,20 @@
+{
+  "cold": {
+    "label": "pass1_cold",
+    "n": 28,
+    "match_at_k_micro": 0.825,
+    "match_at_k_macro": 0.802,
+    "query_success": 0.0,
+    "empty_slots": 0,
+    "planner_llm_rate": 0.179
+  },
+  "warm": {
+    "label": "pass2_planned",
+    "n": 28,
+    "match_at_k_micro": 0.819,
+    "match_at_k_macro": 0.872,
+    "query_success": 0.571,
+    "empty_slots": 0,
+    "planner_llm_rate": 1.0
+  }
+}

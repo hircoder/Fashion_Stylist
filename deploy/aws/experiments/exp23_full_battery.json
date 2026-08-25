@@ -1,0 +1,4 @@
+{"section": "steady_keepalive_n100", "n": 100, "p50_ms": 13.0, "p90_ms": 15.0, "p95_ms": 16.0, "p99_ms": 16.7, "max_ms": 17.0, "server_p50_ms": 0.4, "server_p95_ms": 0.4}
+{"section": "fresh_tls_n50", "n": 50, "p50_ms": 36.5, "p90_ms": 39.4, "p95_ms": 43.4, "p99_ms": 71.4, "max_ms": 71.4, "server_p50_ms": 0.4, "server_p95_ms": 0.5, "errors": {}}
+{"section": "cache_ladder", "cold": {"ms": 464, "planner": "heuristic"}, "after_background": {"ms": 776, "planner": "llm", "plan_cache_hit": true}, "response_cache": {"ms": 15, "served_from_cache": true, "fresh_request_id": true, "zero_llm_calls_reported": true}, "paraphrase_semantic": {"ms": 772, "planner": "llm", "new_llm_calls": 0}, "pass": true}
+{"section": "consistency_x5", "identical": true, "items_per_answer": 9}

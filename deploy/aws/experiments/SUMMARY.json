@@ -176,5 +176,30 @@
   "p50_ms": null,
   "ran_at": "2026-08-24T02:55:00Z",
   "note": "match@4 micro 0.800 planned pass, success 0.50: fix did not move ranking"
+ },
+ {
+  "label": "exp23_full_battery",
+  "n": 159,
+  "errors": 0,
+  "p50_ms": 13.0,
+  "p95_ms": 16.0,
+  "ran_at": "2026-08-25T06:18:34Z",
+  "note": "full 826K index, 1 worker: steady keep-alive p50 13.0ms (server 0.4ms), fresh tls 36.5ms, ladder cold 464ms / planned uncached 776ms / response-cache 15ms, consistency x5 identical"
+ },
+ {
+  "label": "exp24_full_ramp",
+  "n": 132,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-25T06:18:34Z",
+  "note": "full index: repeat p50 36-48ms with p95 spikes to 1.7-5.2s where the 300s response cache had expired (an uncached 5-slot answer costs 0.7-1.0s server-side); unique cold server p50 494-888ms, saturates ~3.8 rps at c=4 on 4 vCPUs"
+ },
+ {
+  "label": "exp25_full_quality",
+  "n": 112,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-25T06:18:34Z",
+  "note": "full index, nova lite plans: match@4 micro 0.819 / macro 0.872 / success 0.571 planned pass (28/28 llm), cold pass micro 0.825; 100K post-fix was 0.800 micro / 0.50 success"
  }
 ]

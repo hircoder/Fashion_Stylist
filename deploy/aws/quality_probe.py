@@ -53,6 +53,9 @@ def run_pass(base: str, queries: list[dict], label: str) -> dict:
 
 def main() -> None:
     base = sys.argv[1].rstrip("/")
+    # optional second argument: the experiment file to write (a rerun must never
+    # overwrite the record of an earlier one)
+    out = sys.argv[2] if len(sys.argv) > 2 else "exp18_tokyo_quality.json"
     queries = json.load(open(Path(__file__).resolve().parents[2] / "scripts/eval_queries.json"))[
         "queries"
     ]
@@ -61,7 +64,7 @@ def main() -> None:
     warm = run_pass(base, queries, "pass2_planned")
     json.dump(
         {"cold": cold, "warm": warm},
-        open(Path(__file__).with_name("experiments") / "exp18_tokyo_quality.json", "w"),
+        open(Path(__file__).with_name("experiments") / out, "w"),
         indent=2,
     )
 
