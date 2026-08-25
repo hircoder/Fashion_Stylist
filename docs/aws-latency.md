@@ -230,11 +230,14 @@ Quality moved the right way on every measure (exp25, original 28 queries, Nova L
 plans): match@4 micro 0.800 -> 0.819, macro 0.872, success 0.50 -> 0.571, zero empty
 slots, 28/28 plans landed.
 
-exp26 runs the extended 78-query set against the same live service: 0.666 micro /
-0.749 macro / 0.628 success overall, with the original 28 averaging 0.861 inside it
-and the new 50 averaging 0.685. The per-class split names the weak spot: open-ended
-outfit decomposition (0.41) and loose conversational asks (0.48) under a small
-planner, while materials, budgets and the look-alike traps hold 0.81-0.88.
+exp26 and exp27 run the extended golden set against the same live service. The set
+grew in two rounds, 28 -> 78 -> 152 queries across sixteen classes, because 28
+queries cannot separate close configurations. On the 152 (exp27): 0.786 macro with a
+95% bootstrap interval of 0.74 to 0.83, 0.687 micro, 0.645 success, zero empty
+slots, 152/152 plans landed. The class split names the weak spot: open-ended outfit
+decomposition (0.52), loose conversational asks and non-English (0.58) under a small
+planner, while misspellings and two-word asks score 1.00, the look-alike traps 0.96,
+and materials 0.91.
 
 Left open, stated: the cold path now peeks over the 0.5 s target (464 ms is fine;
 0.7-1.0 s on an uncached model plan is not), so the next latency work is retrieval

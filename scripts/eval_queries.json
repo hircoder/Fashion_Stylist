@@ -1,5 +1,5 @@
 {
- "_note": "78 queries: the original 20 conversational + 8 brand, plus 50 added later across ten classes (conv_, outfit_, aud_, budget_, brand_, attr_, neg_, style_, lang_, trap_ id prefixes) to widen what the harness can see: audiences, budget shapes, negations, materials, styles, non-English queries and look-alike traps. Each slot has keyword rules written against listing-title conventions before looking at any output: `any` = at least one must appear in the title (whole words, plural tolerant), `none` = none may, `all` = one of these must (the brand). max_price mirrors an explicit dollar limit; budget_in_text marks that the number appears in the sentence.",
+ "_note": "152 queries: the original 20 conversational + 8 brand, then two later rounds of additions across sixteen classes (id prefixes conv_, outfit_, aud_, budget_, brand_, attr_, neg_, style_, lang_, trap_, typo_, short_, long_, fit_, gift_, acc_) so the harness can see audiences, budget shapes, negations, materials, styles, non-English, misspellings, very short and rambling asks, fit needs, gifts and look-alike traps. Slot rules follow one discipline, written against listing-title conventions before looking at any output: any = at least one term must appear in the title (whole words, plural tolerant), none = none may, all = one of these must (the brand). max_price/min_price mirror explicit dollar limits; budget_in_text marks that the number appears in the sentence.",
  "queries": [
   {
    "id": "beach_outfit",
@@ -2133,6 +2133,1663 @@
       "kaftan",
       "sarong",
       "beach dress"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_gardening_pants",
+   "query": "need tough pants for messy weekend gardening, lots of pockets would be great",
+   "slots": {
+    "work pants": {
+     "any": [
+      "pants",
+      "trousers",
+      "cargo pants",
+      "work pants",
+      "utility pants",
+      "overalls",
+      "dungarees"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_restaurant_layer",
+   "query": "something light to wear over a dress when the restaurant is freezing",
+   "slots": {
+    "cardigan": {
+     "any": [
+      "cardigan",
+      "shrug",
+      "bolero",
+      "shawl",
+      "wrap",
+      "sweater",
+      "poncho",
+      "kimono"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_teacher_clothes",
+   "query": "need comfy clothes for teaching kindergarten all day",
+   "slots": {
+    "top": {
+     "any": [
+      "blouse",
+      "shirt",
+      "top",
+      "tunic",
+      "sweater",
+      "cardigan"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_first_date_nervous",
+   "query": "going on a first date and i'm nervous, what should i wear to feel confident",
+   "slots": {
+    "top": {
+     "any": [
+      "shirt",
+      "blouse",
+      "top",
+      "sweater",
+      "button",
+      "tee"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_cozy_movie_night",
+   "query": "something super cozy to wear for a movie night on the couch",
+   "slots": {
+    "loungewear": {
+     "any": [
+      "sweatpant",
+      "jogger",
+      "hoodie",
+      "sweatshirt",
+      "lounge",
+      "fleece",
+      "pajama"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_new_gym_member",
+   "query": "just joined a gym and need something to lift weights in",
+   "slots": {
+    "activewear": {
+     "any": [
+      "tank",
+      "tee",
+      "short",
+      "legging",
+      "training",
+      "gym",
+      "athletic"
+     ]
+    }
+   }
+  },
+  {
+   "id": "conv_hot_sweaty_summer",
+   "query": "something breathable so i stop sweating through my shirts in july",
+   "slots": {
+    "top": {
+     "any": [
+      "shirt",
+      "tee",
+      "t-shirt",
+      "tank",
+      "top",
+      "polo",
+      "linen"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_renaissance_fair",
+   "query": "help me build a renaissance fair outfit that feels cute but still easy to walk in",
+   "slots": {
+    "peasant blouse": {
+     "any": [
+      "peasant blouse",
+      "blouse",
+      "corset top",
+      "bodice",
+      "chemise",
+      "renaissance top",
+      "medieval top"
+     ]
+    },
+    "long skirt": {
+     "any": [
+      "skirt",
+      "maxi skirt",
+      "renaissance skirt",
+      "medieval skirt",
+      "peasant skirt"
+     ]
+    },
+    "boots": {
+     "any": [
+      "boot",
+      "ankle boot",
+      "combat boot",
+      "riding boot",
+      "lace up boot"
+     ],
+     "none": [
+      "insole",
+      "boot shaper",
+      "boot tree",
+      "replacement lace"
+     ]
+    },
+    "belt": {
+     "any": [
+      "belt",
+      "waist belt",
+      "corset belt",
+      "sash",
+      "waist cincher"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_courthouse_wedding",
+   "query": "I want a simple chic courthouse wedding look, nothing huge or princessy",
+   "slots": {
+    "wedding dress": {
+     "any": [
+      "wedding dress",
+      "bridal dress",
+      "white dress",
+      "midi dress",
+      "sheath dress",
+      "jumpsuit",
+      "bridal jumpsuit"
+     ],
+     "none": [
+      "costume",
+      "petticoat"
+     ]
+    },
+    "dress shoes": {
+     "any": [
+      "heel",
+      "pump",
+      "sandal",
+      "flat",
+      "loafer",
+      "dress shoe",
+      "mule"
+     ],
+     "none": [
+      "insole",
+      "shoe clip",
+      "replacement heel"
+     ]
+    },
+    "clutch": {
+     "any": [
+      "clutch",
+      "evening bag",
+      "wristlet",
+      "handbag",
+      "purse",
+      "shoulder bag"
+     ],
+     "none": [
+      "phone case",
+      "bag insert",
+      "organizer"
+     ]
+    },
+    "jewelry": {
+     "any": [
+      "earring",
+      "necklace",
+      "bracelet",
+      "pendant",
+      "jewelry set",
+      "pearl"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_funeral_woman",
+   "query": "put together a respectful outfit for a woman's funeral service",
+   "slots": {
+    "top": {
+     "any": [
+      "blouse",
+      "shirt",
+      "top",
+      "sweater",
+      "cardigan"
+     ]
+    },
+    "bottom": {
+     "any": [
+      "pant",
+      "pants",
+      "trouser",
+      "trousers",
+      "skirt"
+     ]
+    },
+    "shoes": {
+     "any": [
+      "flat",
+      "flats",
+      "pump",
+      "pumps",
+      "loafer",
+      "loafers",
+      "heel",
+      "heels"
+     ]
+    },
+    "outer layer": {
+     "any": [
+      "blazer",
+      "cardigan",
+      "coat",
+      "jacket"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_travel_redeye",
+   "query": "put together a comfy outfit for an overnight red eye flight",
+   "slots": {
+    "top": {
+     "any": [
+      "sweater",
+      "hoodie",
+      "sweatshirt",
+      "tee",
+      "pullover"
+     ]
+    },
+    "pants": {
+     "any": [
+      "jogger",
+      "legging",
+      "sweatpant",
+      "lounge pant",
+      "pant"
+     ]
+    },
+    "shoes": {
+     "any": [
+      "slip on",
+      "sneaker",
+      "shoe",
+      "slipper",
+      "sock"
+     ]
+    },
+    "scarf": {
+     "any": [
+      "scarf",
+      "wrap",
+      "shawl",
+      "blanket scarf"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_job_interview_law",
+   "query": "corporate interview at a law firm, help me look sharp head to toe",
+   "slots": {
+    "suit": {
+     "any": [
+      "suit",
+      "blazer",
+      "sport coat"
+     ]
+    },
+    "shirt": {
+     "any": [
+      "dress shirt",
+      "button",
+      "blouse",
+      "shirt"
+     ]
+    },
+    "trousers": {
+     "any": [
+      "trouser",
+      "dress pant",
+      "slack",
+      "pant",
+      "skirt"
+     ]
+    },
+    "shoes": {
+     "any": [
+      "oxford",
+      "loafer",
+      "dress shoe",
+      "pump",
+      "heel",
+      "shoe"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_camping_weekend",
+   "query": "weekend camping trip in fall, what should i pack to wear",
+   "slots": {
+    "jacket": {
+     "any": [
+      "fleece",
+      "jacket",
+      "flannel",
+      "vest",
+      "hoodie"
+     ]
+    },
+    "pants": {
+     "any": [
+      "cargo",
+      "hiking pant",
+      "jogger",
+      "pant",
+      "jean"
+     ]
+    },
+    "boots": {
+     "any": [
+      "boot",
+      "hiking shoe",
+      "trail",
+      "shoe"
+     ]
+    },
+    "beanie": {
+     "any": [
+      "beanie",
+      "hat",
+      "cap"
+     ]
+    }
+   }
+  },
+  {
+   "id": "outfit_music_festival_desert",
+   "query": "outfit for a desert music festival, hot days and cold nights",
+   "slots": {
+    "top": {
+     "any": [
+      "tank",
+      "crop",
+      "tee",
+      "top",
+      "shirt"
+     ]
+    },
+    "shorts": {
+     "any": [
+      "short",
+      "denim short",
+      "skirt"
+     ]
+    },
+    "layer": {
+     "any": [
+      "jacket",
+      "flannel",
+      "kimono",
+      "hoodie",
+      "cardigan"
+     ]
+    },
+    "boots": {
+     "any": [
+      "boot",
+      "sneaker",
+      "sandal",
+      "shoe"
+     ]
+    },
+    "hat": {
+     "any": [
+      "hat",
+      "bandana",
+      "cap"
+     ]
+    }
+   }
+  },
+  {
+   "id": "aud_baby_first_walker_shoes",
+   "query": "soft first walking shoes for my 11 month old",
+   "slots": {
+    "first walker shoes": {
+     "any": [
+      "first walker",
+      "baby shoe",
+      "toddler shoe",
+      "crib shoe",
+      "soft sole shoe",
+      "sneaker",
+      "moccasin",
+      "bootie"
+     ],
+     "none": [
+      "insole",
+      "shoe charm",
+      "replacement lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "aud_boys_snow_bib",
+   "query": "snow bib for my 8 year old son that can handle recess and sledding",
+   "slots": {
+    "snow pants": {
+     "any": [
+      "snow bib",
+      "snow pants",
+      "ski pants",
+      "snow overalls",
+      "bib overalls",
+      "insulated pants",
+      "winter pants"
+     ]
+    }
+   }
+  },
+  {
+   "id": "aud_toddler_wedding_shoes",
+   "query": "dress shoes for my toddler boy for a wedding",
+   "slots": {
+    "shoes": {
+     "any": [
+      "shoe",
+      "shoes",
+      "loafer",
+      "loafers",
+      "oxford",
+      "oxfords",
+      "dress shoe",
+      "slip-on"
+     ],
+     "none": [
+      "sock",
+      "insole",
+      "lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "aud_teen_boy_sneakers",
+   "query": "cool sneakers for my teenage son that arent too expensive",
+   "slots": {
+    "sneakers": {
+     "any": [
+      "sneaker",
+      "shoe",
+      "trainer",
+      "running shoe"
+     ],
+     "none": [
+      "insole",
+      "lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "aud_wife_workout",
+   "query": "workout clothes for my wife who just started running",
+   "slots": {
+    "top": {
+     "any": [
+      "tank",
+      "tee",
+      "sports bra",
+      "top",
+      "shirt"
+     ]
+    },
+    "leggings": {
+     "any": [
+      "legging",
+      "tight",
+      "capri",
+      "short",
+      "pant"
+     ]
+    }
+   }
+  },
+  {
+   "id": "budget_cocktail_dress_60",
+   "query": "cute cocktail dress under $60 for a birthday dinner",
+   "slots": {
+    "cocktail dress": {
+     "any": [
+      "cocktail dress",
+      "party dress",
+      "midi dress",
+      "mini dress",
+      "bodycon dress",
+      "sheath dress",
+      "wrap dress"
+     ]
+    }
+   },
+   "max_price": 60,
+   "budget_in_text": 60
+  },
+  {
+   "id": "budget_school_picture_outfit_total",
+   "query": "school picture day outfit for my son, whole look under $100 total",
+   "slots": {
+    "button down shirt": {
+     "any": [
+      "button down",
+      "button-down",
+      "button up",
+      "dress shirt",
+      "oxford shirt",
+      "collared shirt",
+      "woven shirt"
+     ]
+    },
+    "dress pants": {
+     "any": [
+      "dress pants",
+      "trousers",
+      "chinos",
+      "khakis",
+      "slacks",
+      "suit pants"
+     ]
+    },
+    "dress shoes": {
+     "any": [
+      "dress shoe",
+      "loafer",
+      "oxford",
+      "derby",
+      "brogue",
+      "slip on shoe"
+     ],
+     "none": [
+      "insole",
+      "shoe polish",
+      "replacement lace"
+     ]
+    }
+   },
+   "max_price": 100,
+   "budget_in_text": 100
+  },
+  {
+   "id": "budget_handbag_50_80",
+   "query": "everyday handbag in the $50-80 range, roomy but not enormous",
+   "slots": {
+    "handbag": {
+     "any": [
+      "handbag",
+      "purse",
+      "shoulder bag",
+      "tote",
+      "satchel",
+      "hobo bag",
+      "carryall"
+     ],
+     "none": [
+      "phone case",
+      "bag insert",
+      "organizer",
+      "dust bag"
+     ]
+    }
+   },
+   "max_price": 80,
+   "budget_in_text": 80
+  },
+  {
+   "id": "budget_premium_briefcase_minimum",
+   "query": "leather work briefcase, nothing cheaper than $100 because I want it to last",
+   "slots": {
+    "briefcase": {
+     "any": [
+      "briefcase",
+      "laptop bag",
+      "messenger bag",
+      "attache",
+      "work bag",
+      "business bag",
+      "portfolio bag"
+     ],
+     "none": [
+      "phone case",
+      "laptop sleeve",
+      "bag insert"
+     ]
+    }
+   },
+   "budget_in_text": 100,
+   "min_price": 100
+  },
+  {
+   "id": "budget_jeans_range",
+   "query": "mens jeans in the $30-50 range",
+   "slots": {
+    "jeans": {
+     "any": [
+      "jean",
+      "denim"
+     ]
+    }
+   },
+   "min_price": 30,
+   "max_price": 50,
+   "budget_in_text": 50
+  },
+  {
+   "id": "budget_sunglasses_under_15",
+   "query": "cheap sunglasses under $15 for the beach",
+   "slots": {
+    "sunglasses": {
+     "any": [
+      "sunglass",
+      "shades",
+      "eyewear"
+     ]
+    }
+   },
+   "max_price": 15,
+   "budget_in_text": 15
+  },
+  {
+   "id": "brand_wrangler_pearl_snap_shirt",
+   "query": "wrangler pearl snap western shirt for men",
+   "slots": {
+    "western shirt": {
+     "all": [
+      "wrangler"
+     ],
+     "any": [
+      "western shirt",
+      "pearl snap shirt",
+      "snap shirt",
+      "button down shirt",
+      "cowboy shirt",
+      "work shirt"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_skechers_work_shoes",
+   "query": "skechers non slip work shoes for restaurant shifts",
+   "slots": {
+    "work shoes": {
+     "all": [
+      "skechers"
+     ],
+     "any": [
+      "work shoe",
+      "sneaker",
+      "slip resistant shoe",
+      "non slip shoe",
+      "walking shoe",
+      "trainer",
+      "slip on"
+     ],
+     "none": [
+      "insole",
+      "shoe insert",
+      "replacement lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_timberland_hiking_boots",
+   "query": "timberland hiking boots for rocky trails",
+   "slots": {
+    "hiking boots": {
+     "all": [
+      "timberland"
+     ],
+     "any": [
+      "hiking boot",
+      "trail boot",
+      "walking boot",
+      "outdoor boot",
+      "hiker",
+      "boot"
+     ],
+     "none": [
+      "insole",
+      "boot shaper",
+      "boot tree",
+      "replacement lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_fossil_crossbody_bag",
+   "query": "fossil crossbody bag for everyday errands",
+   "slots": {
+    "crossbody bag": {
+     "all": [
+      "fossil"
+     ],
+     "any": [
+      "crossbody",
+      "crossbody bag",
+      "shoulder bag",
+      "handbag",
+      "purse",
+      "satchel"
+     ],
+     "none": [
+      "phone case",
+      "bag insert",
+      "replacement strap"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_dickies_work_pants",
+   "query": "dickies work pants for men",
+   "slots": {
+    "pants": {
+     "all": [
+      "dickies"
+     ],
+     "any": [
+      "pant",
+      "work pant",
+      "trouser",
+      "cargo"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_new_balance_walking",
+   "query": "new balance walking shoes",
+   "slots": {
+    "walking shoes": {
+     "all": [
+      "new balance"
+     ],
+     "any": [
+      "shoe",
+      "shoes",
+      "sneaker",
+      "sneakers",
+      "walking",
+      "trainer"
+     ],
+     "none": [
+      "sock",
+      "insole",
+      "lace"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_under_armour_shirt",
+   "query": "under armour compression shirt for workouts",
+   "slots": {
+    "shirt": {
+     "all": [
+      "under armour"
+     ],
+     "any": [
+      "shirt",
+      "compression",
+      "tee",
+      "top",
+      "baselayer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "brand_hanes_tshirts",
+   "query": "hanes white t shirts",
+   "slots": {
+    "t shirts": {
+     "all": [
+      "hanes"
+     ],
+     "any": [
+      "t-shirt",
+      "t shirt",
+      "tee",
+      "tees",
+      "shirt",
+      "undershirt"
+     ],
+     "none": [
+      "sock",
+      "underwear"
+     ]
+    }
+   }
+  },
+  {
+   "id": "attr_wool_scarf_no_acrylic",
+   "query": "real wool scarf for winter, no acrylic blends",
+   "slots": {
+    "wool scarf": {
+     "all": [
+      "wool"
+     ],
+     "any": [
+      "scarf",
+      "wrap",
+      "shawl",
+      "muffler",
+      "stole",
+      "neck warmer"
+     ],
+     "none": [
+      "acrylic"
+     ]
+    }
+   }
+  },
+  {
+   "id": "attr_merino_wool_sweater",
+   "query": "a merino wool sweater, no acrylic",
+   "slots": {
+    "sweater": {
+     "any": [
+      "sweater",
+      "pullover",
+      "knit",
+      "jumper",
+      "cardigan"
+     ],
+     "none": [
+      "acrylic"
+     ]
+    }
+   }
+  },
+  {
+   "id": "attr_high_waisted_jeans",
+   "query": "high waisted skinny jeans for women",
+   "slots": {
+    "jeans": {
+     "any": [
+      "jean",
+      "denim",
+      "jegging"
+     ]
+    }
+   }
+  },
+  {
+   "id": "attr_stainless_steel_ring",
+   "query": "stainless steel ring for men that wont rust",
+   "slots": {
+    "ring": {
+     "any": [
+      "ring",
+      "band"
+     ],
+     "none": [
+      "nose ring",
+      "keyring"
+     ]
+    }
+   }
+  },
+  {
+   "id": "neg_office_blouse_not_cropped",
+   "query": "office blouse that is not cropped, I need it to stay tucked in",
+   "slots": {
+    "blouse": {
+     "any": [
+      "blouse",
+      "shirt",
+      "button down",
+      "button-down",
+      "button up",
+      "tunic",
+      "work top",
+      "dress shirt"
+     ],
+     "none": [
+      "crop",
+      "cropped",
+      "crop top"
+     ]
+    }
+   }
+  },
+  {
+   "id": "neg_winter_coat_no_fur",
+   "query": "warm winter coat without fur or faux fur around the hood",
+   "slots": {
+    "winter coat": {
+     "any": [
+      "winter coat",
+      "coat",
+      "parka",
+      "jacket",
+      "overcoat",
+      "insulated coat",
+      "quilted coat"
+     ],
+     "none": [
+      "fur",
+      "faux fur",
+      "fur trim",
+      "fur-trimmed"
+     ]
+    }
+   }
+  },
+  {
+   "id": "neg_swimsuit_not_bikini",
+   "query": "a modest swimsuit that isnt a bikini",
+   "slots": {
+    "swimsuit": {
+     "any": [
+      "swimsuit",
+      "one piece",
+      "swimdress",
+      "bathing suit",
+      "tankini"
+     ],
+     "none": [
+      "bikini"
+     ]
+    }
+   }
+  },
+  {
+   "id": "neg_sweater_no_turtleneck",
+   "query": "a cozy sweater but no turtlenecks, they choke me",
+   "slots": {
+    "sweater": {
+     "any": [
+      "sweater",
+      "pullover",
+      "knit",
+      "cardigan",
+      "crew"
+     ],
+     "none": [
+      "turtleneck",
+      "mock neck",
+      "mockneck"
+     ]
+    }
+   }
+  },
+  {
+   "id": "style_seventies_platform_boots",
+   "query": "retro 70s platform boots for going out",
+   "slots": {
+    "platform boots": {
+     "all": [
+      "platform"
+     ],
+     "any": [
+      "boot",
+      "ankle boot",
+      "knee high boot",
+      "platform boot",
+      "heeled boot",
+      "go go boot"
+     ],
+     "none": [
+      "insole",
+      "boot shaper",
+      "boot cover",
+      "replacement heel"
+     ]
+    }
+   }
+  },
+  {
+   "id": "style_coastal_grandma",
+   "query": "coastal grandmother look, linen and neutral tones",
+   "slots": {
+    "top": {
+     "any": [
+      "linen",
+      "blouse",
+      "shirt",
+      "sweater",
+      "top"
+     ]
+    },
+    "pants": {
+     "any": [
+      "linen pant",
+      "trouser",
+      "wide leg",
+      "pant",
+      "skirt"
+     ]
+    }
+   }
+  },
+  {
+   "id": "style_streetwear_cargo",
+   "query": "streetwear cargo pants with lots of pockets",
+   "slots": {
+    "cargos": {
+     "any": [
+      "cargo",
+      "cargo pant",
+      "utility pant",
+      "pant",
+      "jogger"
+     ]
+    }
+   }
+  },
+  {
+   "id": "lang_spanish_leather_wallet",
+   "query": "necesito una cartera de cuero pequeña para hombre",
+   "slots": {
+    "wallet": {
+     "all": [
+      "leather"
+     ],
+     "any": [
+      "wallet",
+      "billfold",
+      "card holder",
+      "card case",
+      "bifold",
+      "trifold",
+      "money clip"
+     ]
+    }
+   }
+  },
+  {
+   "id": "lang_japanese_pearl_necklace",
+   "query": "卒業式につける上品なパールのネックレス",
+   "slots": {
+    "pearl necklace": {
+     "all": [
+      "pearl"
+     ],
+     "any": [
+      "necklace",
+      "strand",
+      "choker",
+      "pendant",
+      "jewelry set"
+     ]
+    }
+   }
+  },
+  {
+   "id": "lang_german_leather_gloves",
+   "query": "warme Lederhandschuhe für Herren zum Autofahren",
+   "slots": {
+    "leather gloves": {
+     "all": [
+      "leather"
+     ],
+     "any": [
+      "glove",
+      "driving glove",
+      "winter glove",
+      "lined glove",
+      "thermal glove"
+     ]
+    }
+   }
+  },
+  {
+   "id": "lang_es_botas_lluvia",
+   "query": "botas de lluvia para mujer",
+   "slots": {
+    "boots": {
+     "any": [
+      "rain boot",
+      "boot",
+      "wellington",
+      "rubber boot"
+     ]
+    }
+   }
+  },
+  {
+   "id": "trap_belt_not_buckle",
+   "query": "I need the actual leather belt, not just a replacement buckle",
+   "slots": {
+    "belt": {
+     "any": [
+      "belt",
+      "waist belt",
+      "dress belt",
+      "casual belt",
+      "leather belt",
+      "ratchet belt"
+     ],
+     "none": [
+      "replacement buckle",
+      "belt buckle",
+      "buckle only"
+     ]
+    }
+   }
+  },
+  {
+   "id": "trap_baseball_cap_not_patch",
+   "query": "a complete baseball cap, not a logo patch or pin to put on one",
+   "slots": {
+    "baseball cap": {
+     "any": [
+      "baseball cap",
+      "cap",
+      "snapback",
+      "trucker hat",
+      "dad hat",
+      "ball cap",
+      "fitted hat"
+     ],
+     "none": [
+      "patch",
+      "iron on",
+      "applique",
+      "lapel pin",
+      "hat pin",
+      "sticker"
+     ]
+    }
+   }
+  },
+  {
+   "id": "trap_hat_not_hatbox",
+   "query": "a wool fedora hat, not a hat box or hat rack",
+   "slots": {
+    "hat": {
+     "any": [
+      "fedora",
+      "hat",
+      "wool hat",
+      "felt hat"
+     ],
+     "none": [
+      "box",
+      "rack",
+      "stand",
+      "holder"
+     ]
+    }
+   }
+  },
+  {
+   "id": "typo_womens_ankle_sandles",
+   "query": "womens sandles with an ankle strap for summer",
+   "slots": {
+    "sandals": {
+     "any": [
+      "sandal",
+      "strappy sandal",
+      "ankle strap sandal",
+      "walking sandal",
+      "flat sandal",
+      "wedge sandal"
+     ],
+     "none": [
+      "insole",
+      "shoe clip",
+      "replacement strap"
+     ]
+    }
+   }
+  },
+  {
+   "id": "typo_mens_runing_shooes",
+   "query": "mens runing shooes for the treadmill",
+   "slots": {
+    "running shoes": {
+     "any": [
+      "running shoe",
+      "sneaker",
+      "trainer",
+      "athletic shoe",
+      "jogging shoe",
+      "road running shoe"
+     ],
+     "none": [
+      "insole",
+      "shoe insert",
+      "replacement lace",
+      "shoe charm"
+     ]
+    }
+   }
+  },
+  {
+   "id": "typo_silvr_neckless",
+   "query": "silvr neckless for my girlfriends birthday",
+   "slots": {
+    "silver necklace": {
+     "all": [
+      "silver"
+     ],
+     "any": [
+      "necklace",
+      "pendant",
+      "chain",
+      "choker",
+      "locket",
+      "jewelry set"
+     ]
+    }
+   }
+  },
+  {
+   "id": "typo_waterproff_bakpack",
+   "query": "waterproff bakpack for college and rainy walks",
+   "slots": {
+    "backpack": {
+     "all": [
+      "waterproof"
+     ],
+     "any": [
+      "backpack",
+      "rucksack",
+      "daypack",
+      "bookbag",
+      "school bag",
+      "laptop backpack"
+     ],
+     "none": [
+      "backpack charm",
+      "bag insert",
+      "rain cover"
+     ]
+    }
+   }
+  },
+  {
+   "id": "typo_wintr_coaat",
+   "query": "wintr coaat for wemen warm",
+   "slots": {
+    "coat": {
+     "any": [
+      "coat",
+      "jacket",
+      "parka",
+      "puffer",
+      "overcoat"
+     ]
+    }
+   }
+  },
+  {
+   "id": "short_red_loafers",
+   "query": "red loafers",
+   "slots": {
+    "loafers": {
+     "all": [
+      "red"
+     ],
+     "any": [
+      "loafer",
+      "moccasin",
+      "driving shoe",
+      "slip on shoe",
+      "penny loafer",
+      "dress shoe"
+     ],
+     "none": [
+      "insole",
+      "shoe insert",
+      "replacement sole"
+     ]
+    }
+   }
+  },
+  {
+   "id": "short_black_heels",
+   "query": "black heels",
+   "slots": {
+    "heels": {
+     "any": [
+      "heel",
+      "heels",
+      "pump",
+      "pumps",
+      "sandal",
+      "sandals",
+      "stiletto",
+      "platform"
+     ]
+    }
+   }
+  },
+  {
+   "id": "short_wool_socks",
+   "query": "wool socks",
+   "slots": {
+    "socks": {
+     "any": [
+      "wool sock",
+      "sock",
+      "merino sock",
+      "crew sock"
+     ]
+    }
+   }
+  },
+  {
+   "id": "short_kids_snow_gloves",
+   "query": "kids snow gloves",
+   "slots": {
+    "snow gloves": {
+     "any": [
+      "snow glove",
+      "winter glove",
+      "ski glove",
+      "mitten",
+      "thermal glove",
+      "waterproof glove"
+     ]
+    }
+   }
+  },
+  {
+   "id": "long_freezing_office_cardigan",
+   "query": "My desk is right under the office vent and I freeze all afternoon. I need a cardigan I can leave at work, but wool makes me itchy.",
+   "slots": {
+    "cardigan": {
+     "any": [
+      "cardigan",
+      "open front sweater",
+      "button sweater",
+      "knit jacket",
+      "sweater jacket",
+      "duster cardigan"
+     ],
+     "none": [
+      "wool",
+      "merino",
+      "cashmere"
+     ]
+    }
+   }
+  },
+  {
+   "id": "long_dinner_cruise_outfit",
+   "query": "We're doing a dinner cruise and I have no clue what to wear. It may get breezy on deck, and I want to look nice without being super formal.",
+   "slots": {
+    "midi dress": {
+     "any": [
+      "midi dress",
+      "wrap dress",
+      "cocktail dress",
+      "maxi dress",
+      "jumpsuit",
+      "shirt dress",
+      "fit and flare dress"
+     ]
+    },
+    "light jacket": {
+     "any": [
+      "jacket",
+      "blazer",
+      "cardigan",
+      "shrug",
+      "bolero",
+      "wrap",
+      "shawl"
+     ]
+    },
+    "dress shoes": {
+     "any": [
+      "heel",
+      "pump",
+      "sandal",
+      "flat",
+      "loafer",
+      "mule",
+      "dress shoe"
+     ],
+     "none": [
+      "insole",
+      "shoe clip",
+      "replacement heel"
+     ]
+    },
+    "evening bag": {
+     "any": [
+      "clutch",
+      "evening bag",
+      "wristlet",
+      "shoulder bag",
+      "crossbody",
+      "handbag"
+     ],
+     "none": [
+      "phone case",
+      "bag insert",
+      "organizer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "long_wedding_guest_ramble",
+   "query": "so my cousin is getting married in september outdoors on a farm, its usually warm but might cool off at night, i want to look nice but not upstage the bride, what dress works",
+   "slots": {
+    "dress": {
+     "any": [
+      "dress",
+      "midi",
+      "maxi",
+      "wrap dress",
+      "gown",
+      "cocktail"
+     ]
+    }
+   }
+  },
+  {
+   "id": "long_cold_feet_ramble",
+   "query": "my feet are always freezing in winter even inside the house, i've tried thin socks and they dont help at all, i really need something thick and warm, any ideas",
+   "slots": {
+    "socks": {
+     "any": [
+      "thermal sock",
+      "wool sock",
+      "sock",
+      "boot sock",
+      "fuzzy sock",
+      "slipper sock"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fit_plus_size_wrap_dress",
+   "query": "plus size wrap dress for work",
+   "slots": {
+    "wrap dress": {
+     "any": [
+      "dress",
+      "wrap dress",
+      "wrap",
+      "midi",
+      "maxi",
+      "plus size"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fit_big_tall_polo",
+   "query": "big and tall polo shirt",
+   "slots": {
+    "polo shirt": {
+     "any": [
+      "polo",
+      "polo shirt",
+      "golf shirt",
+      "collared shirt",
+      "knit polo"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fit_petite_trousers",
+   "query": "petite work trousers for short women",
+   "slots": {
+    "trousers": {
+     "any": [
+      "petite",
+      "trouser",
+      "dress pant",
+      "slack",
+      "pant"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fit_easy_on_shoes_arthritis",
+   "query": "easy on shoes for my mom with arthritis, no laces",
+   "slots": {
+    "shoes": {
+     "any": [
+      "slip on",
+      "slip-on",
+      "shoe",
+      "sneaker",
+      "loafer",
+      "adaptive"
+     ],
+     "none": [
+      "lace up",
+      "laces"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fit_wide_calf_boots",
+   "query": "wide calf tall boots for women",
+   "slots": {
+    "boots": {
+     "any": [
+      "wide calf",
+      "boot",
+      "tall boot",
+      "riding boot"
+     ]
+    }
+   }
+  },
+  {
+   "id": "gift_dad_birthday_wallet",
+   "query": "birthday gift for my dad, thinking a nice leather wallet",
+   "slots": {
+    "wallet": {
+     "any": [
+      "wallet",
+      "billfold",
+      "bifold",
+      "card holder",
+      "money clip"
+     ],
+     "none": [
+      "phone case"
+     ]
+    }
+   }
+  },
+  {
+   "id": "gift_teen_daughter_backpack",
+   "query": "gift for my teen daughter, a cute backpack for school",
+   "slots": {
+    "backpack": {
+     "any": [
+      "backpack",
+      "bookbag",
+      "rucksack",
+      "daypack",
+      "bag"
+     ]
+    }
+   }
+  },
+  {
+   "id": "gift_husband_cozy_robe",
+   "query": "christmas gift for my husband, a warm cozy robe",
+   "slots": {
+    "robe": {
+     "any": [
+      "robe",
+      "bathrobe",
+      "dressing gown",
+      "lounge robe"
+     ]
+    }
+   }
+  },
+  {
+   "id": "acc_leather_watch_band",
+   "query": "brown leather watch band 20mm replacement",
+   "slots": {
+    "band": {
+     "any": [
+      "watch band",
+      "watch strap",
+      "band",
+      "strap",
+      "replacement band"
+     ]
+    }
+   }
+  },
+  {
+   "id": "acc_cashmere_scarf",
+   "query": "soft cashmere scarf for winter",
+   "slots": {
+    "scarf": {
+     "any": [
+      "scarf",
+      "wrap",
+      "shawl",
+      "muffler",
+      "stole"
      ]
     }
    }

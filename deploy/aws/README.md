@@ -96,8 +96,9 @@ Round four, the full catalog (one worker, the 100K index parked for rollback):
 * exp24 ramp: repeat 36-48 ms p50 at c=1..8; unique cold saturates ~3.8 req/s
   (server p50 0.5-1.0 s per uncached five-slot plan).
 * exp25 quality (original 28): micro 0.819, macro 0.872, success 0.571, 28/28.
-* exp26 the extended 78-query set: micro 0.666, macro 0.749, success 0.628, with
-  per-query detail for the class split (outfits 0.41 are the weak spot).
+* exp26 the interim 78-query set; exp27 the full 152-query golden set: macro 0.786
+  (95% CI 0.74-0.83), micro 0.687, success 0.645, per-query detail for the class
+  split (outfits 0.52 are the weak spot; misspellings and short asks score 1.00).
 
 `SUMMARY.json` holds one row per experiment with the headline numbers.
 

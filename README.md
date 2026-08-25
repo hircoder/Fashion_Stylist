@@ -384,9 +384,10 @@ interface. Anthropic / OpenAI / Bedrock adapters, ~70 lines each, no framework.
 
 ## Evaluation
 
-`scripts/evaluate.py`: 78 queries in `scripts/eval_queries.json` (the original 20
-conversational + 8 brand, plus 50 added later across ten classes: outfits, audiences,
-budget shapes, negations, materials, styles, non-English, look-alike traps). The
+`scripts/evaluate.py`: 152 queries in `scripts/eval_queries.json` (the original 20
+conversational + 8 brand, plus two added rounds across sixteen classes: outfits,
+audiences, budget shapes, negations, materials, styles, non-English, misspellings,
+very short and rambling asks, fit needs, gifts, accessories, look-alike traps). The
 tables below are the original 28-query runs; the extended-set results follow them.
 
 * `match@k` = share of returned items whose title passes a hand-written type rule for
@@ -425,15 +426,19 @@ Reading it:
 * Full catalog beats 100K (0.935 vs 0.885) on brands and long tail, not on type. Thats
   why the deployed service serves it; the quick build costs 2.6 min and 1 GB.
 
-The wider net, added later: the set grew to 78 queries to see where the pipeline
-actually breaks. Against the live full-catalog service (Nova Lite planning): match@4
-0.666 micro / 0.749 macro, query success 0.628, zero empty slots, 78/78 plans. The
-original 28 average 0.861 inside that run, the new 50 average 0.685; strongest classes
-are materials (0.88), budgets (0.82) and the look-alike traps (0.81), weakest are
-open-ended outfits (0.41) and loose conversational asks (0.48), wich points at planner
-model quality, not retrieval. Raw-sentence baselines on the same 78 (bm25 0.513, dense
-0.599, hybrid 0.567: `docs/eval_full_extended_retrieval.json`) confirm the wider set is
-simply a harder exam. Live results: `deploy/aws/experiments/exp26`.
+The wider net, added later: 28 queries can catch a big regression but cannot separate
+close configurations, so the set grew in two rounds to 152. Against the live
+full-catalog service (Nova Lite planning): match@4 0.786 macro with a 95% interval of
+0.74 to 0.83 (five points wide instead of the ten that 28 queries gave), 0.687 micro,
+query success 0.645, zero empty slots, 152/152 plans. The original 28 average 0.866
+inside that run, the added 124 average 0.768. Misspellings, two-word asks, gifts and
+accessories score a clean 1.00 (the meaning channel absorbs sloppy input) and the
+look-alike traps hold 0.96; the weak classes are open-ended outfits (0.52), loose
+conversational asks and non-English (0.58), wich points at planner model quality, not
+retrieval. Raw-sentence baselines on the same 152 (bm25 0.476 with three empty slots,
+dense 0.610, hybrid 0.576: `docs/eval_full_extended_retrieval.json`) confirm the wider
+set is simply a harder exam. Live results: `deploy/aws/experiments/exp27` (the interim
+78-query round: `exp26`).
 
 ## Performance and cost, measured
 

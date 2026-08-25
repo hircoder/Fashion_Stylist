@@ -201,5 +201,21 @@
   "p50_ms": null,
   "ran_at": "2026-08-25T06:18:34Z",
   "note": "full index, nova lite plans: match@4 micro 0.819 / macro 0.872 / success 0.571 planned pass (28/28 llm), cold pass micro 0.825; 100K post-fix was 0.800 micro / 0.50 success"
+ },
+ {
+  "label": "exp26_extended_quality",
+  "n": 156,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-25T07:55:08Z",
+  "note": "interim 78-query golden set, live full catalog, nova lite plans: planned pass micro 0.666 / macro 0.749 / success 0.628, 78/78 plans"
+ },
+ {
+  "label": "exp27_extended152_quality",
+  "n": 304,
+  "errors": 0,
+  "p50_ms": null,
+  "ran_at": "2026-08-25T07:55:08Z",
+  "note": "the 152-query golden set (sixteen classes), live full catalog, nova lite plans: macro 0.786 (95% CI 0.738-0.834), micro 0.687, success 0.645, 0 empty, 152/152 plans; class split: typo/short/gift/acc 1.00, trap 0.96, attr 0.91, orig28 0.866, budget 0.85, brand 0.82, outfit 0.52 the weak spot"
  }
 ]

@@ -15,7 +15,7 @@ degrade says so in the response.
 
 | part | its one job | where |
 |---|---|---|
-| ingest | raw file -> one typed table, nothing guessed | `catalog.py` |
+| ingest | raw file -> one typed table; prices never guessed, audience labeled by a stated heuristic | `catalog.py` |
 | index build | text -> vectors + keyword index + checksums | `index.py`, `embeddings.py` |
 | planner | sentence -> slots and constraints, with a regex fallback | `planner.py` |
 | retriever | score every row, filter first, rank, group variants | `retrieval.py` |
@@ -191,10 +191,11 @@ Questions:
 One LLM call per slot, all slots in parallel, each seeing the request, a plan
 summary, and its top 10 candidates as compact json labelled untrusted catalog
 data. The model returns up to k picks with a reason (capped at 15 words) and the
-evidence fields it used, plus a short note. Validation is strict: only offered
-ids, no duplicates, off-type picks dropped when enough on-type candidates exist,
-links and emails stripped from every reason. A slot whose call fails or runs late
-keeps retrieval order; the other slots keep their picks.
+evidence fields it used, plus a short note. Validation is strict: only ids from
+the slot's retrieved pool, no duplicates, off-type picks dropped when enough
+on-type candidates exist, links and emails stripped from every reason. A slot
+whose call fails or runs late keeps retrieval order; the other slots keep their
+picks.
 
 Questions:
 
@@ -208,9 +209,9 @@ Questions:
 - What can a hostile product title do? The prompt labels catalog text untrusted,
   the output is schema-bound, ids are validated, and reasons lose links; the
   worst case is picking a different candidate from the same slot.
-- How strict is "only offered ids" exactly? Validation accepts ids from the
-  slot's retrieved pool, which is slightly wider than the 10 shown to the model;
-  tightening it to the shown slice is a noted small follow-up.
+- Why "the retrieved pool" and not exactly the 10 shown? Validation accepts ids
+  from the slot's retrieved pool, wich is slightly wider than the 10 the model
+  sees; tightening it to the shown slice is a noted small follow-up.
 - What did it measure? About one point of match@4 over retrieval order on paired
   plans. Its real value is constraint reading, the written reasons, and keeping
   off-type items out.
@@ -254,8 +255,9 @@ box). The fast path:
    within cosine 0.92 reuses the nearest plan, guarded so a different budget or
    audience never crosses over).
 2. On a miss it waits at most 0.10 s for the planner, then answers with the
-   regex plan. The wait is measured, not taste: zero of twelve Nova plans ever
-   landed inside 350 ms.
+   regex plan. The wait is measured, not taste: zero of twelve Nova plans landed
+   even inside 350 ms, so any wait buys nothing from the model; 100 ms keeps the
+   added latency tiny while still catching a plan that is a moment from ready.
 3. The Bedrock call keeps running (about 1 s) and lands in both plan caches.
 4. Later requests, paraphrases included, get the LLM plan. Identical requests
    within 5 minutes come straight from a response cache that only ever stores
@@ -265,7 +267,7 @@ Measured through CloudFront from a client in Japan, on the full catalog:
 
 | path | measured |
 |---|---|
-| steady repeat, connection kept alive | p50 13.0 ms (server 0.4 ms) |
+| steady repeat, kept-alive connection (a response-cache hit) | p50 13.0 ms end to end, ~0.4 ms of server work |
 | fresh TLS connection per request | p50 36.5 ms |
 | response-cache hit | 15 ms |
 | cold unique query (regex plan) | 464 ms |
@@ -290,20 +292,27 @@ requests/s. Replica sizing starts from that last number.
 - What is the biggest availability risk? One origin. A deploy costs a measured
   ~7 seconds of errors; an instance loss is an outage until failover exists.
 - What breaks at 10x the catalog? Memory and the full scoring pass both grow
-  linearly; past about a million rows the plan is approximate search with the
-  same filters applied after, int8 vectors, and sharding.
-- What breaks at 10x the traffic? Unique cold queries saturate the CPU first;
-  repeat traffic rides the caches to 100 requests/s per box. Replicas plus a
-  shared cache are the answer, and the provider's token quota binds before CPU
-  once LLM reranking is on.
+  linearly; past about a million rows the plan is filtered approximate search
+  (with over-fetch and an exact fallback, so the filter-first guarantee
+  survives), int8 vectors, and sharding.
+- What breaks at 10x the traffic? Unique cold queries saturate the CPU first
+  (~3.8 requests/s per box on the full catalog); repeat traffic rides the caches
+  (the 100K rounds peaked at 100 requests/s per box). Replicas plus a shared
+  cache are the answer, and the provider's token quota binds before CPU once LLM
+  reranking is on.
 - Is the evaluation trustworthy? It is a type-correctness floor with honesty
-  rules (rules written before output existed, paired plans, invented slots scored
-  against the union). It cannot see style or taste; human labels are the stated
-  next step.
+  rules: the original 28 rules were written before any output existed; the 124
+  added later (in two rounds, to 152 total, tightening the headline's interval
+  to about five points) were drafted the same blind way but after the system was
+  built, a challenge set rather than pre-registration; plans are replayed so
+  comparisons are paired; and when two planner runs split an outfit differently,
+  a slot with no rule of its own is scored against the query's combined rules,
+  so naming slots differently is not punished and inventing slots cannot inflate
+  the score. It cannot see style or taste; human labels are the stated next step.
 - What is deliberately not built? Authentication, alarms, shipped logs, a second
   origin, CI-driven deploys. Each sits in `TODO.md` with a priority, a fix and an
   effort estimate; the audit found process gaps, not correctness ones.
 
-In one line: filters before rankings, schemas before trust, caches before model
-calls, warnings before silence, and a measurement before every number in this
-file.
+In one line: constraints are filtered before anything is ranked, model output is
+never trusted without validation, and every number in this file comes from a
+recorded run.

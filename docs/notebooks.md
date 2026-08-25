@@ -907,8 +907,10 @@ The next section prices that decision.
 
 ## 10. The measured evidence: what each part of the pipeline buys
 
-The evaluation harness runs 28 human-style queries (20 conversational, 8 brand)
-against three indexes and several configurations. The score, called match@4 here
+The recorded runs below use the original 28 human-style queries (20 conversational,
+8 brand) against three indexes and several configurations; the golden set has since
+grown to 152 queries across sixteen classes, measured against the live service
+(`deploy/aws/experiments/exp27`). The score, called match@4 here
 (the json field is `keyword_match_at_k`), is the share of returned items whose
 title passes a hand-written product-type rule for its slot: a sandals slot
 accepts sandal / flip flop / slide, a jeans slot needs the brand too.
