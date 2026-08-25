@@ -397,7 +397,10 @@ def test_loader_requires_every_serving_column(tmp_path, fixture_catalog, hash_em
     build_index(fixture_catalog, index_dir, hash_embedder, limit=20, sampling="popular")
     df = pd.read_parquet(index_dir / "catalog.parquet").drop(columns=["price"])
     df.to_parquet(index_dir / "catalog.parquet", index=False)
-    from tests.test_audit_batch_b import _resign
+    # tests/ itself is what pytest puts on sys.path (no __init__.py here), so the
+    # sibling module is imported bare: `tests.` only resolves when the repo root
+    # happens to be on the path (python -m pytest), which `uv run pytest` never adds
+    from test_audit_batch_b import _resign
 
     _resign(index_dir)
     with pytest.raises(IndexValidationError, match="price"):

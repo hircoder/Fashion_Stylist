@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, AWS_deployment]
   pull_request:
 
 concurrency:
