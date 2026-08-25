@@ -53,7 +53,7 @@ diagram: ## regenerate docs/architecture.svg from the script, then pdf + jpg (ne
 	$(PY) python scripts/architecture_svg.py
 	rsvg-convert -f pdf -o docs/architecture.pdf docs/architecture.svg
 	rsvg-convert -f png -z 2 -o docs/architecture.png docs/architecture.svg
-	$(PY) python -c "from PIL import Image; Image.open('docs/architecture.png').convert('RGB').save('docs/architecture.jpg', quality=92)"
+	$(PY) python -c "from PIL import Image; Image.open('docs/architecture.png').convert('RGB').save('docs/architecture.jpg', quality=82, optimize=True)"
 
 index-tar: ## pack $(INDEX_DIR) for deployment and print its sha256
 	tar -czf data/index.tar.gz -C $(dir $(INDEX_DIR)) $(notdir $(INDEX_DIR))

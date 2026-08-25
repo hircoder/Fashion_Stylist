@@ -8,7 +8,8 @@ Natural-language shopping over the Amazon Fashion catalog.
 * Pipeline: LLM query plan -> hybrid retrieval (bge-small embeddings + bm25) -> LLM
   rerank -> select. FastAPI `POST /recommend`, CLI, React page.
 * Runs with no API key (regex planner, retrieval order, fewer slots).
-* This branch adds a live AWS deployment: 57 ms steady p50 from Japan. Section below.
+* This branch adds a live AWS deployment serving all 826,108 rows: 13 ms steady p50
+  from Japan. Section below.
 
 Five minutes: quick start -> sample output -> design decisions. Assessing: evaluation ->
 performance -> the deck at `/overview` (`docs/overview.html`, animated request flow).
@@ -300,8 +301,9 @@ Day one was scripts, not code. Short version (`docs/exploration.md` has the long
   same quality, 761 docs/s on the laptop.
 * Prices: floats and clean strings kept by `parse_price`; ranges and junk -> null with
   a status. Nothing guessed.
-* Audience: `details.Department` covers ~half, title words most of the rest, ~13%
-  unknown = wildcard (never filtered out).
+* Audience: `details.Department` decides when present (14.5% of rows), title words
+  otherwise; where both speak they agree 78% of the time. About a quarter of the
+  catalog stays unknown = wildcard (never filtered out).
 * Prompt experiments, in order: listing-style search queries (type match 0.73 -> 0.88),
   keywords = type synonyms only, one rerank call per slot (20 s -> 3-7 s), type before
   price, exclude penalty = boost, budget floor 10% per slot, reasons capped at 15 words.
@@ -382,8 +384,10 @@ interface. Anthropic / OpenAI / Bedrock adapters, ~70 lines each, no framework.
 
 ## Evaluation
 
-`scripts/evaluate.py`: 28 queries (20 conversational + 8 brand), several configs, three
-indexes.
+`scripts/evaluate.py`: 78 queries in `scripts/eval_queries.json` (the original 20
+conversational + 8 brand, plus 50 added later across ten classes: outfits, audiences,
+budget shapes, negations, materials, styles, non-English, look-alike traps). The
+tables below are the original 28-query runs; the extended-set results follow them.
 
 * `match@k` = share of returned items whose title passes a hand-written type rule for
   its slot (sandals slot accepts sandal / flip flop / slide / espadrille; brand rules
@@ -418,8 +422,18 @@ Reading it:
   within 2 points under the planner.
 * Reranker adds ~1 point of type-match; its real job is constraints, reasons, off-type
   vetoes.
-* Full catalog beats 100K (0.935 vs 0.885) on brands and long tail, not on type. The
-  trade: 3 min build, 1 GB RAM.
+* Full catalog beats 100K (0.935 vs 0.885) on brands and long tail, not on type. Thats
+  why the deployed service serves it; the quick build costs 2.6 min and 1 GB.
+
+The wider net, added later: the set grew to 78 queries to see where the pipeline
+actually breaks. Against the live full-catalog service (Nova Lite planning): match@4
+0.666 micro / 0.749 macro, query success 0.628, zero empty slots, 78/78 plans. The
+original 28 average 0.861 inside that run, the new 50 average 0.685; strongest classes
+are materials (0.88), budgets (0.82) and the look-alike traps (0.81), weakest are
+open-ended outfits (0.41) and loose conversational asks (0.48), wich points at planner
+model quality, not retrieval. Raw-sentence baselines on the same 78 (bm25 0.513, dense
+0.599, hybrid 0.567: `docs/eval_full_extended_retrieval.json`) confirm the wider set is
+simply a harder exam. Live results: `deploy/aws/experiments/exp26`.
 
 ## Performance and cost, measured
 
@@ -443,8 +457,8 @@ setting (`scripts/benchmark.py`, raw numbers in `docs/bench_cpu.json`):
   Haiku reranker.
 * Capacity ceiling = provider TPM quota, not CPU.
 * Sub-second path (semantic plan cache, distilled 1-3B planner, cross-encoder rerank,
-  big model as async refinement): `docs/production.md`. First rungs are deployed and
-  measured below: 57 ms steady p50.
+  big model as async refinement): `docs/production.md`. The first steps are deployed
+  and measured below: 13 ms steady p50 on the full catalog.
 
 ## Deployment
 
@@ -495,17 +509,20 @@ railway variables --set ANTHROPIC_API_KEY=sk-ant-...
 
 ## The AWS deployment on this branch
 
-Goal: prompt to result under 0.5 s. Main keeps the provider-neutral service; this
-branch adds the fast profile, the AWS scripts and the measurements. us-east-1 first,
-Tokyo second (most of the remaining time was the Pacific). Live while the demo runs:
+Goal: prompt to result under 0.5 s, then the full catalog without giving that up on
+the paths people actually hit. Main keeps the provider-neutral service; this branch
+adds the fast profile, the AWS scripts and the measurements. us-east-1 first, Tokyo
+second (most of the remaining time was the Pacific), then the switch from the 100K
+index to all 826,108 rows, re-measured. Live while the demo runs:
 https://d3bys47v9rho9.cloudfront.net. ~$4/day, one teardown script.
 
 Topology:
 
 * CloudFront: edge TLS, HTTP/3, `/assets` cached hard, rest pass-through.
-* EC2 origin: c7i.xlarge, ap-northeast-1a, systemd, 2 uvicorn workers, no docker (boots
-  from a source tarball in S3). Port 8000 admits CloudFront origin-facing ranges only.
-  No ssh keys; ops via SSM.
+* EC2 origin: c7i.xlarge, ap-northeast-1a, systemd, one uvicorn worker (the full index
+  is 3.3 GB a process; two copies would not fit in 8 GB), no docker (boots from a
+  source tarball in S3). Port 8000 admits CloudFront origin-facing ranges only. No ssh
+  keys; ops via SSM.
 * Bedrock in-region: `apac.amazon.nova-lite-v1:0`, structured output via one forced
   tool, instance role as the only credential.
 
@@ -525,26 +542,38 @@ Fast profile (same codebase, env settings):
   planned answers).
 
 Measured from a client in Japan, wall time through CloudFront. Raw runs are files in
-`deploy/aws/experiments/` (exp01 to exp19), the narrative with both rounds is
-`docs/aws-latency.md`:
+`deploy/aws/experiments/` (exp01 to exp26), the narrative with every round is
+`docs/aws-latency.md`. The move and the fast profile, on the quick 100K index:
 
-| path | us-east-1 | Tokyo |
+| path (100K index) | us-east-1 | Tokyo |
 |---|---|---|
 | steady keep-alive p50 | 344 ms | 57 ms |
 | warm repeat (response cache) | n/a | 13 to 44 ms |
 | cold unique query | ~640 ms | 210 ms |
 | plan-cache hit after the background fill | n/a | 112 ms |
 | paraphrase via the semantic cache | 215 ms | 116 ms |
-| direct origin, warm | n/a | 22 ms |
 
-* Every row, cold included, under the 0.5 s target.
-* Ramp (repeat mode, fresh TLS each request): p50 43 to 47 ms at c=1..8, 40 req/s,
-  zero errors.
-* Workers: 1-vs-2 measured; kept 2 (p50 within noise, better p95 at c=4/c=16, second
-  failure domain).
-* Quality, live, 28 queries, offline rules: Lite 0.772 match@4 micro vs Micro 0.705
-  (success 0.50 vs 0.39) -> planner is Lite. Gap to Sonnet-planned local eval (0.885)
-  is planner model quality; planning is background, so a bigger planner costs no
+Then the switch to the full catalog (8.3x the rows, one worker), re-measured:
+
+| path (full 826K, serving now) | measured |
+|---|---|
+| steady keep-alive p50, n=100 | 13.0 ms |
+| fresh TLS per request, n=50 | 36.5 ms |
+| response-cache hit | 15 ms |
+| cold unique query (regex plan) | 464 ms |
+| uncached answer on an LLM plan | 0.7 to 1.0 s server-side |
+
+* Cached paths did not move when the catalog grew 8.3x: they never touch the big
+  matrix computation. The bill lands on uncached work: cold answers roughly doubled
+  and unique-query capacity fell from 10-13 to ~3.8 req/s per box, wich is now the
+  replica-sizing number.
+* Ramp on the full catalog (repeat mode): p50 36 to 48 ms at c=1..8. The earlier
+  1-vs-2 worker comparison kept 2 for the better p95; the full index forced 1
+  (memory), so the limiter and caches now behave exactly as configured.
+* Quality, live, offline rules: on the original 28, Lite on the full catalog scores
+  0.819 match@4 micro / 0.57 success, up from 0.800 / 0.50 on the 100K index (and
+  0.705 / 0.39 for Micro before that). Gap to Sonnet-planned local eval (0.935) is
+  planner model quality; planning is background, so a bigger planner costs no
   latency.
 
 Deploy: five region-generic scripts plus teardown (same scripts built both regions):
@@ -563,7 +592,8 @@ STYLIST_REGION=ap-northeast-1 ./03_ec2.sh    # sg from the cloudfront prefix lis
 
 Latency probes prove the fast path only. `deploy/aws/test_battery.py`: ten sections
 against production, ~11,500 requests, zero 5xx outside the one induced restart window.
-Raw results: `deploy/aws/experiments/exp20` to `exp22`.
+Raw results: `deploy/aws/experiments/exp20` to `exp22`; the full-catalog re-run
+(steady, fresh TLS, cache ladder, consistency, ramp, quality) is `exp23` to `exp26`.
 
 | section | what it proves | result |
 |---|---|---|
@@ -602,8 +632,9 @@ The bug the battery caught:
 Known limits, stated:
 
 * Single origin: a deploy costs ~7 s of 5xx. Failover or a second box removes it.
-* Rate limiter is per worker: effective burst is twice the configured one.
-* Workers warm seperately: a cold query can answer differently for ~1 s.
+* Limits and caches are per process: exact as configured with today's one worker,
+  multiplied the moment replicas exist.
+* One worker is also one failure domain; a 16 GB instance would restore two.
 
 ### The production-readiness audit
 
@@ -617,7 +648,8 @@ live in `TODO.md`. The P0 list, so it is not buried:
 | P0 | single origin: 6.7 s deploy window, no failover | ALB + ASG min 2 across AZs, or ECS; rolling deploys; TLS origin hop |
 | P0 | AWS runs a tarball while the Dockerfile sits unused | one artifact: CI -> ECR -> ECS Fargate; trivy scan |
 | P0 | no alarms, logs die with the instance | JSON logs to CloudWatch, alarms on p95 / 5xx / fallback / budget |
-| P1 | per-worker caches and limiter | ElastiCache Redis |
+| P1 | caches and limiter live in one process; replicas would split them | ElastiCache Redis before any scale-out |
+| P1 | one 8 GB box fits one full-index worker (~3.8 req/s cold ceiling) | 16 GB instance for two workers, or replicas behind an ALB |
 | P1 | hand-run deploys, static catalog | GitHub Actions pipeline; scheduled index rebuild |
 
 What already holds up: fail-closed index loading, typed fallbacks for every LLM
@@ -671,7 +703,7 @@ src/stylist/
   llm/            provider protocol, anthropic + openai adapters, prompts, fake for tests
 ui/               React + Vite front-end (dist/ is committed, the API serves it)
 scripts/          evaluation, benchmark, fixture builder
-deploy/aws/       five deploy scripts + teardown, probes, experiments exp01 to exp19
+deploy/aws/       five deploy scripts + teardown, probes, experiments exp01 to exp26
 notebooks/        data exploration + embedding model comparison
 docs/             architecture diagram, design notes, evaluation
 tests/            pytest suite + the 486 row fixture
@@ -680,6 +712,8 @@ tests/            pytest suite + the 486 row fixture
 ## More documentation
 
 * `docs/prd.md`: the requirements, how each one is met, the success metrics.
+* `docs/architecture.md`: the whole system walked once, each step with the questions
+  it usually raises and the answers, in plain words.
 * `docs/adr/`: sixteen decision records (embeddings, hybrid retrieval, masks before
   top-N, exact search, the default index, planner, reranker, price policy, variant
   grouping, providers, deadlines, index artifacts, serving stack, evaluation approach,
@@ -706,7 +740,7 @@ tests/            pytest suite + the 486 row fixture
 ## Limitations and what i would do next
 
 * The eval has no human relevance labels. Keyword rules catch the wrong product type,
-  they don't catch an ugly one. Labelling the 28 queries is the first thing i'd do with
+  they don't catch an ugly one. Labelling the 78 queries is the first thing i'd do with
   another day, its the obvious gap.
 * No product taxonomy. The planner's keywords and the embeddings carry the type
   constraint; a cheap title-based type classifier would make the filters harder.

@@ -13,8 +13,10 @@ aws s3api put-public-access-block --bucket "$BUCKET" \
 COPYFILE_DISABLE=1 git archive --format=tar.gz -o /tmp/stylist-src.tar.gz HEAD
 aws s3 cp /tmp/stylist-src.tar.gz "s3://$BUCKET/src/stylist-src.tar.gz"
 
-# index: pack the local popular-100K build (COPYFILE_DISABLE stops macOS tar from
-# smuggling AppleDouble ._* files in, which the loader would rightly refuse)
-COPYFILE_DISABLE=1 tar --exclude '._*' -czf /tmp/stylist-index.tar.gz -C data index
+# index: pack the full-catalog build, renamed to `index` so the boot path on the box
+# never changes (bsd tar's -s does the rename; COPYFILE_DISABLE and the exclude stop
+# macOS from smuggling AppleDouble ._* files in, which the loader would rightly refuse)
+COPYFILE_DISABLE=1 tar --exclude '._*' -czf /tmp/stylist-index.tar.gz \
+  -s '|^index_full|index|' -C data index_full
 aws s3 cp /tmp/stylist-index.tar.gz "s3://$BUCKET/index/stylist-index.tar.gz"
 echo "artifacts uploaded to s3://$BUCKET"

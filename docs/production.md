@@ -1,9 +1,10 @@
 # Production notes: what it costs, how it scales, what to add
 
-Everything below is measured on this code, on the popular-100K index, unless its marked as an
-estimate. Raw numbers: `docs/bench_cpu.json`, `docs/bench_mps.json`,
-`docs/live_run_sonnet.json`. The deck (`docs/overview.html`, slides 11 to 16) has the same
-content in table form.
+Everything below is measured on this code, on the popular-100K index (the local
+benchmark build), unless its marked as an estimate. The deployed service serves the
+full 826,108-row index; its numbers live in `docs/aws-latency.md`, round four. Raw
+numbers: `docs/bench_cpu.json`, `docs/bench_mps.json`, `docs/live_run_sonnet.json`.
+The deck (`docs/overview.html`, slides 11 to 16) has the same content in table form.
 
 ## Latency and throughput, measured
 

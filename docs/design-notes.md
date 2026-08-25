@@ -41,9 +41,11 @@ Popular-first, stated everywhere:
 
 Popular-first is a bias, i know. The defence is the table above: the listings with many
 ratings are the ones with prices, features and a department, which is exactly what the
-LLM needs to explain a pick. The evaluation doc compares the three indexes on the same 20
+LLM needs to explain a pick. The evaluation doc compares the three indexes on the same
 queries so the cost of the bias is visible instead of hidden. Every response also carries
-`index_info.sampling`, so a client can tell which index answered.
+`index_info.sampling`, so a client can tell which index answered. Once that comparison
+priced the bias (brand queries only fully work on the full catalog), the deployed
+service moved to all 826,108 rows; popular-first stays as the quick build.
 
 ## Retrieval: hybrid, and why masks come before top-N
 

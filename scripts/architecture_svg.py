@@ -196,7 +196,7 @@ y = 0
 svg.append(
     f'<text x="{M}" y="44" class="title">Fashion stylist: how the service is built and how a request moves through it</text>'
 )
-_SUBTITLE = 'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM (brand and all), retrieves per slot with dense + BM25 search over 100,000 indexed listings behind a type gate, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, dotted boxes are the external LLM services. Lane 3 is the AWS serving path from the AWS_deployment branch, measured from a client in Japan.'
+_SUBTITLE = 'POST /recommend takes a sentence like "an outfit for the beach this summer under $150", plans 1 to 5 product slots with an LLM (brand and all), retrieves per slot with dense + BM25 search over all 826,108 indexed listings behind a type gate, reranks each slot with an LLM, and returns k products per slot with reasons. Solid arrows carry data, dashed arrows are LLM calls (both directions), grey boxes are files on disk, dotted boxes are the external LLM services. Lane 3 is the AWS serving path from the AWS_deployment branch, measured from a client in Japan.'
 for _i, _line in enumerate(wrap(_SUBTITLE, 12.5, WIDTH - 2 * M)):
     svg.append(f'<text x="{M}" y="{62 + _i * 16}" class="sub">{escape(_line)}</text>')
 
@@ -207,7 +207,7 @@ off.append(
     Box(
         "cmd",
         "Commands (Makefile)",
-        "make data: download the 224 MB gzip from the McAuley lab mirror\nmake ingest: stylist ingest\nmake index: stylist build-index --limit 100000 --sampling popular\nmake demo: 486 row fixture + hash embedder, no model download",
+        "make data: download the 224 MB gzip from the McAuley lab mirror\nmake ingest: stylist ingest\nmake index-full: all 826,108 rows (what production serves); make index: quick 100K popular build\nmake demo: 486 row fixture + hash embedder, no model download",
         colx(0),
         lane1_y + 46,
         BW,
@@ -252,18 +252,18 @@ off.append(
     Box(
         "build",
         "stylist build-index (index.py)",
-        "pick rows: popular 100K (default), random, or all (Arrow side, nothing else materialised)\nembed doc_text with BAAI/bge-small-en-v1.5: 384-d, L2 normalised, batches of 128\nBM25 (bm25s) over the same text\nsha256 of every file into meta.json",
+        "pick rows: all 826,108 (served), popular 100K or random for quick builds (Arrow side, nothing else materialised)\nembed doc_text with BAAI/bge-small-en-v1.5: 384-d, L2 normalised, batches of 128\nBM25 (bm25s) over the same text\nsha256 of every file into meta.json",
         colx(4),
         lane1_y + 46,
         BW,
-        small="2.7 min for 100K rows on a laptop GPU; built in a scratch dir, swapped in at the end",
+        small="18.4 min for all rows on a laptop GPU (2.6 for 100K); built in a scratch dir, swapped in at the end",
     )
 )
 off.append(
     Box(
         "idx",
         "data/index/ (ships as one tarball)",
-        "embeddings.npy float16 (100000 x 384)\nrow_ids.npy int64\ncatalog.parquet: the indexed rows, serving columns\nbm25/\nmeta.json: pipeline version, model + revision, dim, counts, sampling, checksums",
+        "embeddings.npy float16 (826108 x 384)\nrow_ids.npy int64\ncatalog.parquet: the indexed rows, serving columns\nbm25/\nmeta.json: pipeline version, model + revision, dim, counts, sampling, checksums",
         colx(5),
         lane1_y + 46,
         BW,
@@ -338,16 +338,16 @@ on["merge"] = Box(
 on["retr"] = Box(
     "retr",
     "3. Retriever (retrieval.py)",
-    "all slot queries embedded in one batch, ONE matmul Q (5 x 384) against E (384 x 100K)\nBM25 score for every row\naudience + price masks applied before top-100\nreciprocal rank fusion (k = 60), + keyword boost, - exclude penalty, + Bayesian rating prior, + audience match\ntype gate for LLM plans (only title type matches once k exist); a named brand ranked first, other brands follow with a warning\none row per variant group (group_key from the title)",
+    "all slot queries embedded in one batch, ONE matmul Q (5 x 384) against E (384 x 826K)\nBM25 score for every row\naudience + price masks applied before top-100\nreciprocal rank fusion (k = 60), + keyword boost, - exclude penalty, + Bayesian rating prior, + audience match\ntype gate for LLM plans (only title type matches once k exist); a named brand ranked first, other brands follow with a warning\none row per variant group (group_key from the title)",
     colx(4),
     r1,
     BW,
-    small="50 to 300 ms; unpriced pool ranked alongside and flagged when allowed",
+    small="about 110 to 300 ms on the full catalog; unpriced pool ranked alongside and flagged when allowed",
 )
 on["mem"] = Box(
     "mem",
     "In memory (loaded once)",
-    "SearchIndex: embeddings float32 (100K x 384), bm25s index, serving catalog (pandas), row_ids\nembedding model bge-small-en-v1.5 (query prefix), CPU or GPU\ncolumn caches for the masks, group keys memoised",
+    "SearchIndex: embeddings float32 (826K x 384), bm25s index, serving catalog (pandas), row_ids\nembedding model bge-small-en-v1.5 (query prefix), CPU or GPU\ncolumn caches for the masks, group keys memoised",
     colx(5),
     r1,
     BW,
@@ -395,7 +395,7 @@ on["rerank"] = Box(
 on["notes"] = Box(
     "notes",
     "Timing and fallbacks (laptop M4, claude-sonnet-4-6)",
-    "plan 3 to 7 s (cached: 0 ms), retrieve 0.05 to 0.3 s, rerank 3 to 7 s, total 6 to 12 s\nuse_llm=false: regex plan + retrieval only, < 1 s\nany LLM failure degrades one stage, never the request; every fallback is a warning in the response",
+    "plan 3 to 7 s (cached: 0 ms), retrieve 0.1 to 0.3 s, rerank 3 to 7 s, total 6 to 12 s\nuse_llm=false: regex plan + retrieval only, < 1 s\nany LLM failure degrades one stage, never the request; every fallback is a warning in the response",
     colx(5),
     r2,
     BW,
@@ -517,7 +517,7 @@ aws["cf"] = Box(
 aws["ec2"] = Box(
     "ec2",
     "EC2 origin (Tokyo)",
-    "c7i.xlarge in ap-northeast-1a, elastic IP\nsystemd runs 2 uvicorn workers, no docker: the box boots from a source tarball in S3\nwarmup on every restart: two passes over the six UI examples\nport 8000 admits CloudFront origin-facing ranges and nothing else",
+    "c7i.xlarge in ap-northeast-1a, elastic IP\nsystemd runs one uvicorn worker (the full 826K index is 3.3 GB a process), no docker: the box boots from S3 tarballs\nwarmup on every restart: two passes over the six UI examples\nport 8000 admits CloudFront origin-facing ranges and nothing else",
     colx(2),
     r3,
     BW,
@@ -544,8 +544,8 @@ aws["bedrock"] = Box(
 )
 aws["nums"] = Box(
     "nums",
-    "Measured (exp01 to exp19)",
-    "steady keep-alive p50 57 ms, warm repeat 13 to 44 ms\ncold unique 210 ms, paraphrase 116 ms, all under the 0.5 s target\n40 req/s at c=8, zero errors, 2 workers kept after a 1-vs-2 ramp\nquality on the 28 eval queries: match@4 micro 0.772 with Lite, 0.705 with Micro\nabout $4 a day; deploy/aws/99_teardown.sh removes everything",
+    "Measured (exp01 to exp26)",
+    "full 826,108-row catalog: steady keep-alive p50 13 ms, fresh TLS 36.5 ms\ncold unique 464 ms; an uncached answer on an LLM plan costs 0.7 to 1.0 s\nrepeat ramp 36 to 48 ms p50 at c=1..8; unique cold saturates near 3.8 req/s\nquality, original 28 queries: match@4 micro 0.819, success 0.57 (extended 78: 0.666)\nabout $4 a day; deploy/aws/99_teardown.sh removes everything",
     colx(5),
     r3,
     BW,

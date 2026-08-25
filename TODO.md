@@ -54,12 +54,13 @@ from something an SRE team would sign off on.
 ## P1: hardening
 
 ### 6. Shared cache
-* Problem: each worker warms its own plan / semantic / response caches. Cold
-  queries flip answers for about a second; more replicas make it worse.
+* Problem: the plan / semantic / response caches and the rate limiter live in one
+  process. Coherent with today's single full-index worker, but any second worker
+  or replica splits them again (cold answers flip, limits multiply).
 * Solution: ElastiCache Redis for the exact-plan and response caches and the
   rate limiter; the semantic cache stays in-process (it needs the vectors) with
   Redis-backed plan bodies. Cache keys already carry prompt version.
-* Plan: 1-2 days. Also makes the limiter global (today burst doubles per worker).
+* Plan: 1-2 days, a prerequisite for any scale-out.
 
 ### 7. Edge protections
 * Problem: rate limiting is in-process; no WAF; origin reachable over plain http
@@ -127,13 +128,15 @@ from something an SRE team would sign off on.
   over-fetch, int8 embeddings (4x memory cut), row-group serving.
 * Plan: when the catalog demands it, 1 week.
 
-### 16. Cost hygiene
-* Problem: no budget alarm; the demo box is oversized for steady load.
-* Solution: AWS Budgets alert at $50/mo; c7i.large (half cost) until unique-query
-  load says otherwise (measured ceiling 10-13 req/s on xlarge, halve it);
-  Savings Plan when the shape settles; S3 lifecycle on old artifacts. Token
+### 16. Cost and capacity sizing
+* Problem: no budget alarm, and the box shape is now memory-bound: the full
+  826K index costs 3.3 GB a worker, so 8 GB holds exactly one (cold ceiling
+  ~3.8 req/s, one failure domain).
+* Solution: AWS Budgets alert at $50/mo; for capacity either a 16 GB instance
+  (c7i.2xlarge restores two workers and doubles cold throughput, ~2x cost) or
+  replicas behind the ALB from item 2; S3 lifecycle on old artifacts. Token
   spend is already visible per request.
-* Plan: half a day.
+* Plan: half a day for the alarms; the instance choice rides with item 2.
 
 ### 17. DR and multi-region
 * Problem: one region. The scripts are region generic, but nothing rehearses it.

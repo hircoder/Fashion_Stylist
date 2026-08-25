@@ -1,15 +1,15 @@
 # deploy/aws: everything in this directory, on one page
 
-The AWS deployment kit: five build scripts, one teardown, six probes, and 22
+The AWS deployment kit: five build scripts, one teardown, six probes, and 26
 experiment records. This file is the map and the context; `docs/aws-latency.md`
 tells the story in order.
 
 ## What gets built
 
 Browser -> CloudFront (edge TLS, HTTP/3, `/assets` cached hard, price class All)
--> EC2 origin (c7i.xlarge, systemd, 2 uvicorn workers, no docker, boots from S3
-tarballs) -> Bedrock in the same region (Nova Lite plans in the background, Nova
-Micro reranks on request).
+-> EC2 origin (c7i.xlarge, systemd, one uvicorn worker serving the full
+826,108-row index at 3.3 GB, no docker, boots from S3 tarballs) -> Bedrock in the
+same region (Nova Lite plans in the background, Nova Micro reranks on request).
 
 Security posture, in one breath: port 8000 admits only the CloudFront
 origin-facing prefix list, no ssh keys exist, ops go through SSM, the instance
@@ -20,7 +20,7 @@ role is the only credential, keys never touch the box.
 | script | what it does | the detail that matters |
 |---|---|---|
 | `00_env.sh` | names, region, per-region model + bucket picks | `STYLIST_REGION=ap-northeast-1` flips everything regional; lite plans + micro reranks in apac |
-| `01_artifacts.sh` | source + index tarballs into S3 | `COPYFILE_DISABLE=1` and `--exclude '._*'`: macOS AppleDouble files once broke the loader on EC2 |
+| `01_artifacts.sh` | source + full-index tarballs into S3 | packs `data/index_full` renamed to `index` (the boot path never changes); `COPYFILE_DISABLE=1` and `--exclude '._*'`: macOS AppleDouble files once broke the loader on EC2 |
 | `02_iam.sh` | instance role | s3 read (both buckets via wildcard), bedrock invoke, SSM core. Nothing else |
 | `03_ec2.sh` | SG, instance, elastic IP | AMI via SSM parameter (region safe); public DNS read from describe-instances, never string-built; state written to `.instance.<region>` |
 | `04_cloudfront.sh` | one distribution | CachingDisabled + AllViewerExceptHostHeader for the app, CachingOptimized for `/assets` |
@@ -54,7 +54,7 @@ role is the only credential, keys never touch the box.
 | `test_battery.py` | ten acceptance sections: contract, headers, guardrails, steady, fresh TLS, ramp, soak, restart under traffic, cache ladder, consistency |
 | `profile_retrieval.py` pattern | (scratch, not committed) cProfile replay of a captured plan on the box; found the hydration hot path |
 
-## The experiments (exp01 to exp22)
+## The experiments (exp01 to exp26)
 
 Round one, us-east-1, Nova Micro planning:
 
@@ -87,15 +87,29 @@ Round three, the battery:
 * exp22: quality after the fix, match@4 micro 0.800, success 0.50: ranking did not
   move.
 
+Round four, the full catalog (one worker, the 100K index parked for rollback):
+
+* exp23 battery sections on the full index: steady keep-alive p50 13.0 ms, fresh
+  TLS 36.5 ms, response-cache hits 15 ms, ladder cold 464 ms / uncached planned
+  776 ms, consistency x5 identical. The first run throttled itself: one worker
+  means one token bucket, so the limiter came off for the window and went back.
+* exp24 ramp: repeat 36-48 ms p50 at c=1..8; unique cold saturates ~3.8 req/s
+  (server p50 0.5-1.0 s per uncached five-slot plan).
+* exp25 quality (original 28): micro 0.819, macro 0.872, success 0.571, 28/28.
+* exp26 the extended 78-query set: micro 0.666, macro 0.749, success 0.628, with
+  per-query detail for the class split (outfits 0.41 are the weak spot).
+
 `SUMMARY.json` holds one row per experiment with the headline numbers.
 
 ## Capacity and limits, measured
 
-* Repeat traffic: 36-52 ms p50 from c=1 to c=32, 100 req/s peak per box.
-* Unique cold traffic: 4 vCPUs saturate at 10-13 req/s; size replicas from THIS.
+* Repeat traffic: 36-48 ms p50 on the full catalog, 100 req/s peak per box on the
+  100K rounds.
+* Unique cold traffic: ~3.8 req/s per box on the full catalog (was 10-13 on the
+  100K index); size replicas from THIS.
 * Known limits, stated: single origin (a deploy costs ~7 s of 5xx; failover fixes
-  it), per-worker rate buckets (effective burst doubles), per-worker caches (~1 s
-  of answer flip on cold queries; a shared cache fixes it).
+  it); limits and caches are per process, exact with today's one worker and
+  multiplied by any future replicas; one worker is one failure domain.
 
 ## Runbook
 

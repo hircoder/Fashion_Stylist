@@ -20,7 +20,7 @@ echo "SG=$SG"
 AMI=$(aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 \
       --query Parameter.Value --output text)
 sed -e "s/__BUCKET__/$BUCKET/g" -e "s/__BEDROCK_REGION__/$BEDROCK_REGION/g" \
-    -e "s|__LLM_MODEL__|$LLM_MODEL_DEPLOY|g" \\
+    -e "s|__LLM_MODEL__|$LLM_MODEL_DEPLOY|g" \
     -e "s|__LLM_RERANK_MODEL__|$LLM_RERANK_MODEL_DEPLOY|g" user-data.sh > /tmp/user-data.sh
 
 IID=$(aws ec2 run-instances --image-id "$AMI" --instance-type "$INSTANCE_TYPE" \

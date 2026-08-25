@@ -191,3 +191,51 @@ The rest of the battery:
   round-robin workers and read the split as failure). Consistency x5: identical.
 * Quality rerun after the fix: match@4 micro 0.800, success 0.50, 28/28 plans. The fix
   moved where fields are read, not how rows rank.
+
+
+## Round four: all 826,108 rows
+
+The 100K index was always the pragmatic subset, and the eval had already priced the
+difference (0.885 vs 0.935 on the same plans, every brand query on-brand only on the
+full catalog). Round four moves production onto the full index and re-measures.
+
+The switch, on the same box:
+
+* The full index (818 MB on disk, 3.3 GB in memory per process) went up as its own
+  tarball; the 100K copy stays on the box, so rollback is one rename and a restart.
+* Workers went from 2 to 1: two full-index copies do not fit in 8 GB. Memory after
+  the switch: 3.1 GB used, 4.3 GB spare, load average 0.72 under the probes.
+* One immediate lesson: with one worker there is one token bucket, and the first
+  probe run throttled itself (41 of 50 fresh requests hit 429). The limiter came off
+  for the measurement window, went back after, and the docs now say limits are
+  per process rather than per worker.
+
+The numbers, from the same Japan client through CloudFront (exp23 to exp25):
+
+| path | 100K, 2 workers | full 826K, 1 worker |
+|---|---|---|
+| steady keep-alive p50 | 12.8 ms | 13.0 ms |
+| fresh TLS p50 | 34.9 ms | 36.5 ms |
+| response-cache hit | 13-17 ms | 15 ms |
+| cold unique query | 210 ms | 464 ms |
+| uncached answer on an LLM plan | ~0.4 s | 0.7-1.0 s server-side |
+| unique cold capacity | 10-13 req/s | ~3.8 req/s |
+
+Cached paths did not move: they never touch the matmul, and the response and plan
+caches do the answering. The bill lands entirely on uncached work, roughly the 8.3x
+row count divided by the lost worker. Capacity for unique cold traffic is now ~3.8
+req/s per box, wich replaces the old 10-13 as the replica-sizing number.
+
+Quality moved the right way on every measure (exp25, original 28 queries, Nova Lite
+plans): match@4 micro 0.800 -> 0.819, macro 0.872, success 0.50 -> 0.571, zero empty
+slots, 28/28 plans landed.
+
+exp26 runs the extended 78-query set against the same live service: 0.666 micro /
+0.749 macro / 0.628 success overall, with the original 28 averaging 0.861 inside it
+and the new 50 averaging 0.685. The per-class split names the weak spot: open-ended
+outfit decomposition (0.41) and loose conversational asks (0.48) under a small
+planner, while materials, budgets and the look-alike traps hold 0.81-0.88.
+
+Left open, stated: the cold path now peeks over the 0.5 s target (464 ms is fine;
+0.7-1.0 s on an uncached model plan is not), so the next latency work is retrieval
+(int8 vectors, pre-tokenised bm25) or a 16 GB box that restores the second worker.

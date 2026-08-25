@@ -39,7 +39,8 @@ Environment=SEMANTIC_PLAN_CACHE=1
 Environment=TRUST_PROXY_HEADERS=1
 Environment=RATE_LIMIT_PER_MINUTE=240
 Environment=RESPONSE_CACHE_TTL_S=300
-ExecStart=/opt/stylist/.venv/bin/uvicorn stylist.api:get_app --factory --host 0.0.0.0 --port 8000 --workers 2
+# one worker: the full 826K index is 3.3 GB a process, two copies do not fit in 8 GB
+ExecStart=/opt/stylist/.venv/bin/uvicorn stylist.api:get_app --factory --host 0.0.0.0 --port 8000 --workers 1
 ExecStartPost=-/bin/bash -c '/usr/local/bin/stylist-warmup.sh >> /var/log/stylist-warmup.log 2>&1 &'
 Restart=always
 RestartSec=3
